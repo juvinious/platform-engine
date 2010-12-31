@@ -5,8 +5,6 @@
 #include <vector>
 #include <map>
 
-#include "util/load_exception.h"
-
 /*! Platformers temporary animation class (replace with some other workaround tied into the system later) */
 
 class Bitmap;
@@ -18,7 +16,7 @@ typedef std::map< int, Bitmap *> imageMap;
 
 class Frame{
     public:
-	Frame(const Token *token, imageMap &) throw (LoadException);
+	Frame(const Token *token, imageMap &);
 	Frame(Bitmap *);
 	virtual ~Frame();
 	virtual void draw(int x, int y, const Bitmap &);
@@ -57,7 +55,7 @@ class Frame{
     
 class Animation{
     public:
-	Animation(const Token *) throw (LoadException);
+	Animation(const Token *);
 	~Animation();
 	
 	virtual void act();

@@ -7,10 +7,12 @@
 #include "util/funcs.h"
 #include "util/file-system.h"
 
+#include "util/load_exception.h"
+
 using namespace std;
 using namespace Platformer;
 
-Frame::Frame(const Token *the_token, imageMap &images) throw (LoadException):
+Frame::Frame(const Token *the_token, imageMap &images):
 bmp(0),
 time(0),
 horizontalFlip(false),
@@ -107,7 +109,7 @@ void Frame::draw(int x, int y, const Bitmap & work){
     }
 }
 
-Animation::Animation(const Token *the_token) throw (LoadException):
+Animation::Animation(const Token *the_token):
 id(-1),
 ticks(0),
 currentFrame(0),
