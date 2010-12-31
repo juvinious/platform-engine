@@ -1,4 +1,5 @@
-#include "platformer/camera.h"
+#include "camera.h"
+
 #include "util/bitmap.h"
 #include "util/token.h"
 

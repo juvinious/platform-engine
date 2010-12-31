@@ -1,4 +1,4 @@
-#include "platformer/world.h"
+#include "world.h"
 
 #include "util/bitmap.h"
 

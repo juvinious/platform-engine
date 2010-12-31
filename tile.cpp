@@ -1,4 +1,5 @@
-#include "platformer/tile.h"
+#include "tile.h"
+
 #include "util/bitmap.h"
 #include "util/token.h"
 

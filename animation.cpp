@@ -1,4 +1,4 @@
-#include "platformer/animation.h"
+#include "animation.h"
 
 #include <sstream>
 #include "util/token.h"

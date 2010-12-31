@@ -1,8 +1,8 @@
-#include "platformer/background.h"
+#include "background.h"
 #include "util/bitmap.h"
 #include "util/token.h"
-#include "platformer/camera.h"
-#include "platformer/tile.h"
+#include "camera.h"
+#include "tile.h"
 
 using namespace Platformer;
 
