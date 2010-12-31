@@ -65,8 +65,8 @@ class Animation{
 	virtual void forwardFrame();
 	virtual void backFrame();
 	
-	virtual inline const std::string & getName() const {
-	    return this->name;
+	virtual inline const int & getId() const {
+	    return this->id;
 	}
 	
 	virtual inline void setFrame(int frame){
@@ -77,8 +77,8 @@ class Animation{
 	    this->currentFrame = 0;
 	}
     private:
-	/*! Name of Animation */
-	std::string name;
+	/*! Identifier for Animation */
+	int id;
 	/*! Ticks of current frame (No increment if frame time is -1) */
 	int ticks;
 	/*! Current Frame */

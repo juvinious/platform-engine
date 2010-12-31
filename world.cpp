@@ -1,5 +1,8 @@
 #include "world.h"
 
+#include "animation.h"
+#include "camera.h"
+
 #include "util/bitmap.h"
 
 using namespace Platformer;

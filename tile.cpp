@@ -1,4 +1,5 @@
 #include "tile.h"
+#include "animation.h"
 
 #include "util/bitmap.h"
 #include "util/token.h"
@@ -18,4 +19,7 @@ void Tile::act(){
 }
 
 void Tile::draw(const Bitmap & bmp){
+}
+
+void Tile::setAnimation(Animation * anim){
 }

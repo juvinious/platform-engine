@@ -108,6 +108,7 @@ void Frame::draw(int x, int y, const Bitmap & work){
 }
 
 Animation::Animation(const Token *the_token) throw (LoadException):
+id(-1),
 ticks(0),
 currentFrame(0),
 loop(0){
@@ -120,7 +121,7 @@ loop(0){
 	The images must be listed prior to listing any frames, basedir can be used to set the directory where the images are located
 	loop will begin at the subsequent frame listed after loop
 	
-	(anim (name Name) 
+	(anim (id NUM) 
 	      (basedir LOCATION)
 	      (image NUM FILE) 
 	      (frame "Read comments above in constructor") 
@@ -132,9 +133,9 @@ loop(0){
         try{
             const Token * token;
             view >> token;
-            if (*token == "name"){
+            if (*token == "id"){
                 // get the name
-                token->view() >> name;
+                token->view() >> id;
             } else if (*token == "basedir"){
                 // set the base directory for loading images
                 token->view() >> basedir;
@@ -168,8 +169,8 @@ loop(0){
             throw ex;
         }
     }
-    if (name.empty()){
-	throw LoadException(__FILE__, __LINE__, "The animation has no name.");
+    if (id == -1){
+	throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a number.");
     }
     if (loop >= frames.size()){
         ostringstream out;

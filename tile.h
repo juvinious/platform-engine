@@ -10,6 +10,8 @@ class Token;
 
 namespace Platformer{
     
+class Animation;
+    
 class Tile{
     public:
 	Tile();
@@ -17,8 +19,10 @@ class Tile{
 	virtual ~Tile();
 	virtual void act();
 	virtual void draw(const Bitmap &);
+	
+	virtual void setAnimation(Animation *);
     private:
-	std::string animation;
+	Animation * animation;
 	int width;
 	int height;
 	

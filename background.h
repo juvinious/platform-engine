@@ -34,9 +34,9 @@ class Background{
 	tileMap tiles;
 	//! Image
 	Bitmap * image;
-	//! Used to determine the X offset from where the camera is set
+	//! X Velocity - Used to determine the X offset from where the camera is set
 	double scrollX;
-	//! Used to determine the X offset from where the camera is set
+	//! Y Velocity - Used to determine the X offset from where the camera is set
 	double scrollY;
 };
 }
