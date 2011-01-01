@@ -19,7 +19,7 @@ typedef std::map< int, std::map< int, Tile *> > tileMap;
     
 class Background{
     public:
-	Background(Token *);
+	Background(const Token *);
 	virtual ~Background();
 	virtual void act();
 	virtual void draw(const Camera &, const Bitmap &);

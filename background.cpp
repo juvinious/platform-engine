@@ -6,7 +6,7 @@
 
 using namespace Platformer;
 
-Background::Background(Token * token):
+Background::Background(const Token * token):
 type(Tiles),
 image(0){
 }

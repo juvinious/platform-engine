@@ -6,6 +6,9 @@
 #include <map>
 
 class Bitmap;
+namespace Filesystem{
+class AbsolutePath;
+}
 class Token;
 
 /*! Platformers world class */
@@ -13,16 +16,18 @@ class Token;
 namespace Platformer{
     
 class Animation;
+class Background;
 class Camera;
     
 class World{
     public:
-	World();
-	World(Token *);
+	World(const Token *);
 	virtual ~World();
 	virtual void act();
 	virtual void draw(const Bitmap &);
-    private:
+    protected:
+	virtual void load(const Filesystem::AbsolutePath &);
+	virtual void load(const Token *);
 	//! Name
 	std::string name;
 	//! Resolution of map (upscaled/downscaled according to paintowns screensize)
@@ -38,6 +43,9 @@ class World{
 	
 	//! Animation map
 	std::map< int, Animation *> animations;
+	
+	//! Backgrounds
+	std::vector< Background *> backgrounds;
 };
 }
 #endif
