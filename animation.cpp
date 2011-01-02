@@ -158,7 +158,14 @@ loop(0){
                 frames.push_back(frame);
             } else if (*token == "loop"){
                 // start loop here
-                loop = frames.size();
+                int l;
+                token->view() >> l;
+		if (l >= frames.size()){
+		    ostringstream out;
+		    out << "Loop location is larger than the number of frames. Loop: " << loop << " Frames: " << frames.size();
+		    throw LoadException(__FILE__, __LINE__, out.str());
+		}
+		loop = l;
             } else {
                 Global::debug( 3 ) << "Unhandled menu attribute: "<<endl;
                 if (Global::getDebug() >= 3){
