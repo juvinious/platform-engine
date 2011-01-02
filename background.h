@@ -14,27 +14,25 @@ namespace Platformer{
 
 class Animation;
 class Camera;
-class Tile;
-    
-typedef std::map< int, std::map< int, Tile *> > tileMap;
+class TileManager;
     
 class Background{
     public:
-	Background(const Token *, const std::map< int, Animation *> &);
+	Background(const Token *, std::map< int, Animation *> &);
 	virtual ~Background();
 	virtual void act();
-	virtual void draw(const Camera &, const Bitmap &);
+	virtual void draw(const Camera &);
 	enum Type { 
-	    Image=0,
+	    Anim=0,
 	    Tileset,
 	};
     private:
 	//! Type of background (uses tiles or an image)
 	Type type;
 	//! Tileset
-	tileMap tiles;
+	TileManager * tiles;
 	//! Image
-	Bitmap * image;
+	Animation * animation;
 	//! X Velocity - Used to determine the X offset from where the camera is set
 	double scrollX;
 	//! Y Velocity - Used to determine the X offset from where the camera is set

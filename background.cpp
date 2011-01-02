@@ -10,9 +10,10 @@
 using namespace std;
 using namespace Platformer;
 
-Background::Background(const Token * token, const std::map< int, Animation *> & animations):
+Background::Background(const Token * token, std::map< int, Animation *> & animations):
 type(Tileset),
-image(0){
+tiles(0),
+animation(0){
     TokenView view = token->view();
     while (view.hasMore()){
         try{
@@ -22,21 +23,27 @@ image(0){
 		std::string typeTemp;
                 // get the name
                 tok->view() >> typeTemp;
-		if (typeTemp == "image"){
-		    type = Image;
+		if (typeTemp == "animation"){
+		    type = Anim;
 		} else if (typeTemp == "tileset"){
 		    type = Tileset;
 		} else {
 		    throw LoadException(__FILE__, __LINE__, "Background parse error, unknown type given: " + type);
 		}
-            } else {
+            } else if (*tok == "animation"){
+		int num = 0;
+		tok->view() >> num;
+		animation = animations[num];
+	    } else if (*tok == "tileset"){
+		tiles = new TileManager(tok, animations);
+	    } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<< endl;
                 if (Global::getDebug() >= 3){
                     token->print(" ");
                 }
             }
         } catch ( const TokenException & ex ) {
-            throw LoadException(__FILE__, __LINE__, ex, "World parse error");
+            throw LoadException(__FILE__, __LINE__, ex, "Background parse error");
         } catch ( const LoadException & ex ) {
             throw ex;
         }
@@ -49,5 +56,5 @@ Background::~Background(){
 void Background::act(){
 }
 
-void Background::draw(const Camera & camera, const Bitmap & bmp){
+void Background::draw(const Camera & camera){
 }
