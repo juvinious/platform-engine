@@ -53,6 +53,7 @@ void World::load(const Token * token){
             if (*tok == "name"){
                 // get the name
                 token->view() >> name;
+		Global::debug(0, "Platformer") << "Loading :" << name << endl;
             } else if (*tok == "resolution"){
                 // Get the resolution of the world
                 token->view() >> resolutionX >> resolutionY;
@@ -84,6 +85,17 @@ void World::load(const Token * token){
 }
 
 World::~World(){
+    for (std::map< int, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
+        if (i->second){
+            delete i->second;
+        }
+    }
+    
+    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+	if (*i){
+	    delete *i;
+	}
+    }
 }
 
 void World::act(){
