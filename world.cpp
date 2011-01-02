@@ -46,7 +46,6 @@ void World::load(const Filesystem::AbsolutePath & filename){
 
 void World::load(const Token * token){
     TokenView view = token->view();
-    Global::debug(0, "Platformer") << "Trying :" << token->getName() << endl;
     while (view.hasMore()){
         try{
             const Token * tok;
@@ -69,7 +68,7 @@ void World::load(const Token * token){
 		Animation * animation = new Animation(tok);
 		animations[animation->getId()] = animation;
 	    } else if (*tok == "background"){
-		Background * background = new Background(tok);
+		Background * background = new Background(tok, animations);
 		backgrounds.push_back(background);
 	    } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;

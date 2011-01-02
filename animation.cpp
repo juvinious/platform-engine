@@ -181,11 +181,6 @@ loop(0){
     if (id == -1){
 	throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a number.");
     }
-    if (loop >= frames.size()){
-        ostringstream out;
-        out << "Loop location is larger than the number of frames. Loop: " << loop << " Frames: " << frames.size();
-        throw LoadException(__FILE__, __LINE__, out.str());
-    }
 }
 
 Animation::~Animation(){

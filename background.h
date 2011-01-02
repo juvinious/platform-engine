@@ -12,20 +12,21 @@ class Token;
 
 namespace Platformer{
 
-class Tile;
+class Animation;
 class Camera;
+class Tile;
     
 typedef std::map< int, std::map< int, Tile *> > tileMap;
     
 class Background{
     public:
-	Background(const Token *);
+	Background(const Token *, const std::map< int, Animation *> &);
 	virtual ~Background();
 	virtual void act();
 	virtual void draw(const Camera &, const Bitmap &);
 	enum Type { 
 	    Image=0,
-	    Tiles,
+	    Tileset,
 	};
     private:
 	//! Type of background (uses tiles or an image)
