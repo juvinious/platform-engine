@@ -46,20 +46,21 @@ void World::load(const Filesystem::AbsolutePath & filename){
 
 void World::load(const Token * token){
     TokenView view = token->view();
+    Global::debug(0, "Platformer") << "Trying :" << token->getName() << endl;
     while (view.hasMore()){
         try{
             const Token * tok;
             view >> tok;
             if (*tok == "name"){
                 // get the name
-                token->view() >> name;
+                tok->view() >> name;
 		Global::debug(0, "Platformer") << "Loading :" << name << endl;
             } else if (*tok == "resolution"){
                 // Get the resolution of the world
-                token->view() >> resolutionX >> resolutionY;
+                tok->view() >> resolutionX >> resolutionY;
             } else if (*tok == "dimensions"){
                 // Get the dimensions of the world
-                token->view() >> dimensionsX >> dimensionsY;
+                tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "players"){
 		// Handle player info eventually
             } else if (*tok == "camera"){
