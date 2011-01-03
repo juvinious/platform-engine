@@ -17,16 +17,25 @@ class Camera;
 class Tile{
 public:
     Tile();
-    Tile(Token *, std::map< int, Animation *> &);
+    Tile(const Token *, std::map< int, Animation *> &);
     virtual ~Tile();
     virtual void act();
-    virtual void draw(const Bitmap &);
+    virtual void draw(int x, int y, const Bitmap &);
     
     virtual void setAnimation(Animation *);
+    
+    virtual inline const int getRow() const {
+	return this->row;
+    }
+    
+    virtual inline const int getColumn() const {
+	return this->column;
+    }
 private:
     Animation * animation;
-    int width;
-    int height;
+    // Placement
+    int row;
+    int column;
     
     // Add attributes
 };
@@ -41,8 +50,10 @@ public:
     virtual ~TileManager();
     
     virtual void act();
-    virtual void draw(const Camera &);
+    virtual void draw(int scrollx, int scrolly, const Camera &);
 protected:
+    int tileX;
+    int tileY;
     int dimensionsX;
     int dimensionsY;
     tileMap tiles;
