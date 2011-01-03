@@ -1,11 +1,13 @@
 #include "background.h"
-#include "util/bitmap.h"
-#include "util/token.h"
+
+#include "animation.h"
 #include "camera.h"
 #include "tile.h"
 
+#include "util/bitmap.h"
 #include "util/debug.h"
 #include "util/load_exception.h"
+#include "util/token.h"
 
 using namespace std;
 using namespace Platformer;
@@ -13,7 +15,9 @@ using namespace Platformer;
 Background::Background(const Token * token, std::map< int, Animation *> & animations):
 type(Tileset),
 tiles(0),
-animation(0){
+animation(0),
+scrollX(0),
+scrollY(0){
     TokenView view = token->view();
     while (view.hasMore()){
         try{
@@ -36,6 +40,10 @@ animation(0){
 		animation = animations[num];
 	    } else if (*tok == "tileset"){
 		tiles = new TileManager(tok, animations);
+	    } else if (*tok == "scroll-x"){
+		tok->view() >> scrollX;
+	    } else if (*tok == "scroll-y"){
+		tok->view() >> scrollY;
 	    } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<< endl;
                 if (Global::getDebug() >= 3){
@@ -57,4 +65,28 @@ void Background::act(){
 }
 
 void Background::draw(const Camera & camera){
+    switch (type){
+	case Anim:
+	    drawAnimation(camera);
+	    break;
+	case Tileset:
+	    drawTileset(camera);
+	    break;
+	default:
+	    break;
+    }
+}
+
+void Background::drawAnimation(const Camera & camera){
+    if (animation){
+	const int x = scrollX * camera.getX();
+	const int y = scrollY * camera.getY();
+	const int w = camera.getWindow().getWidth();
+	const int h = camera.getWindow().getHeight();
+	animation->getBitmap().BlitMasked(x,y,w,h,0,0,camera.getWindow());
+    }
+}
+
+void Background::drawTileset(const Camera & camera){
+    tiles->draw(camera);
 }

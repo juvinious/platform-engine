@@ -64,6 +64,8 @@ void World::load(const Token * token){
 		// Handle player info eventually
             } else if (*tok == "camera"){
                 // Handle camera info
+                Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
+		cameras[camera->getId()] = camera;
             } else if (*tok == "anim"){
 		Animation * animation = new Animation(tok);
 		animations[animation->getId()] = animation;
@@ -85,6 +87,12 @@ void World::load(const Token * token){
 }
 
 World::~World(){
+    for (std::map< int, Camera *>::iterator i = cameras.begin(); i != cameras.end(); ++i){
+        if (i->second){
+            delete i->second;
+        }
+    }
+    
     for (std::map< int, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
         if (i->second){
             delete i->second;
@@ -99,7 +107,42 @@ World::~World(){
 }
 
 void World::act(){
+    cameras[0]->act();
+    
+    for (std::map< int, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
+	Animation * animation = i->second;
+        if (animation){
+            animation->act();
+        }
+    }
+    
+    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+	Background * background = *i;
+	if (background){
+	    background->act();
+	}
+    }
 }
 
 void World::draw(const Bitmap & bmp){
+    // FIXME Must correct so that cameras are handled properly
+    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+	Background * background = *i;
+	if (background){
+	    background->draw(*cameras[0]);
+	}
+    }
+    Bitmap temp = Bitmap::temporaryBitmap(resolutionX, resolutionY);
+    cameras[0]->draw(temp);
+    temp.Stretch(bmp);
+}
+
+void World::moveCamera(int x, int y){
+    // FIXME this needs to change to accomodate the cameras accordingly
+    cameras[0]->move(x,y);
+}
+
+const Camera & World::getCamera(int number){
+    // FIXME this needs to change to accomodate the cameras accordingly
+    return *cameras[number];
 }

@@ -25,6 +25,12 @@ class World{
 	virtual ~World();
 	virtual void act();
 	virtual void draw(const Bitmap &);
+	
+	virtual void moveCamera(int x, int y);
+	
+	//! FIXME HANDLE Cameras correctly later
+	virtual const Camera & getCamera(int number);
+	
     protected:
 	virtual void load(const Filesystem::AbsolutePath &);
 	virtual void load(const Token *);
@@ -39,7 +45,7 @@ class World{
 	// Player info
 	
 	//! Cameras
-	std::vector< Camera * > cameras;
+	std::map< int, Camera * > cameras;
 	
 	//! Animation map
 	std::map< int, Animation *> animations;

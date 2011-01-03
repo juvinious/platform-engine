@@ -146,6 +146,7 @@ loop(0){
                 int number;
                 std::string temp;
                 token->view() >> number >> temp;
+		Global::debug(1, "Platformer") << "Loading image for animation number: " << id << ". Image: " << temp << endl;
                 Bitmap *bmp = new Bitmap(Filesystem::find(Filesystem::RelativePath(basedir + temp)).path());
                 if (bmp->getError()){
                     delete bmp;
@@ -160,14 +161,14 @@ loop(0){
                 // start loop here
                 int l;
                 token->view() >> l;
-		if (l >= frames.size()){
+		if (l >= (int)frames.size()){
 		    ostringstream out;
 		    out << "Loop location is larger than the number of frames. Loop: " << loop << " Frames: " << frames.size();
 		    throw LoadException(__FILE__, __LINE__, out.str());
 		}
 		loop = l;
             } else {
-                Global::debug( 3 ) << "Unhandled menu attribute: "<<endl;
+                Global::debug( 3 ) << "Unhandled Animation attribute: "<<endl;
                 if (Global::getDebug() >= 3){
                     token->print(" ");
                 }
@@ -222,4 +223,8 @@ void Animation::backFrame(){
     } else {
 	    currentFrame = frames.size() - 1;
     }
+}
+
+const Bitmap & Animation::getBitmap() const {
+    return frames[currentFrame]->getBitmap();
 }

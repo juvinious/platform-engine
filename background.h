@@ -26,7 +26,7 @@ class Background{
 	    Anim=0,
 	    Tileset,
 	};
-    private:
+    protected:
 	//! Type of background (uses tiles or an image)
 	Type type;
 	//! Tileset
@@ -37,6 +37,12 @@ class Background{
 	double scrollX;
 	//! Y Velocity - Used to determine the X offset from where the camera is set
 	double scrollY;
+	
+	//! Render Animation
+	void drawAnimation(const Camera &);
+	
+	//! Render tileset
+	void drawTileset(const Camera &);
 };
 }
 #endif

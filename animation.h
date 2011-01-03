@@ -21,6 +21,10 @@ class Frame{
 	virtual ~Frame();
 	virtual void draw(int x, int y, const Bitmap &);
 	
+	virtual inline const Bitmap & getBitmap() const {
+	    return *this->bmp;
+	}
+	
 	virtual inline void setTime(int time){
 	    this->time = time;
 	}
@@ -62,6 +66,8 @@ class Animation{
 	virtual void draw(int x, int y, const Bitmap &);
 	virtual void forwardFrame();
 	virtual void backFrame();
+	
+	virtual const Bitmap & getBitmap() const;
 	
 	virtual inline const int & getId() const {
 	    return this->id;
