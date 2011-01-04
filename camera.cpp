@@ -22,6 +22,9 @@ windowWidth(windowWidth),
 windowHeight(windowHeight),
 window(0),
 scrollSpeed(2),
+currentXSpeed(0),
+currentYSpeed(0),
+velocity(.5),
 follow(false),
 followVariance(1.5){
     TokenView view = token->view();
@@ -44,6 +47,9 @@ followVariance(1.5){
             } else if (*tok == "speed"){
 		// Scroll speed
 		tok->view() >> scrollSpeed;
+	    } else if (*tok == "velocity"){
+		// Scroll speed
+		tok->view() >> velocity;
 	    } else if (*tok == "follow-variance"){
 		// Follow variance of the camera when following an object
 		tok->view() >> followVariance;
@@ -87,25 +93,33 @@ void Camera::move(int x, int y){
 void Camera::act(){
     // Update camera to whatever object it may be following or to set destination
     if (currentX < x){
-	currentX+=scrollSpeed;
+	currentXSpeed+=velocity;
+	currentX+=scrollSpeed+currentXSpeed;
 	if (currentX > x){
 	    currentX = x;
+	    currentXSpeed = 0;
 	}
     } else if (currentX > x){
-	currentX-=scrollSpeed;
+	currentXSpeed+=velocity;
+	currentX-=scrollSpeed+currentXSpeed;
 	if (currentX < x){
 	    currentX = x;
+	    currentXSpeed = 0;
 	}
     }
     if (currentY < y){
-	currentY+=scrollSpeed;
+	currentYSpeed+=velocity;
+	currentY+=scrollSpeed+currentYSpeed;
 	if (currentY > y){
 	    currentY = y;
+	    currentYSpeed = 0;
 	}
     } else if (currentY > y){
-	currentY-=scrollSpeed;
+	currentYSpeed+=velocity;
+	currentY-=scrollSpeed+currentYSpeed;
 	if (currentY < y){
 	    currentY = y;
+	    currentYSpeed = 0;
 	}
     }
 }

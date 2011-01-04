@@ -69,6 +69,9 @@ class Camera{
 	Bitmap * window;
 	
 	double scrollSpeed;
+	double currentXSpeed;
+	double currentYSpeed;
+	double velocity;
 	
 	bool follow;
 	double followVariance;
