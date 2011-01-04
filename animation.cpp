@@ -110,7 +110,6 @@ void Frame::draw(int x, int y, const Bitmap & work){
 }
 
 Animation::Animation(const Token *the_token):
-id(-1),
 ticks(0),
 currentFrame(0),
 loop(0){
@@ -179,8 +178,8 @@ loop(0){
             throw ex;
         }
     }
-    if (id == -1){
-	throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a number.");
+    if (id.empty()){
+	throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a name.");
     }
 }
 

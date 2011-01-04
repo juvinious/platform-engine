@@ -12,7 +12,7 @@
 using namespace std;
 using namespace Platformer;
 
-Background::Background(const Token * token, std::map< int, Animation *> & animations):
+Background::Background(const Token * token, std::map< std::string, Animation *> & animations):
 type(Tileset),
 tiles(0),
 animation(0),
@@ -35,9 +35,9 @@ scrollY(0){
 		    throw LoadException(__FILE__, __LINE__, "Background parse error, unknown type given: " + type);
 		}
             } else if (*tok == "animation"){
-		int num = 0;
-		tok->view() >> num;
-		animation = animations[num];
+		std::string name;
+		tok->view() >> name;
+		animation = animations[name];
 	    } else if (*tok == "tileset"){
 		tiles = new TileManager(tok, animations);
 	    } else if (*tok == "scroll-x"){

@@ -15,7 +15,7 @@ row(0),
 column(0){
 }
 
-Tile::Tile(const Token * token, std::map< int, Animation *> & animations):
+Tile::Tile(const Token * token, std::map< std::string, Animation *> & animations):
 row(0),
 column(0){
     TokenView view = token->view();
@@ -24,9 +24,9 @@ column(0){
             const Token * tok;
             view >> tok;
             if (*tok == "image"){
-		int num;
-		tok->view() >> num;
-		animation = animations[num];
+		std::string name;
+		tok->view() >> name;
+		animation = animations[name];
             } else if (*tok == "position"){
 		tok->view() >> row >> column;
 	    } else {
@@ -59,7 +59,7 @@ void Tile::setAnimation(Animation * anim){
 }
 
 
-TileManager::TileManager(const Token * token, std::map< int, Animation *> & animations):
+TileManager::TileManager(const Token * token, std::map< std::string, Animation *> & animations):
 tileX(0),
 tileY(0),
 dimensionsX(0),

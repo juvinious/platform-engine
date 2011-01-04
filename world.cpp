@@ -93,7 +93,7 @@ World::~World(){
         }
     }
     
-    for (std::map< int, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
+    for (std::map< std::string, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
         if (i->second){
             delete i->second;
         }
@@ -109,7 +109,7 @@ World::~World(){
 void World::act(){
     cameras[0]->act();
     
-    for (std::map< int, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
+    for (std::map< std::string, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
 	Animation * animation = i->second;
         if (animation){
             animation->act();

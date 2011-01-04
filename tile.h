@@ -17,7 +17,7 @@ class Camera;
 class Tile{
 public:
     Tile();
-    Tile(const Token *, std::map< int, Animation *> &);
+    Tile(const Token *, std::map< std::string, Animation *> &);
     virtual ~Tile();
     virtual void act();
     virtual void draw(int x, int y, const Bitmap &);
@@ -46,7 +46,7 @@ typedef std::map< int, std::map< int, Tile *> > tileMap;
 
 class TileManager{
 public:
-    TileManager(const Token *, std::map< int, Animation *> &);
+    TileManager(const Token *, std::map< std::string, Animation *> &);
     virtual ~TileManager();
     
     virtual void act();

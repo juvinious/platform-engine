@@ -18,7 +18,7 @@ class TileManager;
     
 class Background{
     public:
-	Background(const Token *, std::map< int, Animation *> &);
+	Background(const Token *, std::map< std::string, Animation *> &);
 	virtual ~Background();
 	virtual void act();
 	virtual void draw(const Camera &);

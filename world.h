@@ -48,7 +48,7 @@ class World{
 	std::map< int, Camera * > cameras;
 	
 	//! Animation map
-	std::map< int, Animation *> animations;
+	std::map< std::string, Animation *> animations;
 	
 	//! Backgrounds
 	std::vector< Background *> backgrounds;

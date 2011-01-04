@@ -69,7 +69,7 @@ class Animation{
 	
 	virtual const Bitmap & getBitmap() const;
 	
-	virtual inline const int & getId() const {
+	virtual inline const std::string & getId() const {
 	    return this->id;
 	}
 	
@@ -82,7 +82,7 @@ class Animation{
 	}
     private:
 	/*! Identifier for Animation */
-	int id;
+	std::string id;
 	/*! Ticks of current frame (No increment if frame time is -1) */
 	int ticks;
 	/*! Current Frame */
