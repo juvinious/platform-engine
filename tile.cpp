@@ -75,7 +75,44 @@ dimensionsY(0){
 		tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "tile"){
 		Tile * tile = new Tile(tok, animations);
+		const int row = tile->getRow();
+		const int col = tile->getColumn();
+		// Do first one
 		tiles[tile->getRow()][tile->getColumn()] = tile;
+		// Check repeatables
+		int times = 0;
+		if (tok->match("_/repeat-up", times)){
+		    for (int i = row-1; i >= (row - times); --i){
+			if (i < 0){
+			    break;
+			}
+			tiles[i][tile->getColumn()] = tile;
+		    }
+		}
+		if (tok->match("_/repeat-down", times)){
+		    for (int i = row+1; i <= row + times; ++i){
+			if (i > dimensionsY){
+			    break;
+			}
+			tiles[i][tile->getColumn()] = tile;
+		    }
+		}
+		if (tok->match("_/repeat-left", times)){
+		    for (int i = col-1; i >= (col - times); --i){
+			if (i < 0){
+			    break;
+			}
+			tiles[tile->getRow()][i] = tile;
+		    }
+		}
+		if (tok->match("_/repeat-right", times)){
+		    for (int i = col+1; i <= col + times; ++i){
+			if (i > dimensionsX){
+			    break;
+			}
+			tiles[tile->getRow()][i] = tile;
+		    }
+		}
 	    } else {
                 Global::debug( 3 ) << "Unhandled Tilemap attribute: "<< endl;
                 if (Global::getDebug() >= 3){
@@ -103,14 +140,15 @@ TileManager::~TileManager(){
 void TileManager::act(){
 }
 
-void TileManager::draw(int scrollx, int scrolly, const Camera & camera){
-    const int x = (int)((scrollx * camera.getX())/tileX);
-    const int y = (int)((scrolly * camera.getY())/tileY);
-    const int w = (int)((x + camera.getWindow().getWidth())/tileX);
-    const int h = (int)((y + camera.getWindow().getHeight())/tileY);
-    int posx = x * tileX;
-    int posy = y * tileY;
+void TileManager::draw(const Camera & camera){
+    // Render tiles 
+    const int x = (int)((camera.getX())/tileX);
+    const int y = (int)((camera.getY())/tileY);
+    const int w = x + (int)(camera.getWindow().getWidth()/tileX) + 1;
+    const int h = y + (int)(camera.getWindow().getHeight()/tileY);
+    int posy = y * tileY - camera.getY();
     for(int row = y; row < h; ++row){
+	int posx = x * tileX - camera.getX();
 	for(int column = x; column < w; ++column){
 	    Tile * tile = tiles[row][column];
 	    if (tile){

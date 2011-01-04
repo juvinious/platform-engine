@@ -88,5 +88,5 @@ void Background::drawAnimation(const Camera & camera){
 }
 
 void Background::drawTileset(const Camera & camera){
-    tiles->draw(scrollX, scrollY, camera);
+    tiles->draw(camera);
 }

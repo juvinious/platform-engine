@@ -50,7 +50,7 @@ public:
     virtual ~TileManager();
     
     virtual void act();
-    virtual void draw(int scrollx, int scrolly, const Camera &);
+    virtual void draw(const Camera &);
 protected:
     int tileX;
     int tileY;

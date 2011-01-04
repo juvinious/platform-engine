@@ -33,9 +33,10 @@ class Background{
 	TileManager * tiles;
 	//! Image
 	Animation * animation;
-	//! X Velocity - Used to determine the X offset from where the camera is set
+	
+	//! X Velocity - Used to determine the X offset from where the camera is set (only applicable to animations, tiles don't move)
 	double scrollX;
-	//! Y Velocity - Used to determine the X offset from where the camera is set
+	//! Y Velocity - Used to determine the X offset from where the camera is set (only applicable to animations, tiles don't move)
 	double scrollY;
 	
 	//! Render Animation
