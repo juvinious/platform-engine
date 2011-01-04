@@ -23,7 +23,7 @@ column(0){
         try{
             const Token * tok;
             view >> tok;
-            if (*tok == "image"){
+            if (*tok == "animation"){
 		std::string name;
 		tok->view() >> name;
 		animation = animations[name];
