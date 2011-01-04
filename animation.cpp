@@ -116,7 +116,7 @@ currentFrame(0),
 loop(0){
     images[-1] = 0;
     std::string basedir = "";
-    if ( *the_token != "anim" ){
+    if ( *the_token != "animation" ){
         throw LoadException(__FILE__, __LINE__, "Not an animation");
     }
     /* Animation:

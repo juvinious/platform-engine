@@ -66,7 +66,7 @@ void World::load(const Token * token){
                 // Handle camera info
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
 		cameras[camera->getId()] = camera;
-            } else if (*tok == "anim"){
+            } else if (*tok == "animation"){
 		Animation * animation = new Animation(tok);
 		animations[animation->getId()] = animation;
 	    } else if (*tok == "background"){
