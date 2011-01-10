@@ -53,7 +53,7 @@ void World::load(const Token * token){
             if (*tok == "name"){
                 // get the name
                 tok->view() >> name;
-		Global::debug(0, "Platformer") << "Loading :" << name << endl;
+		Global::debug(0, "Platformer") << "Loading:" << name << endl;
             } else if (*tok == "resolution"){
                 // Get the resolution of the world
                 tok->view() >> resolutionX >> resolutionY;
