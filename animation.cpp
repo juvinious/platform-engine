@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include "util/token.h"
+#include "util/trans-bitmap.h"
 #include "util/bitmap.h"
 #include "util/debug.h"
 #include "util/funcs.h"
@@ -88,13 +89,13 @@ void Frame::draw(int x, int y, const Bitmap & work){
     if (alpha != 255){
         Bitmap::transBlender( 0, 0, 0, alpha );
         if (horizontalFlip && !verticalFlip){
-            bmp->drawTransHFlip(x,y, work);
+            bmp->translucent().drawHFlip(x,y, work);
         } else if (!horizontalFlip && verticalFlip){
-            bmp->drawTransVFlip(x,y, work);
+            bmp->translucent().drawVFlip(x,y, work);
         } else if (horizontalFlip && verticalFlip){
-            bmp->drawTransHVFlip(x,y, work);
+            bmp->translucent().drawHVFlip(x,y, work);
         } else if (!horizontalFlip && !verticalFlip){
-            bmp->drawTrans(x,y, work);
+            bmp->translucent().draw(x,y, work);
         }
     } else {
         if (horizontalFlip && !verticalFlip){
