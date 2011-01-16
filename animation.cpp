@@ -82,32 +82,75 @@ alpha(255){
 Frame::~Frame(){
 }
 
+static void renderSprite(int x, int y, const Bitmap & sprite, int alpha, bool horizontalFlip, bool verticalFlip, const Bitmap & where){
+    if (alpha != 255){
+        Bitmap::transBlender( 0, 0, 0, alpha );
+        if (horizontalFlip && !verticalFlip){
+            sprite.translucent().drawHFlip(x,y, where);
+        } else if (!horizontalFlip && verticalFlip){
+            sprite.translucent().drawVFlip(x,y, where);
+        } else if (horizontalFlip && verticalFlip){
+            sprite.translucent().drawHVFlip(x,y, where);
+        } else if (!horizontalFlip && !verticalFlip){
+            sprite.translucent().draw(x,y, where);
+        }
+    } else {
+        if (horizontalFlip && !verticalFlip){
+            sprite.drawHFlip(x,y, where);
+        } else if (!horizontalFlip && verticalFlip){
+            sprite.drawVFlip(x,y, where);
+        } else if (horizontalFlip && verticalFlip){
+            sprite.drawHVFlip(x,y, where);
+        } else if (!horizontalFlip && !verticalFlip){
+            sprite.draw(x,y, where);
+        }
+    }
+}
+
 void Frame::draw(int x, int y, const Bitmap & work){
     if (!bmp){
         return;
     }
-    if (alpha != 255){
-        Bitmap::transBlender( 0, 0, 0, alpha );
-        if (horizontalFlip && !verticalFlip){
-            bmp->translucent().drawHFlip(x,y, work);
-        } else if (!horizontalFlip && verticalFlip){
-            bmp->translucent().drawVFlip(x,y, work);
-        } else if (horizontalFlip && verticalFlip){
-            bmp->translucent().drawHVFlip(x,y, work);
-        } else if (!horizontalFlip && !verticalFlip){
-            bmp->translucent().draw(x,y, work);
-        }
-    } else {
-        if (horizontalFlip && !verticalFlip){
-            bmp->drawHFlip(x,y, work);
-        } else if (!horizontalFlip && verticalFlip){
-            bmp->drawVFlip(x,y, work);
-        } else if (horizontalFlip && verticalFlip){
-            bmp->drawHVFlip(x,y, work);
-        } else if (!horizontalFlip && !verticalFlip){
-            bmp->draw(x,y, work);
-        }
+    renderSprite(x, y, *bmp, alpha, horizontalFlip, verticalFlip, work);
+}
+
+static int findPosition(int end, int offset){
+    while (true){
+	offset-=end;
+	if (offset < end){
+	    return offset;
+	}
     }
+}
+
+void Frame::drawRepeatable(int x, int y, const Bitmap & work){
+    if (!bmp){
+        return;
+    }
+    
+    const int w = work.getWidth();
+    const int h = work.getHeight();
+    Bitmap temp = Bitmap::temporaryBitmap(w,h);
+    int x2 = 0;
+    int y2 = 0;
+    if (( (x + w) > bmp->getWidth()) || ((y + h) > bmp->getHeight()) ){
+	// Original position
+	if (x < bmp->getWidth()){
+	    bmp->Blit(x,y,w,h,0,0,temp);
+	}
+	// Beyond X + W
+	if (x+w > bmp->getWidth()){
+	    bmp->Blit(findPosition(bmp->getWidth(),x),y,w,h,0,0,temp);
+	}
+	// Beyond Y + H
+	if (y+h > bmp->getHeight()){
+	    bmp->Blit(x,findPosition(bmp->getHeight(),y),w,h,0,0,temp);
+	}	
+    } else {
+	bmp->Blit(x,y,w,h,0,0,temp);
+    }
+    
+    renderSprite(0, 0, temp, alpha, horizontalFlip, verticalFlip, work);
 }
 
 Animation::Animation(const Token *the_token):
@@ -208,6 +251,10 @@ void Animation::act(){
 }
 void Animation::draw(int x, int y, const Bitmap & work){
     frames[currentFrame]->draw(x, y,work);
+}
+
+void Animation::drawRepeatable(int x, int y, const Bitmap & work){
+    frames[currentFrame]->drawRepeatable(x, y,work);
 }
 
 void Animation::forwardFrame(){

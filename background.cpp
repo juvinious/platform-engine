@@ -81,9 +81,7 @@ void Background::drawAnimation(const Camera & camera){
     if (animation){
 	const int x = scrollX * camera.getX();
 	const int y = scrollY * camera.getY();
-	const int w = camera.getWindow().getWidth();
-	const int h = camera.getWindow().getHeight();
-	animation->getBitmap().BlitMasked(x,y,w,h,0,0,camera.getWindow());
+	animation->drawRepeatable(x,y,camera.getWindow());
     }
 }
 

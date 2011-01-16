@@ -20,6 +20,7 @@ class Frame{
 	Frame(Bitmap *);
 	virtual ~Frame();
 	virtual void draw(int x, int y, const Bitmap &);
+	virtual void drawRepeatable(int x, int y, const Bitmap &);
 	
 	virtual inline const Bitmap & getBitmap() const {
 	    return *this->bmp;
@@ -64,6 +65,7 @@ class Animation{
 	
 	virtual void act();
 	virtual void draw(int x, int y, const Bitmap &);
+	virtual void drawRepeatable(int x, int y, const Bitmap &);
 	virtual void forwardFrame();
 	virtual void backFrame();
 	
