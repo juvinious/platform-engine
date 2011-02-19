@@ -130,7 +130,7 @@ void Game::run(){
             worlds[0]->draw(tmp);
 	    ostringstream info;
 	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
-	    vFont.printf( 10, 10, Graphics::Bitmap::makeColor(255,255,255), tmp, info.str(), 0);
+	    vFont.printf( 10, 10, Graphics::makeColor(255,255,255), tmp, info.str(), 0);
             tmp.BlitToScreen();
         } else {
             Util::rest(1);
