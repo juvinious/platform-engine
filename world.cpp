@@ -124,7 +124,7 @@ void World::act(){
     }
 }
 
-void World::draw(const Bitmap & bmp){
+void World::draw(const Graphics::Bitmap & bmp){
     // FIXME Must correct so that cameras are handled properly
     for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
 	Background * background = *i;
@@ -132,7 +132,7 @@ void World::draw(const Bitmap & bmp){
 	    background->draw(*cameras[0]);
 	}
     }
-    Bitmap temp = Bitmap::temporaryBitmap(resolutionX, resolutionY);
+    Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(resolutionX, resolutionY);
     cameras[0]->draw(temp);
     temp.Stretch(bmp);
 }

@@ -5,7 +5,9 @@
 #include <vector>
 #include <map>
 
+namespace Graphics{
 class Bitmap;
+}
 namespace Filesystem{
 class AbsolutePath;
 }
@@ -24,7 +26,7 @@ class World{
 	World(const Token *);
 	virtual ~World();
 	virtual void act();
-	virtual void draw(const Bitmap &);
+	virtual void draw(const Graphics::Bitmap &);
 	
 	virtual void moveCamera(int x, int y);
 	

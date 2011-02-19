@@ -81,7 +81,7 @@ void Game::run(){
     double min_y = GFX_Y;
 
     // FIXME change this later as the actual resolution is in the world configuration
-    Bitmap tmp(640, 480);
+    Graphics::Bitmap tmp(640, 480);
     
     const Font & vFont = Font::getDefaultFont();
     
@@ -130,7 +130,7 @@ void Game::run(){
             worlds[0]->draw(tmp);
 	    ostringstream info;
 	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
-	    vFont.printf( 10, 10, Bitmap::makeColor(255,255,255), tmp, info.str(), 0);
+	    vFont.printf( 10, 10, Graphics::Bitmap::makeColor(255,255,255), tmp, info.str(), 0);
             tmp.BlitToScreen();
         } else {
             Util::rest(1);

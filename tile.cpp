@@ -49,7 +49,7 @@ Tile::~Tile(){
 void Tile::act(){
 }
 
-void Tile::draw(int x, int y, const Bitmap & bmp){
+void Tile::draw(int x, int y, const Graphics::Bitmap & bmp){
     if (animation){
 	animation->draw(x, y, bmp);
     }

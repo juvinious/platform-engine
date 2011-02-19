@@ -3,7 +3,9 @@
 
 #include <string>
 
+namespace Graphics{
 class Bitmap;
+}
 class Token;
 
 
@@ -17,7 +19,7 @@ class Camera{
 	Camera(int windowWidth, int windowHeight, int worldWidth, int worldHeight, const Token *);
 	virtual ~Camera();
 	virtual void act();
-	virtual void draw(const Bitmap &);
+	virtual void draw(const Graphics::Bitmap &);
 	
 	virtual void set(int x, int y);
 	virtual void move(int x, int y);
@@ -40,7 +42,7 @@ class Camera{
 	    return this->currentY;
 	}
 	
-	virtual inline const Bitmap & getWindow() const {
+	virtual inline const Graphics::Bitmap & getWindow() const {
 	    return *this->window;
 	}
 	
@@ -66,7 +68,7 @@ class Camera{
 	int windowHeight;
 	
 	//! Window buffer
-	Bitmap * window;
+        Graphics::Bitmap * window;
 	
 	double scrollSpeed;
 	double currentXSpeed;

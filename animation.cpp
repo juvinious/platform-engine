@@ -71,7 +71,7 @@ alpha(255){
     }
 }
 
-Frame::Frame(Bitmap * bmp):
+Frame::Frame(Graphics::Bitmap * bmp):
 bmp(bmp),
 time(0),
 horizontalFlip(false),
@@ -82,9 +82,9 @@ alpha(255){
 Frame::~Frame(){
 }
 
-static void renderSprite(int x, int y, const Bitmap & sprite, int alpha, bool horizontalFlip, bool verticalFlip, const Bitmap & where){
+static void renderSprite(int x, int y, const Graphics::Bitmap & sprite, int alpha, bool horizontalFlip, bool verticalFlip, const Graphics::Bitmap & where){
     if (alpha != 255){
-        Bitmap::transBlender( 0, 0, 0, alpha );
+        Graphics::Bitmap::transBlender( 0, 0, 0, alpha );
         if (horizontalFlip && !verticalFlip){
             sprite.translucent().drawHFlip(x,y, where);
         } else if (!horizontalFlip && verticalFlip){
@@ -107,7 +107,7 @@ static void renderSprite(int x, int y, const Bitmap & sprite, int alpha, bool ho
     }
 }
 
-void Frame::draw(int x, int y, const Bitmap & work){
+void Frame::draw(int x, int y, const Graphics::Bitmap & work){
     if (!bmp){
         return;
     }
@@ -123,14 +123,14 @@ static int findPosition(int end, int offset){
     }
 }
 
-void Frame::drawRepeatable(int x, int y, const Bitmap & work){
+void Frame::drawRepeatable(int x, int y, const Graphics::Bitmap & work){
     if (!bmp){
         return;
     }
     
     const int w = work.getWidth();
     const int h = work.getHeight();
-    Bitmap temp = Bitmap::temporaryBitmap(w,h);
+    Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(w,h);
     int x2 = 0;
     int y2 = 0;
     if (( (x + w) > bmp->getWidth()) || ((y + h) > bmp->getHeight()) ){
@@ -190,7 +190,7 @@ loop(0){
                 std::string temp;
                 token->view() >> number >> temp;
 		Global::debug(1, "Platformer") << "Loading image for animation number: " << id << ". Image: " << temp << endl;
-                Bitmap *bmp = new Bitmap(Filesystem::find(Filesystem::RelativePath(basedir + temp)).path());
+                Graphics::Bitmap *bmp = new Graphics::Bitmap(Filesystem::find(Filesystem::RelativePath(basedir + temp)).path());
                 if (bmp->getError()){
                     delete bmp;
                 } else {
@@ -249,11 +249,11 @@ void Animation::act(){
 	    }
     }
 }
-void Animation::draw(int x, int y, const Bitmap & work){
+void Animation::draw(int x, int y, const Graphics::Bitmap & work){
     frames[currentFrame]->draw(x, y,work);
 }
 
-void Animation::drawRepeatable(int x, int y, const Bitmap & work){
+void Animation::drawRepeatable(int x, int y, const Graphics::Bitmap & work){
     frames[currentFrame]->drawRepeatable(x, y,work);
 }
 
@@ -272,6 +272,6 @@ void Animation::backFrame(){
     }
 }
 
-const Bitmap & Animation::getBitmap() const {
+const Graphics::Bitmap & Animation::getBitmap() const {
     return frames[currentFrame]->getBitmap();
 }

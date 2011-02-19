@@ -67,7 +67,7 @@ followVariance(1.5){
     }
     
     // Set up window
-    window = new Bitmap(windowWidth, windowHeight);
+    window = new Graphics::Bitmap(windowWidth, windowHeight);
 }
 
 Camera::~Camera(){
@@ -124,7 +124,7 @@ void Camera::act(){
     }
 }
 
-void Camera::draw(const Bitmap & work){
+void Camera::draw(const Graphics::Bitmap & work){
     window->Blit(work);
 }
 

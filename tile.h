@@ -4,7 +4,9 @@
 #include <map>
 #include <string>
 
+namespace Graphics{
 class Bitmap;
+}
 class Token;
 
 /*! Platformers tile class */
@@ -20,7 +22,7 @@ public:
     Tile(const Token *, std::map< std::string, Animation *> &);
     virtual ~Tile();
     virtual void act();
-    virtual void draw(int x, int y, const Bitmap &);
+    virtual void draw(int x, int y, const Graphics::Bitmap &);
     
     virtual void setAnimation(Animation *);
     

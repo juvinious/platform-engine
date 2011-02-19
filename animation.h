@@ -7,22 +7,24 @@
 
 /*! Platformers temporary animation class (replace with some other workaround tied into the system later) */
 
+namespace Graphics{
 class Bitmap;
+}
 class Token;
 
 namespace Platformer{
     
-typedef std::map< int, Bitmap *> imageMap;
+typedef std::map< int, Graphics::Bitmap *> imageMap;
 
 class Frame{
     public:
 	Frame(const Token *token, imageMap &);
-	Frame(Bitmap *);
+	Frame(Graphics::Bitmap *);
 	virtual ~Frame();
-	virtual void draw(int x, int y, const Bitmap &);
-	virtual void drawRepeatable(int x, int y, const Bitmap &);
+	virtual void draw(int x, int y, const Graphics::Bitmap &);
+	virtual void drawRepeatable(int x, int y, const Graphics::Bitmap &);
 	
-	virtual inline const Bitmap & getBitmap() const {
+	virtual inline const Graphics::Bitmap & getBitmap() const {
 	    return *this->bmp;
 	}
 	
@@ -47,7 +49,7 @@ class Frame{
 	}
     private:
 	/*! Bitmap of this frame */
-	Bitmap * bmp;
+        Graphics::Bitmap * bmp;
 	/*! Duration to show this frame (a duration of -1 is forever) */
 	int time;
 	/*! Flip the bitmap horizontally */
@@ -64,12 +66,12 @@ class Animation{
 	~Animation();
 	
 	virtual void act();
-	virtual void draw(int x, int y, const Bitmap &);
-	virtual void drawRepeatable(int x, int y, const Bitmap &);
+	virtual void draw(int x, int y, const Graphics::Bitmap &);
+	virtual void drawRepeatable(int x, int y, const Graphics::Bitmap &);
 	virtual void forwardFrame();
 	virtual void backFrame();
 	
-	virtual const Bitmap & getBitmap() const;
+	virtual const Graphics::Bitmap & getBitmap() const;
 	
 	virtual inline const std::string & getId() const {
 	    return this->id;

@@ -4,7 +4,9 @@
 #include <string>
 #include <map>
 
+namespace Graphics{
 class Bitmap;
+}
 class Token;
 
 /*! Platformers Background class which can be either backgrounds or foregrounds.
