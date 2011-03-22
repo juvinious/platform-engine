@@ -77,7 +77,7 @@ void Game::run(){
     input.set(Keyboard::Key_LEFT, 0, true, Left);
     input.set(Keyboard::Key_RIGHT, 0, true, Right);
     
-    Global::speed_counter = 0;
+    Global::speed_counter2 = 0;
     double min_y = GFX_Y;
 
     // FIXME change this later as the actual resolution is in the world configuration
@@ -113,8 +113,8 @@ void Game::run(){
         }
 
         bool draw = false;
-        if (Global::speed_counter > 0){
-            think += Global::speed_counter * Global::LOGIC_MULTIPLIER;
+        if (Global::speed_counter2 > 0){
+            think += Global::speed_counter2 * Global::LOGIC_MULTIPLIER;
             draw = true;
 
             while (think >= 1.0){
@@ -122,7 +122,7 @@ void Game::run(){
                 worlds[0]->act();
             }
 
-            Global::speed_counter = 0;
+            Global::speed_counter2 = 0;
         }
 
         if (draw){
