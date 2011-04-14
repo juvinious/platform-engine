@@ -74,17 +74,15 @@ void Game::run(){
     
     class Logic: public Util::Logic {
     public:
-        Logic(InputMap<Keys> & input, std::vector < Platformer::World *> & worlds, double & counter):
+        Logic(InputMap<Keys> & input, std::vector < Platformer::World *> & worlds):
         is_done(false),
         input(input),
-        worlds(worlds),
-        counter(counter){
+        worlds(worlds){
         }
 
         bool is_done;
 	InputMap<Keys> & input;
 	std::vector < Platformer::World *> & worlds;
-	double & counter;
         
 	bool done(){
             return is_done;
@@ -93,8 +91,7 @@ void Game::run(){
 	void run(){
 	    
 	    // FIXME figure out how many worlds... etc
-            InputManager::poll();
-	    vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input);
+            vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input);
 	    for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
 		const InputMap<Keys>::InputEvent & event = *it;
 		if (event.enabled){
@@ -116,21 +113,12 @@ void Game::run(){
 		}
 	    }
 	    
-	    if (Global::speed_counter3 > 0){
-		counter += Global::speed_counter3 * Global::LOGIC_MULTIPLIER;
-		
-		while (counter >= 1.0){
-		    counter -= 1;
-		    worlds[0]->act();
-		}
-
-		Global::speed_counter3 = 0;
-	    }
+	    worlds[0]->act();
 		
         }
 
         double ticks(double system){
-            return counter;
+            return system * Global::LOGIC_MULTIPLIER;
         }
     };
 
@@ -149,14 +137,11 @@ void Game::run(){
 	const Logic & logic;
 
         void draw(){
-	    
-	    if (Global::speed_counter3 > 0){
-		worlds[0]->draw(buffer);
-		ostringstream info;
-		info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
-		Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), buffer, info.str(), 0);
-		buffer.BlitToScreen();
-	    }
+	    worlds[0]->draw(buffer);
+	    ostringstream info;
+	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
+	    Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), buffer, info.str(), 0);
+	    buffer.BlitToScreen();
         }
     };
     
@@ -167,71 +152,11 @@ void Game::run(){
     input.set(Keyboard::Key_LEFT, 0, true, Left);
     input.set(Keyboard::Key_RIGHT, 0, true, Right);
     
-    Global::speed_counter3 = 0;
-    double counter = 0;
-    
     // FIXME change this later as the actual resolution is in the world configuration
     Graphics::Bitmap tmp(640, 480);
 
-    Logic logic(input, worlds, counter);
+    Logic logic(input, worlds);
     Draw draw(worlds, tmp, logic);
 
     Util::standardLoop(logic, draw);
-    
-#if 0    
-    bool quit = false;
-    double think = 0;
-    while (!quit){
-
-        InputManager::poll();
-        vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input);
-        for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
-            const InputMap<Keys>::InputEvent & event = *it;
-            if (event.enabled){
-                if (event.out == Esc){
-                    quit = true;
-                }
-                if (event.out == Up){
-		    worlds[0]->moveCamera(0,-5);
-		}
-                if (event.out == Down){
-		    worlds[0]->moveCamera(0,5);
-		}
-                if (event.out == Left){
-		    worlds[0]->moveCamera(-5,0);
-		}
-                if (event.out == Right){
-		    worlds[0]->moveCamera(5,0);
-		}
-            }
-        }
-
-        bool draw = false;
-        if (Global::speed_counter3 > 0){
-            think += Global::speed_counter3 * Global::LOGIC_MULTIPLIER;
-            draw = true;
-
-            while (think >= 1.0){
-                think -= 1;
-                worlds[0]->act();
-            }
-
-            Global::speed_counter3 = 0;
-        }
-
-        if (draw){
-            // Draw world to tmp
-            worlds[0]->draw(tmp);
-	    ostringstream info;
-	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
-	    vFont.printf( 10, 10, Graphics::makeColor(255,255,255), tmp, info.str(), 0);
-            tmp.BlitToScreen();
-        } else {
-            Util::rest(1);
-        }
-    }
-
-    InputManager::waitForRelease(input, Esc);
-#endif
-
 }
