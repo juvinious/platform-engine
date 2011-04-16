@@ -89,7 +89,6 @@ void Game::run(){
         }
 
 	void run(){
-	    
 	    // FIXME figure out how many worlds... etc
             vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input);
 	    for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
