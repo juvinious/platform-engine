@@ -4,6 +4,7 @@
 #include "world.h"
 
 #include "util/bitmap.h"
+#include "util/stretch-bitmap.h"
 #include "util/debug.h"
 #include "util/events.h"
 #include "util/font.h"
@@ -123,23 +124,24 @@ void Game::run(){
 
     class Draw: public Util::Draw {
     public:
-        Draw(std::vector < Platformer::World * > & worlds, const Graphics::Bitmap & buffer, const Logic & logic):
+        Draw(std::vector < Platformer::World * > & worlds, const Logic & logic):
         worlds(worlds),
-        buffer(buffer),
         logic(logic){
         }
         
         std::vector < Platformer::World * > & worlds;
 
-        const Graphics::Bitmap & buffer;
-        
 	const Logic & logic;
 
-        void draw(){
-	    worlds[0]->draw(buffer);
+        void draw(const Graphics::Bitmap & buffer){
+            // FIXME change this later as the actual resolution is in the world configuration
+            Graphics::StretchedBitmap work(640, 480, buffer);
+            work.start();
+	    worlds[0]->draw(work);
 	    ostringstream info;
 	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
-	    Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), buffer, info.str(), 0);
+	    Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
+            work.finish();
 	    buffer.BlitToScreen();
         }
     };
@@ -151,11 +153,10 @@ void Game::run(){
     input.set(Keyboard::Key_LEFT, 0, true, Left);
     input.set(Keyboard::Key_RIGHT, 0, true, Right);
     
-    // FIXME change this later as the actual resolution is in the world configuration
-    Graphics::Bitmap tmp(640, 480);
+    // Graphics::Bitmap tmp(640, 480);
 
     Logic logic(input, worlds);
-    Draw draw(worlds, tmp, logic);
+    Draw draw(worlds, logic);
 
     Util::standardLoop(logic, draw);
 }
