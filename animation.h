@@ -63,7 +63,7 @@ class Frame{
 class Animation{
     public:
 	Animation(const Token *);
-	~Animation();
+	virtual ~Animation();
 	
 	virtual void act();
 	virtual void draw(int x, int y, const Graphics::Bitmap &);
