@@ -8,7 +8,7 @@
 namespace Graphics{
 class Bitmap;
 }
-namespace Filesystem{
+namespace Storage{
 class AbsolutePath;
 }
 class Token;
@@ -34,7 +34,7 @@ class World{
 	virtual const Camera & getCamera(int number);
 	
     protected:
-	virtual void load(const Filesystem::AbsolutePath &);
+	virtual void load(const Storage::AbsolutePath &);
 	virtual void load(const Token *);
 	//! Name
 	std::string name;

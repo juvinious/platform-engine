@@ -190,7 +190,7 @@ loop(0){
                 std::string temp;
                 token->view() >> number >> temp;
 		Global::debug(1, "Platformer") << "Loading image for animation number: " << id << ". Image: " << temp << endl;
-                Graphics::Bitmap *bmp = new Graphics::Bitmap(Filesystem::find(Filesystem::RelativePath(basedir + temp)).path());
+                Graphics::Bitmap *bmp = new Graphics::Bitmap(Storage::instance().find(Filesystem::RelativePath(basedir + temp)).path());
                 if (bmp->getError()){
                     delete bmp;
                 } else {

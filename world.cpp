@@ -26,7 +26,7 @@ dimensionsY(0){
     if (token->numTokens() == 1){
         std::string temp;
         token->view() >> temp;
-        load(Filesystem::find(Filesystem::RelativePath(temp)));
+        load(Storage::instance().find(Filesystem::RelativePath(temp)));
     } else {
         load(token);
     }
