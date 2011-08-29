@@ -11,6 +11,7 @@
 #include "util/init.h"
 #include "util/input/input-map.h"
 #include "util/input/input-manager.h"
+#include "util/input/input-source.h"
 #include "util/file-system.h"
 #include "util/load_exception.h"
 #include "util/token.h"
@@ -91,7 +92,7 @@ void Game::run(){
 
 	void run(){
 	    // FIXME figure out how many worlds... etc
-            vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input);
+            vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input, InputSource());
 	    for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
 		const InputMap<Keys>::InputEvent & event = *it;
 		if (event.enabled){
