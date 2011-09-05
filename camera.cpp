@@ -5,6 +5,7 @@
 #include "util/load_exception.h"
 #include "util/token.h"
 
+
 using namespace std;
 using namespace Platformer;
 
@@ -22,13 +23,14 @@ windowX(0),
 windowY(0),
 windowWidth(0),
 windowHeight(0),
-window(0),
+window(NULL),
 scrollSpeed(2),
 currentXSpeed(0),
 currentYSpeed(0),
 velocity(.5),
 follow(false),
-followVariance(1.5){
+followVariance(1.5),
+object(NULL){
     TokenView view = token->view();
     while (view.hasMore()){
         try{
@@ -73,9 +75,6 @@ followVariance(1.5){
 }
 
 Camera::~Camera(){
-    if (window){
-	delete window;
-    }
 }
 
 void Camera::set(int x, int y){
@@ -90,6 +89,26 @@ void Camera::move(int x, int y){
     this->y+=y;
     
     checkBounds();
+}
+
+void Camera::followObject(Util::ReferenceCount<Object> obj){
+    object = obj;
+    follow = true;
+    object->attachCamera(id);
+}
+
+void Camera::stopFollowing(){
+    object->detachCamera();
+    object = NULL;
+    follow = false;
+}
+
+int Camera::getWidth() const {
+    return window->getWidth();
+}
+
+int Camera::getHeight() const {
+    return window->getHeight();
 }
 
 void Camera::act(){
@@ -127,7 +146,9 @@ void Camera::act(){
 }
 
 void Camera::draw(const Graphics::Bitmap & work){
-    window->Blit(work);
+    // FIXME draw only viewport
+    window->Blit(windowX, windowY, windowWidth, windowHeight, windowX, windowY, work);
+#if 0
     if (windowY > 0){
         work.rectangleFill(0, 0, windowWidth, windowY, Graphics::makeColor(0,0,0));
     }
@@ -140,6 +161,7 @@ void Camera::draw(const Graphics::Bitmap & work){
     if (windowHeight < resolutionY){
         work.rectangleFill(0, windowHeight, windowWidth, resolutionY, Graphics::makeColor(0,0,0));
     }
+#endif
 }
 
 void Camera::checkBounds(){

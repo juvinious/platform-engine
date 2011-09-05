@@ -100,16 +100,16 @@ void Game::run(){
 			is_done = true;
 		    }
 		    if (event.out == Up){
-			worlds[0]->moveCamera(0,-5);
+			worlds[0]->moveCamera(1, 0,-5);
 		    }
 		    if (event.out == Down){
-			worlds[0]->moveCamera(0,5);
+			worlds[0]->moveCamera(1, 0,5);
 		    }
 		    if (event.out == Left){
-			worlds[0]->moveCamera(-5,0);
+			worlds[0]->moveCamera(1, -5,0);
 		    }
 		    if (event.out == Right){
-			worlds[0]->moveCamera(5,0);
+			worlds[0]->moveCamera(1, 5,0);
 		    }
 		}
 	    }
@@ -140,7 +140,7 @@ void Game::run(){
             work.start();
 	    worlds[0]->draw(work);
 	    ostringstream info;
-	    info << "Camera Info - X: " << worlds[0]->getCamera(0).getX() << " Y: " << worlds[0]->getCamera(0).getY();
+	    info << "Camera Info - X: " << worlds[0]->getCamera(0)->getX() << " Y: " << worlds[0]->getCamera(0)->getY();
 	    Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
             work.finish();
 	    buffer.BlitToScreen();

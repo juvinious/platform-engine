@@ -30,10 +30,10 @@ class World{
 	virtual void act();
 	virtual void draw(const Graphics::Bitmap &);
 	
-	virtual void moveCamera(int x, int y);
+	virtual void moveCamera(int id, int x, int y);
 	
 	//! FIXME HANDLE Cameras correctly later
-	virtual const Camera & getCamera(int number);
+	virtual Util::ReferenceCount<Camera> getCamera(int id);
 	
     protected:
 	virtual void load(const Path::AbsolutePath &);

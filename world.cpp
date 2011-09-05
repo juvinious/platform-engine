@@ -90,7 +90,10 @@ World::~World(){
 }
 
 void World::act(){
-    cameras[0]->act();
+    for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
+        Util::ReferenceCount<Camera> camera = c->second;
+        camera->act();
+    }
     
     for (std::map< std::string, Util::ReferenceCount<Animation> >::iterator i = animations.begin(); i != animations.end(); ++i){
         Util::ReferenceCount<Animation> animation = i->second;
@@ -108,24 +111,33 @@ void World::act(){
 }
 
 void World::draw(const Graphics::Bitmap & bmp){
-    // FIXME Must correct so that cameras are handled properly
-    for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
-        Util::ReferenceCount<Background> background = *i;
-        if (background != NULL){
-            background->draw(*cameras[0]);
+    // Go through all cameras
+    for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
+        Util::ReferenceCount<Camera> camera = c->second;
+        for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+            Util::ReferenceCount<Background> background = *i;
+            if (background != NULL){
+                background->draw(*camera);
+            }
         }
+        Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(resolutionX, resolutionY);
+        camera->draw(temp);
+        temp.Stretch(bmp);
+    }   
+}
+
+void World::moveCamera(int id, int x, int y){
+    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    if (found != cameras.end()){
+        found->second->move(x,y);
     }
-    Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(resolutionX, resolutionY);
-    cameras[0]->draw(temp);
-    temp.Stretch(bmp);
 }
 
-void World::moveCamera(int x, int y){
-    // FIXME this needs to change to accomodate the cameras accordingly
-    cameras[0]->move(x,y);
-}
-
-const Camera & World::getCamera(int number){
-    // FIXME this needs to change to accomodate the cameras accordingly
-    return *cameras[number];
+Util::ReferenceCount<Camera> World::getCamera(int id){
+    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    if (found != cameras.end()){
+        return found->second;
+    }
+    
+    return NULL;
 }

@@ -79,9 +79,12 @@ void Background::draw(const Camera & camera){
 
 void Background::drawAnimation(const Camera & camera){
     if (animation != NULL){
+        /* FIXME Remove ability to render single large bitmaps, use tiles exclusively */
         const int x = scrollX * camera.getX();
         const int y = scrollY * camera.getY();
-        animation->drawRepeatable(x,y,camera.getWindow());
+        Graphics::Bitmap temp2 = Graphics::Bitmap::temporaryBitmap2(camera.getViewportWidth(),camera.getViewportHeight());
+        animation->drawRepeatable(x,y,temp2);
+        temp2.Blit(camera.getViewportX(), camera.getViewportY(), camera.getWindow());
     }
 }
 
