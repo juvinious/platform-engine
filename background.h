@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "util/pointer.h"
+
 namespace Graphics{
 class Bitmap;
 }
@@ -20,7 +22,7 @@ class TileManager;
     
 class Background{
     public:
-	Background(const Token *, std::map< std::string, Animation *> &);
+	Background(const Token *, std::map< std::string, Util::ReferenceCount<Animation> > &);
 	virtual ~Background();
 	virtual void act();
 	virtual void draw(const Camera &);
@@ -32,9 +34,9 @@ class Background{
 	//! Type of background (uses tiles or an image)
 	Type type;
 	//! Tileset
-	TileManager * tiles;
+	Util::ReferenceCount<TileManager> tiles;
 	//! Image
-	Animation * animation;
+	Util::ReferenceCount<Animation> animation;
 	
 	//! X Velocity - Used to determine the X offset from where the camera is set (only applicable to animations, tiles don't move)
 	double scrollX;

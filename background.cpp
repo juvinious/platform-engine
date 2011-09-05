@@ -12,7 +12,7 @@
 using namespace std;
 using namespace Platformer;
 
-Background::Background(const Token * token, std::map< std::string, Animation *> & animations):
+Background::Background(const Token * token, std::map< std::string, Util::ReferenceCount<Animation> > & animations):
 type(Tileset),
 tiles(0),
 animation(0),
@@ -78,10 +78,10 @@ void Background::draw(const Camera & camera){
 }
 
 void Background::drawAnimation(const Camera & camera){
-    if (animation){
-	const int x = scrollX * camera.getX();
-	const int y = scrollY * camera.getY();
-	animation->drawRepeatable(x,y,camera.getWindow());
+    if (animation != NULL){
+        const int x = scrollX * camera.getX();
+        const int y = scrollY * camera.getY();
+        animation->drawRepeatable(x,y,camera.getWindow());
     }
 }
 

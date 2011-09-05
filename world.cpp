@@ -67,10 +67,10 @@ void World::load(const Token * token){
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
 		cameras[camera->getId()] = camera;
             } else if (*tok == "animation"){
-		Animation * animation = new Animation(tok);
+		Util::ReferenceCount<Animation> animation = new Animation(tok);
 		animations[animation->getId()] = animation;
 	    } else if (*tok == "background"){
-		Background * background = new Background(tok, animations);
+		Util::ReferenceCount<Background> background = new Background(tok, animations);
 		backgrounds.push_back(background);
 	    } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
@@ -87,50 +87,33 @@ void World::load(const Token * token){
 }
 
 World::~World(){
-    for (std::map< int, Camera *>::iterator i = cameras.begin(); i != cameras.end(); ++i){
-        if (i->second){
-            delete i->second;
-        }
-    }
-    
-    for (std::map< std::string, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
-        if (i->second){
-            delete i->second;
-        }
-    }
-    
-    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
-	if (*i){
-	    delete *i;
-	}
-    }
 }
 
 void World::act(){
     cameras[0]->act();
     
-    for (std::map< std::string, Animation *>::iterator i = animations.begin(); i != animations.end(); ++i){
-	Animation * animation = i->second;
-        if (animation){
+    for (std::map< std::string, Util::ReferenceCount<Animation> >::iterator i = animations.begin(); i != animations.end(); ++i){
+        Util::ReferenceCount<Animation> animation = i->second;
+        if (animation != NULL){
             animation->act();
         }
     }
     
-    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
-	Background * background = *i;
-	if (background){
-	    background->act();
-	}
+    for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+        Util::ReferenceCount<Background> background = *i;
+        if (background != NULL){
+            background->act();
+        }
     }
 }
 
 void World::draw(const Graphics::Bitmap & bmp){
     // FIXME Must correct so that cameras are handled properly
-    for (std::vector< Background *>::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
-	Background * background = *i;
-	if (background){
-	    background->draw(*cameras[0]);
-	}
+    for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+        Util::ReferenceCount<Background> background = *i;
+        if (background != NULL){
+            background->draw(*cameras[0]);
+        }
     }
     Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(resolutionX, resolutionY);
     cameras[0]->draw(temp);

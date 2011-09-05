@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include "util/pointer.h"
 
 namespace Graphics{
 class Bitmap;
@@ -19,12 +20,12 @@ class Camera;
 class Tile{
 public:
     Tile();
-    Tile(const Token *, std::map< std::string, Animation *> &);
+    Tile(const Token *, std::map< std::string, Util::ReferenceCount<Animation> > &);
     virtual ~Tile();
     virtual void act();
     virtual void draw(int x, int y, const Graphics::Bitmap &);
     
-    virtual void setAnimation(Animation *);
+    virtual void setAnimation(Util::ReferenceCount<Animation>);
     
     virtual inline const int getRow() const {
 	return this->row;
@@ -34,7 +35,7 @@ public:
 	return this->column;
     }
 private:
-    Animation * animation;
+    Util::ReferenceCount<Animation> animation;
     // Placement
     int row;
     int column;
@@ -44,11 +45,11 @@ private:
 
 
 //! Set up tile map
-typedef std::map< int, std::map< int, Tile *> > tileMap;
+typedef std::map< int, std::map< int, Util::ReferenceCount<Tile> > > tileMap;
 
 class TileManager{
 public:
-    TileManager(const Token *, std::map< std::string, Animation *> &);
+    TileManager(const Token *, std::map< std::string, Util::ReferenceCount<Animation> > &);
     virtual ~TileManager();
     
     virtual void act();

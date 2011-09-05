@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+#include "util/pointer.h"
+
 namespace Graphics{
 class Bitmap;
 }
@@ -47,13 +49,13 @@ class World{
 	// Player info
 	
 	//! Cameras
-	std::map< int, Camera * > cameras;
+	std::map< int, Util::ReferenceCount<Camera> > cameras;
 	
 	//! Animation map
-	std::map< std::string, Animation *> animations;
+	std::map< std::string, Util::ReferenceCount<Animation> > animations;
 	
 	//! Backgrounds
-	std::vector< Background *> backgrounds;
+	std::vector< Util::ReferenceCount<Background> > backgrounds;
 };
 }
 #endif

@@ -15,7 +15,7 @@ row(0),
 column(0){
 }
 
-Tile::Tile(const Token * token, std::map< std::string, Animation *> & animations):
+Tile::Tile(const Token * token, std::map< std::string, Util::ReferenceCount<Animation> > & animations):
 row(0),
 column(0){
     TokenView view = token->view();
@@ -50,16 +50,16 @@ void Tile::act(){
 }
 
 void Tile::draw(int x, int y, const Graphics::Bitmap & bmp){
-    if (animation){
-	animation->draw(x, y, bmp);
+    if (animation != NULL){
+        animation->draw(x, y, bmp);
     }
 }
 
-void Tile::setAnimation(Animation * anim){
+void Tile::setAnimation(Util::ReferenceCount<Animation> anim){
 }
 
 
-TileManager::TileManager(const Token * token, std::map< std::string, Animation *> & animations):
+TileManager::TileManager(const Token * token, std::map< std::string, Util::ReferenceCount<Animation> > & animations):
 tileX(0),
 tileY(0),
 dimensionsX(0),
@@ -74,7 +74,7 @@ dimensionsY(0){
             } else if (*tok == "dimensions"){
 		tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "tile"){
-		Tile * tile = new Tile(tok, animations);
+		Util::ReferenceCount<Tile> tile = new Tile(tok, animations);
 		const int row = tile->getRow();
 		const int col = tile->getColumn();
 		// Do first one
@@ -128,13 +128,7 @@ dimensionsY(0){
 }
 
 TileManager::~TileManager(){
-    for (tileMap::iterator i = tiles.begin(); i != tiles.end(); ++i){
-	for (std::map< int, Tile *>::iterator j = i->second.begin(); j != i->second.end(); j++){
-	    if (j->second){
-		delete j->second;
-	    }
-	}
-    }
+    
 }
 
 void TileManager::act(){
@@ -150,8 +144,8 @@ void TileManager::draw(const Camera & camera){
     for(int row = y; row < h; ++row){
 	int posx = x * tileX - camera.getX();
 	for(int column = x; column < w; ++column){
-	    Tile * tile = tiles[row][column];
-	    if (tile){
+	    Util::ReferenceCount<Tile> tile = tiles[row][column];
+	    if (tile != NULL){
 		tile->draw(posx, posy, camera.getWindow());
 	    }
 	    posx+=tileX;
