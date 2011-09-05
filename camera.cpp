@@ -8,8 +8,10 @@
 using namespace std;
 using namespace Platformer;
 
-Camera::Camera(int windowWidth, int windowHeight, int worldWidth, int worldHeight, const Token * token):
+Camera::Camera(int resolutionX, int resolutionY, int worldWidth, int worldHeight, const Token * token):
 id(0),
+resolutionX(resolutionX),
+resolutionY(resolutionY),
 worldWidth(worldWidth),
 worldHeight(worldHeight),
 x(0),
@@ -18,8 +20,8 @@ currentX(0),
 currentY(0),
 windowX(0),
 windowY(0),
-windowWidth(windowWidth),
-windowHeight(windowHeight),
+windowWidth(0),
+windowHeight(0),
 window(0),
 scrollSpeed(2),
 currentXSpeed(0),
@@ -67,7 +69,7 @@ followVariance(1.5){
     }
     
     // Set up window
-    window = new Graphics::Bitmap(windowWidth, windowHeight);
+    window = new Graphics::Bitmap(resolutionX, resolutionY);
 }
 
 Camera::~Camera(){
@@ -126,6 +128,18 @@ void Camera::act(){
 
 void Camera::draw(const Graphics::Bitmap & work){
     window->Blit(work);
+    if (windowY > 0){
+        work.rectangleFill(0, 0, windowWidth, windowY, Graphics::makeColor(0,0,0));
+    }
+    if (windowX > 0){
+        work.rectangleFill(0, windowY, windowX, windowHeight, Graphics::makeColor(0,0,0));
+    }
+    if (windowWidth < resolutionX){
+        work.rectangleFill(windowWidth, 0, resolutionX, resolutionY, Graphics::makeColor(0,0,0));
+    }
+    if (windowHeight < resolutionY){
+        work.rectangleFill(0, windowHeight, windowWidth, resolutionY, Graphics::makeColor(0,0,0));
+    }
 }
 
 void Camera::checkBounds(){

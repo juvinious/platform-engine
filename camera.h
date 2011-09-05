@@ -16,7 +16,7 @@ namespace Platformer{
     
 class Camera{
     public:
-	Camera(int windowWidth, int windowHeight, int worldWidth, int worldHeight, const Token *);
+	Camera(int resolutionX, int resolutionY, int worldWidth, int worldHeight, const Token *);
 	virtual ~Camera();
 	virtual void act();
 	virtual void draw(const Graphics::Bitmap &);
@@ -49,6 +49,9 @@ class Camera{
     protected:
 	//! ID
 	int id;
+    
+    const int resolutionX;
+    const int resolutionY;
 	
 	int worldWidth;
 	int worldHeight;
