@@ -11,9 +11,9 @@ namespace Platformer{
       
 class Object{
     public:
-	Object();
-	virtual ~Object();
-	virtual void act();
+        Object();
+        virtual ~Object();
+        virtual void act();
         
         inline virtual void attachCamera(int id){
             this->attachedCamera = id;

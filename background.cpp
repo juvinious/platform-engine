@@ -16,8 +16,8 @@ Background::Background(const Token * token, std::map< std::string, Util::Referen
 type(Tileset),
 tiles(0),
 animation(0),
-scrollX(0),
-scrollY(0){
+scrollX(1),
+scrollY(1){
     TokenView view = token->view();
     while (view.hasMore()){
         try{
@@ -90,5 +90,5 @@ void Background::drawAnimation(const Camera & camera){
 }
 
 void Background::drawTileset(const Camera & camera){
-    tiles->draw(camera);
+    tiles->draw(scrollX, scrollY, camera);
 }

@@ -53,7 +53,7 @@ public:
     virtual ~TileManager();
     
     virtual void act();
-    virtual void draw(const Camera &);
+    virtual void draw(int scrollX, int scrollY, const Camera &);
 protected:
     int tileX;
     int tileY;

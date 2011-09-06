@@ -134,7 +134,7 @@ TileManager::~TileManager(){
 void TileManager::act(){
 }
 
-void TileManager::draw(const Camera & camera){
+void TileManager::draw(int scrollX, int scrollY, const Camera & camera){
     // Render tiles 
     const int x = (int)((camera.getX())/tileX);
     const int y = (int)((camera.getY())/tileY);
