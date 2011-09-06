@@ -139,7 +139,7 @@ void TileManager::draw(const Camera & camera){
     const int x = (int)((camera.getX())/tileX);
     const int y = (int)((camera.getY())/tileY);
     const int w = x + (int)(camera.getWidth()/tileX) + 1;
-    const int h = y + (int)(camera.getHeight()/tileY);
+    const int h = y + (int)(camera.getHeight()/tileY) + 1;
     int posy = y * tileY - camera.getY();
     for(int row = y; row < h; ++row){
 	int posx = x * tileX - camera.getX();

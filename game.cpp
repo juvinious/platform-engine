@@ -117,6 +117,12 @@ void Game::run(){
                 if (event.out == K_2){
                     worlds[0]->moveCamera(1, 5,0);
                 }
+                if (event.out == K_3){
+                    worlds[0]->moveCamera(1, 0, -5);
+                }
+                if (event.out == K_4){
+                    worlds[0]->moveCamera(1, 0, 5);
+                }
             }
         }
         
@@ -148,7 +154,10 @@ void Game::run(){
             ostringstream info;
             info << "Camera Info - X: " << worlds[0]->getCamera(0)->getX() << " Y: " << worlds[0]->getCamera(0)->getY();
             Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
-                work.finish();
+            info.str("");
+            info << "Camera Info - X: " << worlds[0]->getCamera(1)->getX() << " Y: " << worlds[0]->getCamera(1)->getY();
+            Font::getDefaultFont().printf( 10, 30, Graphics::makeColor(255,255,255), work, info.str(), 0);
+            work.finish();
             buffer.BlitToScreen();
         }
     };
@@ -161,6 +170,8 @@ void Game::run(){
     input.set(Keyboard::Key_RIGHT, 0, true, Right);
     input.set(Keyboard::Key_1, 0, true, K_1);
     input.set(Keyboard::Key_2, 0, true, K_2);
+    input.set(Keyboard::Key_3, 0, true, K_3);
+    input.set(Keyboard::Key_4, 0, true, K_4);
     
     // Graphics::Bitmap tmp(640, 480);
 

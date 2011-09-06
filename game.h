@@ -30,6 +30,8 @@ class Game{
 	    Esc,
         K_1,
         K_2,
+        K_3,
+        K_4,
 	};
 	
 	InputMap<Keys> input;

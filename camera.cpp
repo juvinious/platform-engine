@@ -71,7 +71,8 @@ object(NULL){
     }
     
     // Set up window
-    window = new Graphics::Bitmap(resolutionX, resolutionY);
+    //window = new Graphics::Bitmap(resolutionX, resolutionY);
+    window = new Graphics::Bitmap(getViewportWidth(), getViewportHeight());
 }
 
 Camera::~Camera(){
@@ -147,7 +148,8 @@ void Camera::act(){
 
 void Camera::draw(const Graphics::Bitmap & work){
     // FIXME draw only viewport
-    window->Blit(windowX, windowY, windowWidth, windowHeight, windowX, windowY, work);
+    //window->Blit(windowX, windowY, windowWidth, windowHeight, windowX, windowY, work);
+    window->Blit(windowX, windowY, work);
 #if 0
     if (windowY > 0){
         work.rectangleFill(0, 0, windowWidth, windowY, Graphics::makeColor(0,0,0));
@@ -166,13 +168,13 @@ void Camera::draw(const Graphics::Bitmap & work){
 
 void Camera::checkBounds(){
     if (x < 0){
-	x = 0;
-    } else if (x > (worldWidth - windowWidth)){
-	x = (worldWidth - windowWidth);
+        x = 0;
+    } else if (x > (worldWidth - getViewportWidth())){
+        x = (worldWidth - getViewportWidth());
     }
     if (y < 0){
-	y = 0;
-    } else if (y > (worldHeight - windowHeight)){
-	y = (worldHeight - windowHeight);
+        y = 0;
+    } else if (y > (worldHeight - getViewportHeight())){
+        y = (worldHeight - getViewportHeight());
     }
 }
