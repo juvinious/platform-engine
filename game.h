@@ -28,6 +28,8 @@ class Game{
 	    Left,
 	    Right,
 	    Esc,
+        K_1,
+        K_2,
 	};
 	
 	InputMap<Keys> input;

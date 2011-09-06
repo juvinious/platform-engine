@@ -94,28 +94,34 @@ void Game::run(){
 	    // FIXME figure out how many worlds... etc
             vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input, InputSource());
 	    for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
-		const InputMap<Keys>::InputEvent & event = *it;
-		if (event.enabled){
-		    if (event.out == Esc){
-			is_done = true;
-		    }
-		    if (event.out == Up){
-			worlds[0]->moveCamera(1, 0,-5);
-		    }
-		    if (event.out == Down){
-			worlds[0]->moveCamera(1, 0,5);
-		    }
-		    if (event.out == Left){
-			worlds[0]->moveCamera(1, -5,0);
-		    }
-		    if (event.out == Right){
-			worlds[0]->moveCamera(1, 5,0);
-		    }
-		}
-	    }
-	    
-	    worlds[0]->act();
-		
+            const InputMap<Keys>::InputEvent & event = *it;
+            if (event.enabled){
+                if (event.out == Esc){
+                    is_done = true;
+                }
+                if (event.out == Up){
+                    worlds[0]->moveCamera(0, 0,-5);
+                }
+                if (event.out == Down){
+                    worlds[0]->moveCamera(0, 0,5);
+                }
+                if (event.out == Left){
+                    worlds[0]->moveCamera(0, -5,0);
+                }
+                if (event.out == Right){
+                    worlds[0]->moveCamera(0, 5,0);
+                }
+                if (event.out == K_1){
+                    worlds[0]->moveCamera(1, -5,0);
+                }
+                if (event.out == K_2){
+                    worlds[0]->moveCamera(1, 5,0);
+                }
+            }
+        }
+        
+        worlds[0]->act();
+        
         }
 
         double ticks(double system){
@@ -136,14 +142,14 @@ void Game::run(){
 
         void draw(const Graphics::Bitmap & buffer){
             // FIXME change this later as the actual resolution is in the world configuration
-            Graphics::StretchedBitmap work(640, 480, buffer);
+            Graphics::StretchedBitmap work(worlds[0]->getResolutionX(), worlds[0]->getResolutionY(), buffer);
             work.start();
-	    worlds[0]->draw(work);
-	    ostringstream info;
-	    info << "Camera Info - X: " << worlds[0]->getCamera(0)->getX() << " Y: " << worlds[0]->getCamera(0)->getY();
-	    Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
-            work.finish();
-	    buffer.BlitToScreen();
+            worlds[0]->draw(work);
+            ostringstream info;
+            info << "Camera Info - X: " << worlds[0]->getCamera(0)->getX() << " Y: " << worlds[0]->getCamera(0)->getY();
+            Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
+                work.finish();
+            buffer.BlitToScreen();
         }
     };
     
@@ -153,6 +159,8 @@ void Game::run(){
     input.set(Keyboard::Key_DOWN, 0, true, Down);
     input.set(Keyboard::Key_LEFT, 0, true, Left);
     input.set(Keyboard::Key_RIGHT, 0, true, Right);
+    input.set(Keyboard::Key_1, 0, true, K_1);
+    input.set(Keyboard::Key_2, 0, true, K_2);
     
     // Graphics::Bitmap tmp(640, 480);
 

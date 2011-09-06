@@ -60,11 +60,17 @@ class Camera{
         virtual inline int getViewportY() const{
             return this->windowY;
         }
-        virtual inline int getViewportWidth() const{
+        virtual inline int getViewportX2() const{
             return this->windowWidth;
         }
-        virtual inline int getViewportHeight() const{
+        virtual inline int getViewportY2() const{
             return this->windowHeight;
+        }
+        virtual inline int getViewportWidth() const{
+            return (this->windowWidth - this->windowX);
+        }
+        virtual inline int getViewportHeight() const{
+            return (this->windowHeight - this->windowY);
         }
         
         virtual inline Graphics::Bitmap & getWindow() const {

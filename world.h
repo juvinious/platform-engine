@@ -34,7 +34,15 @@ class World{
 	
 	//! FIXME HANDLE Cameras correctly later
 	virtual Util::ReferenceCount<Camera> getCamera(int id);
-	
+    
+    inline virtual int getResolutionX() const {
+        return this->resolutionX;
+    }
+    
+    inline virtual int getResolutionY() const {
+        return this->resolutionY;
+    }
+    
     protected:
 	virtual void load(const Path::AbsolutePath &);
 	virtual void load(const Token *);

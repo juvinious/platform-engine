@@ -120,9 +120,7 @@ void World::draw(const Graphics::Bitmap & bmp){
                 background->draw(*camera);
             }
         }
-        Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(resolutionX, resolutionY);
-        camera->draw(temp);
-        temp.Stretch(bmp);
+        camera->draw(bmp);
     }   
 }
 
