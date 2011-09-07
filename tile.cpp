@@ -134,15 +134,17 @@ TileManager::~TileManager(){
 void TileManager::act(){
 }
 
-void TileManager::draw(int scrollX, int scrollY, const Camera & camera){
+void TileManager::draw(double scrollX, double scrollY, const Camera & camera){
     // Render tiles 
-    const int x = (int)((camera.getX())/tileX);
-    const int y = (int)((camera.getY())/tileY);
+    const int cameraX = camera.getX() * scrollX;
+    const int cameraY = camera.getY() * scrollY;
+    const int x = (int)((cameraX)/tileX);
+    const int y = (int)((cameraY)/tileY);
     const int w = x + (int)(camera.getWidth()/tileX) + 1;
     const int h = y + (int)(camera.getHeight()/tileY) + 1;
-    int posy = y * tileY - camera.getY();
+    int posy = y * tileY - cameraY;
     for(int row = y; row < h; ++row){
-	int posx = x * tileX - camera.getX();
+	int posx = x * tileX - cameraX;
 	for(int column = x; column < w; ++column){
 	    Util::ReferenceCount<Tile> tile = tiles[row][column];
 	    if (tile != NULL){
