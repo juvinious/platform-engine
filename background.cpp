@@ -62,18 +62,30 @@ Background::~Background(){
 }
 
 void Background::act(){
+    switch (type){
+        case Anim:
+            if (animation != NULL){
+                
+            }
+            break;
+        case Tileset:
+            tiles->act();
+            break;
+        default:
+            break;
+    }
 }
 
 void Background::draw(const Camera & camera){
     switch (type){
-	case Anim:
-	    drawAnimation(camera);
-	    break;
-	case Tileset:
-	    drawTileset(camera);
-	    break;
-	default:
-	    break;
+        case Anim:
+            drawAnimation(camera);
+            break;
+        case Tileset:
+            drawTileset(camera);
+            break;
+        default:
+            break;
     }
 }
 
@@ -82,9 +94,6 @@ void Background::drawAnimation(const Camera & camera){
         /* FIXME Remove ability to render single large bitmaps, use tiles exclusively */
         const int x = scrollX * camera.getX();
         const int y = scrollY * camera.getY();
-        //Graphics::Bitmap temp2 = Graphics::Bitmap::temporaryBitmap2(camera.getViewportWidth(),camera.getViewportHeight());
-        //animation->drawRepeatable(x,y,temp2);
-        //temp2.Blit(camera.getViewportX(), camera.getViewportY(), camera.getWindow());
         animation->drawRepeatable(x, y, camera.getWindow());
     }
 }
