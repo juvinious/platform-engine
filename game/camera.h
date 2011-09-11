@@ -1,7 +1,7 @@
 #ifndef platformer_camera_h
 #define platformer_camera_h
 
-#include "object.h"
+#include "platformer/object/object.h"
 #include "util/pointer.h"
 
 #include <string>
