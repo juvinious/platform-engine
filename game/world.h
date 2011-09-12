@@ -22,6 +22,7 @@ namespace Platformer{
 class Animation;
 class Background;
 class Camera;
+class Scriptable;
     
 class World{
     public:
@@ -64,6 +65,9 @@ class World{
 	
 	//! Backgrounds
 	std::vector< Util::ReferenceCount<Background> > backgrounds;
+    
+    //! Script engine
+    Util::ReferenceCount<Scriptable> scriptEngine;
 };
 }
 #endif

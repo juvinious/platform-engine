@@ -3,6 +3,7 @@
 #include "animation.h"
 #include "background.h"
 #include "camera.h"
+#include "platformer/script/script.h"
 
 #include "util/bitmap.h"
 #include "util/debug.h"
@@ -30,6 +31,10 @@ dimensionsY(0){
     } else {
         load(token);
     }
+    
+    //! Setup script engine
+    scriptEngine = Scriptable::getScriptable();
+    scriptEngine->init(this);
 }
 
 void World::load(const Filesystem::AbsolutePath & filename){
@@ -108,6 +113,8 @@ void World::act(){
             background->act();
         }
     }
+    
+    scriptEngine->act();
 }
 
 void World::draw(const Graphics::Bitmap & bmp){
@@ -120,8 +127,14 @@ void World::draw(const Graphics::Bitmap & bmp){
                 background->draw(*camera);
             }
         }
+        // Render objects to camera
+        
+        // Render scriptable items to camera
+        scriptEngine->render(*camera);
+        
+        // Render camera to bmp
         camera->draw(bmp);
-    }   
+    }
 }
 
 void World::moveCamera(int id, int x, int y){
