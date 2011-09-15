@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "camera.h"
+#include "cutscene.h"
 #include "world.h"
 
 #include "util/bitmap.h"
@@ -44,8 +45,11 @@ Game::Game(const std::string & filename){
 		const Token * tok;
 		view >> tok;
 		if ( *tok == "world" ){
-		    worlds.push_back(new Platformer::World(tok));
-		} else {
+                    worlds.push_back(new Platformer::World(tok));
+                } else if ( *tok == "cutscene" ){
+                    Util::ReferenceCount<Platformer::CutScene> cutscene = new Platformer::CutScene(tok);
+                    cutscenes[cutscene->getName()] = cutscene;
+                } else {
 		    Global::debug(3) << "Unhandled Platformer attribute: " << endl;
 		    if (Global::getDebug() >= 3){
 			tok->print(" ");
@@ -61,14 +65,12 @@ Game::Game(const std::string & filename){
     } catch (const TokenException & e){
         throw LoadException(__FILE__, __LINE__, e, "Error loading platformer file.");
     }
+    
+    // TODO remove test intro cutscene
+    cutscenes["intro"]->setResolution(worlds[0]->getResolutionX(), worlds[0]->getResolutionY());
 }
 
 Game::~Game(){
-    for (std::vector< Platformer::World *>::iterator i = worlds.begin(); i != worlds.end(); ++i){
-	if (*i){
-	    delete *i;
-	}
-    }
 }
 
 void Game::run(){
@@ -76,7 +78,7 @@ void Game::run(){
     
     class Logic: public Util::Logic {
     public:
-        Logic(InputMap<Keys> & input, std::vector < Platformer::World *> & worlds):
+        Logic(InputMap<Keys> & input, std::vector < Util::ReferenceCount<Platformer::World> > & worlds):
         is_done(false),
         input(input),
         worlds(worlds){
@@ -84,7 +86,7 @@ void Game::run(){
 
         bool is_done;
 	InputMap<Keys> & input;
-	std::vector < Platformer::World *> & worlds;
+	std::vector < Util::ReferenceCount<Platformer::World> > & worlds;
         
 	bool done(){
             return is_done;
@@ -137,12 +139,12 @@ void Game::run(){
 
     class Draw: public Util::Draw {
     public:
-        Draw(std::vector < Platformer::World * > & worlds, const Logic & logic):
+        Draw(std::vector < Util::ReferenceCount<Platformer::World> > & worlds, const Logic & logic):
         worlds(worlds),
         logic(logic){
         }
         
-        std::vector < Platformer::World * > & worlds;
+        std::vector < Util::ReferenceCount<Platformer::World> > & worlds;
 
 	const Logic & logic;
 
@@ -174,6 +176,10 @@ void Game::run(){
     input.set(Keyboard::Key_4, 0, true, K_4);
     
     // Graphics::Bitmap tmp(640, 480);
+    
+    while (cutscenes["intro"]->hasMore()){
+        cutscenes["intro"]->next();
+    }
 
     Logic logic(input, worlds);
     Draw draw(worlds, logic);

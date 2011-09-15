@@ -1,9 +1,12 @@
 #ifndef platformer_game_h
 #define platformer_game_h
 
+#include <map>
+#include <string>
 #include <vector>
 
 #include "util/input/input-map.h"
+#include "util/pointer.h"
 
 class Token;
 
@@ -11,6 +14,7 @@ class Token;
 
 namespace Platformer{
     
+class CutScene;
 class World;
         
 class Game{
@@ -20,7 +24,8 @@ class Game{
 	virtual void run();
 	
     protected:
-	std::vector < Platformer::World *> worlds;
+        std::map < std::string, Util::ReferenceCount<Platformer::CutScene> > cutscenes;
+	std::vector < Util::ReferenceCount<Platformer::World> > worlds;
 	//! keys
 	enum Keys{
 	    Up=0,

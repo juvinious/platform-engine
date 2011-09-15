@@ -13,13 +13,7 @@ using namespace Platformer;
 
 Scene::Scene(const Token * token):
 ticks(0),
-endTicks(0),
-backgroundBottom(NULL),
-backgroundMiddle(NULL),
-backgroundTop(NULL),
-foregroundBottom(NULL),
-foregroundMiddle(NULL),
-foregroundTop(NULL){
+endTicks(0){
     if ( *token != "scene" ){
         throw LoadException(__FILE__, __LINE__, "Not a Scene");
     }
@@ -32,6 +26,8 @@ foregroundTop(NULL){
                 tok->view() >> endTicks;
             } else if ( *tok == "animation" || *tok == "anim" ){
                 setAnimation(new Gui::Animation(tok));
+            } else if ( *tok == "fade" ){
+                fader.parseDefaults(tok);
             } else {
                 Global::debug(3) << "Unhandled Scene attribute: " << std::endl;
                 if (Global::getDebug() >= 3){
@@ -66,8 +62,14 @@ void Scene::act(){
     if (foregroundTop != NULL){
         foregroundTop->act();
     }
-    // Increment ticks
-    ticks++;
+    fader.act();
+    // Increment ticks only when fader is in No Fade
+    if (fader.getState() == Gui::FadeTool::NoFade){
+        ticks++;
+        if ((endTicks - ticks) == fader.getFadeOutTime()){
+            fader.setState(Gui::FadeTool::FadeOut);
+        }
+    }
 }
 void Scene::render(const Graphics::Bitmap & work){
     
@@ -89,6 +91,7 @@ void Scene::render(const Graphics::Bitmap & work){
     if (foregroundTop != NULL){
         foregroundTop->draw(work);
     }
+    fader.draw(work);
 }
 
 void Scene::setAnimation(Util::ReferenceCount<Gui::Animation> animation){
@@ -204,6 +207,10 @@ void CutScene::next(){
             }
             
             scene->act();
+            
+            if (scene->done()){
+                is_done = true;
+            }
         }
 
         double ticks(double system){

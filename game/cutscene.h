@@ -1,6 +1,7 @@
 #ifndef platformer_cutscene_h
 #define platformer_cutscene_h
 
+#include "util/gui/fadetool.h"
 #include "util/pointer.h"
 
 #include <string>
@@ -30,7 +31,7 @@ class Scene{
             this->endTicks = ticks;
         }
         virtual inline bool done() const {
-            return (this->ticks > this->endTicks);
+            return (this->ticks >= this->endTicks);
         }
         
     protected:
@@ -43,6 +44,8 @@ class Scene{
         Util::ReferenceCount<Gui::Animation> foregroundBottom;
         Util::ReferenceCount<Gui::Animation> foregroundMiddle;
         Util::ReferenceCount<Gui::Animation> foregroundTop;
+        
+        Gui::FadeTool fader;
 };
     
 class CutScene{
