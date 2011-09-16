@@ -63,14 +63,11 @@ void Scene::act(){
         foregroundTop->act();
     }
     fader.act();
-    // Increment ticks only when fader is in No Fade
-    if (fader.getState() == Gui::FadeTool::NoFade){
-        ticks++;
-        if ((endTicks - ticks) == fader.getFadeOutTime()){
-            fader.setState(Gui::FadeTool::FadeOut);
-        }
-    } else if (fader.getState() == Gui::FadeTool::FadeOut){
-        ticks++;
+    // Increment ticks
+    ticks++;
+    // Set fadeout when near the end
+    if ((endTicks - ticks) == fader.getFadeOutTime()){
+        fader.setState(Gui::FadeTool::FadeOut);
     }
 }
 void Scene::render(const Graphics::Bitmap & work){
