@@ -69,6 +69,8 @@ void Scene::act(){
         if ((endTicks - ticks) == fader.getFadeOutTime()){
             fader.setState(Gui::FadeTool::FadeOut);
         }
+    } else if (fader.getState() == Gui::FadeTool::FadeOut){
+        ticks++;
     }
 }
 void Scene::render(const Graphics::Bitmap & work){
