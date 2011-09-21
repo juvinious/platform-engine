@@ -10,11 +10,14 @@
 
 class Token;
 
+namespace Gui{   
+class CutScene;
+}
+
 /*! Platformers game class this is for testing, will be expanded or changed later */
 
 namespace Platformer{
     
-class CutScene;
 class World;
         
 class Game{
@@ -24,7 +27,7 @@ class Game{
 	virtual void run();
 	
     protected:
-        std::map < std::string, Util::ReferenceCount<Platformer::CutScene> > cutscenes;
+        std::map < std::string, Util::ReferenceCount<Gui::CutScene> > cutscenes;
 	std::vector < Util::ReferenceCount<Platformer::World> > worlds;
 	//! keys
 	enum Keys{

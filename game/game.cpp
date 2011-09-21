@@ -1,7 +1,7 @@
 #include "game.h"
 
 #include "camera.h"
-#include "cutscene.h"
+#include "util/gui/cutscene.h"
 #include "world.h"
 
 #include "util/bitmap.h"
@@ -47,7 +47,7 @@ Game::Game(const std::string & filename){
 		if ( *tok == "world" ){
                     worlds.push_back(new Platformer::World(tok));
                 } else if ( *tok == "cutscene" ){
-                    Util::ReferenceCount<Platformer::CutScene> cutscene = new Platformer::CutScene(tok);
+                    Util::ReferenceCount<Gui::CutScene> cutscene = new Gui::CutScene(tok);
                     cutscenes[cutscene->getName()] = cutscene;
                 } else {
 		    Global::debug(3) << "Unhandled Platformer attribute: " << endl;
