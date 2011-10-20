@@ -72,10 +72,10 @@ void World::load(const Token * token){
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
 		cameras[camera->getId()] = camera;
             } else if (*tok == "animation"){
-		Util::ReferenceCount<Animation> animation = new Animation(tok);
+		Util::ReferenceCount<Animation> animation(new Animation(tok));
 		animations[animation->getId()] = animation;
 	    } else if (*tok == "background"){
-		Util::ReferenceCount<Background> background = new Background(tok, animations);
+		Util::ReferenceCount<Background> background(new Background(tok, animations));
 		backgrounds.push_back(background);
 	    } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
@@ -150,5 +150,5 @@ Util::ReferenceCount<Camera> World::getCamera(int id){
         return found->second;
     }
     
-    return NULL;
+    return Util::ReferenceCount<Camera>(NULL);
 }

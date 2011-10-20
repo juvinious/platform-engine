@@ -45,9 +45,9 @@ Game::Game(const std::string & filename){
 		const Token * tok;
 		view >> tok;
 		if ( *tok == "world" ){
-                    worlds.push_back(new Platformer::World(tok));
+                    worlds.push_back(Util::ReferenceCount<Platformer::World>(new Platformer::World(tok)));
                 } else if ( *tok == "cutscene" ){
-                    Util::ReferenceCount<Gui::CutScene> cutscene = new Gui::CutScene(tok);
+                    Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(tok));
                     cutscenes[cutscene->getName()] = cutscene;
                 } else {
 		    Global::debug(3) << "Unhandled Platformer attribute: " << endl;

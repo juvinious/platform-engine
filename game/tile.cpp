@@ -78,13 +78,11 @@ Tile::Side Tile::collides(const Object & object){
 }
 
 Util::ReferenceCount<Object> Tile::toObject(){
-    return NULL;
+    return Util::ReferenceCount<Object>(NULL);
 }
-
 
 void Tile::setAnimation(Util::ReferenceCount<Animation> anim){
 }
-
 
 TileManager::TileManager(const Token * token, std::map< std::string, Util::ReferenceCount<Animation> > & animations):
 tileX(0),
@@ -101,7 +99,7 @@ dimensionsY(0){
             } else if (*tok == "dimensions"){
                 tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "tile"){
-                Util::ReferenceCount<Tile> tile = new Tile(tok, animations);
+                Util::ReferenceCount<Tile> tile(new Tile(tok, animations));
                 const int row = tile->getRow();
                 const int col = tile->getColumn();
                 // Do first one

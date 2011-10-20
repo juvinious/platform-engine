@@ -15,9 +15,9 @@ Scriptable::~Scriptable(){
 
 Util::ReferenceCount<Scriptable> Scriptable::getScriptable(){
 #ifdef HAVE_PYTHON
-    return new NoScript;
+    return Util::ReferenceCount<Scriptable>(new NoScript());
 #else
-    return new NoScript;
+    return Util::ReferenceCount<Scriptable>(new NoScript());
 #endif
 }
 
