@@ -176,9 +176,7 @@ void Game::run(){
     
     // Graphics::Bitmap tmp(640, 480);
     
-    while (cutscenes["intro"]->hasMore()){
-        cutscenes["intro"]->next();
-    }
+    cutscenes["intro"]->playAll();
 
     Logic logic(input, worlds);
     Draw draw(worlds, logic);
