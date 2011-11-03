@@ -41,8 +41,8 @@ void World::load(const Filesystem::AbsolutePath & filename){
     // Load up tokenizer
     try{
         Global::debug(1,"World") << "Loading world " << filename.path() << endl;
-        TokenReader tr(filename.path());
-        Token * token = tr.readToken();
+        TokenReader tr;
+        Token * token = tr.readTokenFromFile(filename.path());
         load(token);
     } catch (const TokenException & e){
         throw LoadException(__FILE__, __LINE__, e, "Error loading World");

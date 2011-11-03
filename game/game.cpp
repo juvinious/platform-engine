@@ -30,10 +30,9 @@ Game::Game(const std::string & filename){
      */
     try {
 	Global::debug(1,"platformer") << "Loading Platformer: " << filename << endl;
-	TokenReader tr(Filesystem::AbsolutePath(filename).path());
+	TokenReader tr;
     
-        Token * platformToken = tr.readToken();
-    
+        Token * platformToken = tr.readTokenFromFile(filename);
     
 	if ( *platformToken != "platformer" ){
 	    throw LoadException(__FILE__, __LINE__, "Not a Platformer");
