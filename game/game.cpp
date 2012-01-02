@@ -46,7 +46,10 @@ Game::Game(const std::string & filename){
 		if ( *tok == "world" ){
                     worlds.push_back(Util::ReferenceCount<Platformer::World>(new Platformer::World(tok)));
                 } else if ( *tok == "cutscene" ){
-                    Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(tok));
+                    std::string file;
+                    tok->view() >> file;
+                    //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(tok));
+                    Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(Filesystem::AbsolutePath(file)));
                     cutscenes[cutscene->getName()] = cutscene;
                 } else {
 		    Global::debug(3) << "Unhandled Platformer attribute: " << endl;
