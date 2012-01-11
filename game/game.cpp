@@ -135,7 +135,7 @@ void Game::run(){
         }
 
         double ticks(double system){
-            return system * Global::LOGIC_MULTIPLIER;
+            return Global::ticksPerSecond(60) * system;
         }
     };
 
