@@ -178,6 +178,8 @@ void Game::run(){
     input.set(Keyboard::Key_3, 0, false, K_3);
     input.set(Keyboard::Key_4, 0, false, K_4);
     
+    Keyboard::pushRepeatState(true);
+    
     // Graphics::Bitmap tmp(640, 480);
     
     if (cutscenes["intro"] != NULL){
