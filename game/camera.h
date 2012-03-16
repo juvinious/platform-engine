@@ -106,10 +106,17 @@ class Camera{
         //! Window buffer
         Util::ReferenceCount<Graphics::Bitmap> window;
         
+        //! Regular scrolling
         double scrollSpeed;
         double currentXSpeed;
         double currentYSpeed;
         double velocity;
+        
+        //! Smooth scrolling
+        bool smoothScrolling;
+        int smoothScrollWaitX;
+        int smoothScrollWaitY;
+        int smoothScrollModifier;
         
         bool follow;
         double followVariance;

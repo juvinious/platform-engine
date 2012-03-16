@@ -106,28 +106,28 @@ void Game::run(){
                     is_done = true;
                 }
                 if (event.out == Up){
-                    worlds[0]->moveCamera(0, 0,-5);
+                    worlds[0]->moveCamera(0, 0,-10);
                 }
                 if (event.out == Down){
-                    worlds[0]->moveCamera(0, 0,5);
+                    worlds[0]->moveCamera(0, 0,10);
                 }
                 if (event.out == Left){
-                    worlds[0]->moveCamera(0, -5,0);
+                    worlds[0]->moveCamera(0, -10,0);
                 }
                 if (event.out == Right){
-                    worlds[0]->moveCamera(0, 5,0);
+                    worlds[0]->moveCamera(0, 10,0);
                 }
                 if (event.out == K_1){
-                    worlds[0]->moveCamera(1, -5,0);
+                    worlds[0]->moveCamera(1, -10,0);
                 }
                 if (event.out == K_2){
-                    worlds[0]->moveCamera(1, 5,0);
+                    worlds[0]->moveCamera(1, 10,0);
                 }
                 if (event.out == K_3){
-                    worlds[0]->moveCamera(1, 0, -5);
+                    worlds[0]->moveCamera(1, 0, -10);
                 }
                 if (event.out == K_4){
-                    worlds[0]->moveCamera(1, 0, 5);
+                    worlds[0]->moveCamera(1, 0, 10);
                 }
             }
         }
@@ -169,14 +169,14 @@ void Game::run(){
     
     // set input
     input.set(Keyboard::Key_ESC, 0, true, Esc);
-    input.set(Keyboard::Key_UP, 0, true, Up);
-    input.set(Keyboard::Key_DOWN, 0, true, Down);
-    input.set(Keyboard::Key_LEFT, 0, true, Left);
-    input.set(Keyboard::Key_RIGHT, 0, true, Right);
-    input.set(Keyboard::Key_1, 0, true, K_1);
-    input.set(Keyboard::Key_2, 0, true, K_2);
-    input.set(Keyboard::Key_3, 0, true, K_3);
-    input.set(Keyboard::Key_4, 0, true, K_4);
+    input.set(Keyboard::Key_UP, 0, false, Up);
+    input.set(Keyboard::Key_DOWN, 0, false, Down);
+    input.set(Keyboard::Key_LEFT, 0, false, Left);
+    input.set(Keyboard::Key_RIGHT, 0, false, Right);
+    input.set(Keyboard::Key_1, 0, false, K_1);
+    input.set(Keyboard::Key_2, 0, false, K_2);
+    input.set(Keyboard::Key_3, 0, false, K_3);
+    input.set(Keyboard::Key_4, 0, false, K_4);
     
     // Graphics::Bitmap tmp(640, 480);
     

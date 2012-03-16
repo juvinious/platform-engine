@@ -28,6 +28,10 @@ scrollSpeed(2),
 currentXSpeed(0),
 currentYSpeed(0),
 velocity(.5),
+smoothScrolling(false),
+smoothScrollWaitX(5),
+smoothScrollWaitY(5),
+smoothScrollModifier(5),
 follow(false),
 followVariance(1.5),
 object(NULL){
@@ -43,21 +47,27 @@ object(NULL){
                 // Get the resolution of the world
                 tok->view() >> worldWidth >> worldHeight;
             } else if (*tok == "start"){
-		// Starting point for camera
-		tok->view() >> x >> y;
+                // Starting point for camera
+                tok->view() >> x >> y;
             } else if (*tok == "viewport"){
                 // The viewing area of the camera
                 tok->view() >> windowX >> windowY >> windowWidth >> windowHeight;
             } else if (*tok == "speed"){
-		// Scroll speed
-		tok->view() >> scrollSpeed;
-	    } else if (*tok == "velocity"){
-		// Scroll speed
-		tok->view() >> velocity;
-	    } else if (*tok == "follow-variance"){
-		// Follow variance of the camera when following an object
-		tok->view() >> followVariance;
-	    } else {
+                // Scroll speed
+                tok->view() >> scrollSpeed;
+            } else if (*tok == "velocity"){
+                // Scroll speed
+                tok->view() >> velocity;
+            } else if (*tok == "follow-variance"){
+                // Follow variance of the camera when following an object
+                tok->view() >> followVariance;
+            } else if (*tok == "smooth-scrolling"){
+                // Follow variance of the camera when following an object
+                tok->view() >> smoothScrolling;
+            } else if (*tok == "smooth-scroll-modifier"){
+                // Follow variance of the camera when following an object
+                tok->view() >> smoothScrollModifier;
+            } else {
                 Global::debug( 3 ) << "Unhandled Camera attribute: "<<endl;
                 if (Global::getDebug() >= 3){
                     token->print(" ");
@@ -113,35 +123,51 @@ int Camera::getHeight() const {
 
 void Camera::act(){
     // Update camera to whatever object it may be following or to set destination
-    if (currentX < x){
-	currentXSpeed+=velocity;
-	currentX+=scrollSpeed+currentXSpeed;
-	if (currentX > x){
-	    currentX = x;
-	    currentXSpeed = 0;
-	}
-    } else if (currentX > x){
-	currentXSpeed+=velocity;
-	currentX-=scrollSpeed+currentXSpeed;
-	if (currentX < x){
-	    currentX = x;
-	    currentXSpeed = 0;
-	}
-    }
-    if (currentY < y){
-	currentYSpeed+=velocity;
-	currentY+=scrollSpeed+currentYSpeed;
-	if (currentY > y){
-	    currentY = y;
-	    currentYSpeed = 0;
-	}
-    } else if (currentY > y){
-	currentYSpeed+=velocity;
-	currentY-=scrollSpeed+currentYSpeed;
-	if (currentY < y){
-	    currentY = y;
-	    currentYSpeed = 0;
-	}
+    if (smoothScrolling){
+        if (smoothScrollWaitX > 0){
+            smoothScrollWaitX--;
+        } else {
+            currentX = (currentX+x)/2;
+            smoothScrollWaitX = smoothScrollModifier;
+        }
+        if (smoothScrollWaitY > 0){
+            smoothScrollWaitY--;
+        } else {
+            currentY = (currentY+y)/2;
+            smoothScrollWaitY = smoothScrollModifier;
+        }
+    } else {
+        if (currentX < x){
+            currentXSpeed+=velocity;
+            currentX+=scrollSpeed+currentXSpeed;
+            if (currentX > x){
+                currentX = x;
+                currentXSpeed = 0;
+            }
+        } else if (currentX > x){
+            currentXSpeed+=velocity;
+            currentX-=scrollSpeed+currentXSpeed;
+            if (currentX < x){
+                currentX = x;
+                currentXSpeed = 0;
+            }
+        }
+        
+        if (currentY < y){
+            currentYSpeed+=velocity;
+            currentY+=scrollSpeed+currentYSpeed;
+            if (currentY > y){
+                currentY = y;
+                currentYSpeed = 0;
+            }
+        } else if (currentY > y){
+            currentYSpeed+=velocity;
+            currentY-=scrollSpeed+currentYSpeed;
+            if (currentY < y){
+                currentY = y;
+                currentYSpeed = 0;
+            }
+        }
     }
 }
 
