@@ -1,14 +1,13 @@
 #include "argument.h"
 #include "game/game.h"
+#include "util/debug.h"
 #include "util/pointer.h"
 
 class PlatformerArgument: public Argument {
 public:
     std::vector<std::string> keywords() const {
         std::vector<std::string> out;
-        out.push_back("platform");
         out.push_back("platformer");
-        out.push_back("--platform");
         out.push_back("--platformer");
         return out;
     }
@@ -33,6 +32,8 @@ public:
         current++;
         if (current != end){
             actions.push_back(::Util::ReferenceCount<ArgumentAction>(new Run(*current)));
+        } else {
+            Global::debug(0) << "Expected an argument. Example: platformer game.txt" << std::endl;
         }
         return current;
     }
