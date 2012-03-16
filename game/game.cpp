@@ -69,7 +69,9 @@ Game::Game(const std::string & filename){
     }
     
     // TODO remove test intro cutscene
-    cutscenes["intro"]->setResolution(worlds[0]->getResolutionX(), worlds[0]->getResolutionY());
+    if (cutscenes["intro"] != NULL){
+        cutscenes["intro"]->setResolution(worlds[0]->getResolutionX(), worlds[0]->getResolutionY());
+    }
 }
 
 Game::~Game(){
@@ -178,8 +180,10 @@ void Game::run(){
     
     // Graphics::Bitmap tmp(640, 480);
     
-    cutscenes["intro"]->playAll();
-
+    if (cutscenes["intro"] != NULL){
+        cutscenes["intro"]->playAll();
+    }
+    
     Logic logic(input, worlds);
     Draw draw(worlds, logic);
 
