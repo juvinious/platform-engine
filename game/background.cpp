@@ -32,7 +32,10 @@ scrollY(1){
 		} else if (typeTemp == "tileset"){
 		    type = Tileset;
 		} else {
-		    throw LoadException(__FILE__, __LINE__, "Background parse error, unknown type given: " + type);
+                    ostringstream out;
+                    out << "Background parse error, unknown type given: ";
+                    out << type;
+		    throw LoadException(__FILE__, __LINE__, out.str());
 		}
             } else if (*tok == "animation"){
 		std::string name;
