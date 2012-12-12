@@ -1,6 +1,5 @@
 #include "script.h"
 
-#include "util/bitmap.h"
 #include "platformer/game/camera.h"
 #include "platformer/game/world.h"
 #include "platformer/object/object.h"

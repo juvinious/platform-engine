@@ -5,7 +5,7 @@
 #include "camera.h"
 #include "platformer/script/script.h"
 
-#include "util/bitmap.h"
+#include "util/graphics/bitmap.h"
 #include "util/debug.h"
 #include "util/file-system.h"
 #include "util/load_exception.h"
