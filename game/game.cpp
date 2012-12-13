@@ -5,7 +5,6 @@
 #include "world.h"
 
 #include "util/graphics/bitmap.h"
-#include "util/graphics/stretch-bitmap.h"
 #include "util/debug.h"
 #include "util/events.h"
 #include "util/font.h"

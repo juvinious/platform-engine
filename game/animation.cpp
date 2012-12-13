@@ -2,7 +2,6 @@
 
 #include <sstream>
 #include "util/token.h"
-#include "util/graphics/trans-bitmap.h"
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"
 #include "util/funcs.h"
