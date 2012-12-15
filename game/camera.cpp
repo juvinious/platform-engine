@@ -2,7 +2,7 @@
 
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"
-#include "util/load_exception.h"
+#include "util/exceptions/load_exception.h"
 #include "util/token.h"
 
 

@@ -7,7 +7,7 @@
 #include "util/funcs.h"
 #include "util/file-system.h"
 
-#include "util/load_exception.h"
+#include "util/exceptions/load_exception.h"
 
 using namespace std;
 using namespace Platformer;

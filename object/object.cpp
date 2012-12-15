@@ -1,9 +1,7 @@
 #include "object.h"
 
 #include "util/debug.h"
-#include "util/load_exception.h"
 #include "util/token.h"
-
 
 using namespace std;
 using namespace Platformer;
