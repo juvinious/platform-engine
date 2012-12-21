@@ -3,6 +3,7 @@
 #include "util/menu/menu_option.h"
 #include "util/menu/options.h"
 #include "util/menu/menu-exception.h"
+#include "util/exceptions/load_exception.h"
 #include "util/token.h"
 #include "game.h"
 
