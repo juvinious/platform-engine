@@ -162,7 +162,7 @@ void Game::run(){
             info << "Camera Info - X: " << worlds[0]->getCamera(1)->getX() << " Y: " << worlds[0]->getCamera(1)->getY();
             Font::getDefaultFont().printf( 10, 30, Graphics::makeColor(255,255,255), work, info.str(), 0);
             work.finish();
-            buffer.BlitToScreen();
+            // buffer.BlitToScreen();
         }
     };
     
