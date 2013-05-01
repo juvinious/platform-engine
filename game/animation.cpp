@@ -129,7 +129,7 @@ void Frame::drawRepeatable(int x, int y, const Graphics::Bitmap & work){
     
     const int w = work.getWidth();
     const int h = work.getHeight();
-    Graphics::Bitmap temp = Graphics::Bitmap::temporaryBitmap(w,h);
+    Graphics::Bitmap temp(w,h);
     int x2 = 0;
     int y2 = 0;
     if (( (x + w) > bmp->getWidth()) || ((y + h) > bmp->getHeight()) ){
