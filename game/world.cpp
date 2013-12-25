@@ -58,7 +58,7 @@ void World::load(const Token * token){
             if (*tok == "name"){
                 // get the name
                 tok->view() >> name;
-		Global::debug(0, "Platformer") << "Loading: " << name << endl;
+                Global::debug(0, "Platformer") << "Loading: " << name << endl;
             } else if (*tok == "resolution"){
                 // Get the resolution of the world
                 tok->view() >> resolutionX >> resolutionY;
@@ -66,18 +66,18 @@ void World::load(const Token * token){
                 // Get the dimensions of the world
                 tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "players"){
-		// Handle player info eventually
+                // Handle player info eventually
             } else if (*tok == "camera"){
                 // Handle camera info
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
-		cameras[camera->getId()] = camera;
+                cameras[camera->getId()] = camera;
             } else if (*tok == "animation"){
-		Util::ReferenceCount<Animation> animation(new Animation(tok));
-		animations[animation->getId()] = animation;
-	    } else if (*tok == "background"){
-		Util::ReferenceCount<Background> background(new Background(tok, animations));
-		backgrounds.push_back(background);
-	    } else {
+                Util::ReferenceCount<Animation> animation(new Animation(tok));
+                animations[animation->getId()] = animation;
+            } else if (*tok == "background"){
+                Util::ReferenceCount<Background> background(new Background(tok, animations));
+                backgrounds.push_back(background);
+            } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
                 if (Global::getDebug() >= 3){
                     token->print(" ");
@@ -114,6 +114,12 @@ void World::act(){
         }
     }
     
+    // Objects
+    for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
+        Util::ReferenceCount<Object> object = *i;
+        object->act();
+    }
+    
     scriptEngine->act();
 }
 
@@ -128,12 +134,23 @@ void World::draw(const Graphics::Bitmap & bmp){
             }
         }
         // Render objects to camera
+        for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
+            Util::ReferenceCount<Object> object = *i;
+            object->draw(*camera);
+        }
         
         // Render scriptable items to camera
         scriptEngine->render(*camera);
         
         // Render camera to bmp
         camera->draw(bmp);
+    }
+}
+
+void World::setCamera(int id, int x, int y){
+    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    if (found != cameras.end()){
+        found->second->set(x,y);
     }
 }
 
@@ -151,4 +168,8 @@ Util::ReferenceCount<Camera> World::getCamera(int id){
     }
     
     return Util::ReferenceCount<Camera>(NULL);
+}
+
+void World::addObject(Util::ReferenceCount<Object> object){
+    objects.push_back(object);
 }

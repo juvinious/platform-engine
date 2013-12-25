@@ -23,18 +23,22 @@ class Animation;
 class Background;
 class Camera;
 class Scriptable;
+class Object;
     
 class World{
-    public:
-	World(const Token *);
-	virtual ~World();
-	virtual void act();
-	virtual void draw(const Graphics::Bitmap &);
-	
-	virtual void moveCamera(int id, int x, int y);
-	
-	//! FIXME HANDLE Cameras correctly later
-	virtual Util::ReferenceCount<Camera> getCamera(int id);
+public:
+    World(const Token *);
+    virtual ~World();
+    virtual void act();
+    virtual void draw(const Graphics::Bitmap &);
+    
+    virtual void setCamera(int id, int x, int y);
+    virtual void moveCamera(int id, int x, int y);
+    
+    //! FIXME HANDLE Cameras correctly later
+    virtual Util::ReferenceCount<Camera> getCamera(int id);
+    
+    virtual void addObject(Util::ReferenceCount<Object>);
     
     inline virtual int getResolutionX() const {
         return this->resolutionX;
@@ -44,27 +48,29 @@ class World{
         return this->resolutionY;
     }
     
-    protected:
-	virtual void load(const Path::AbsolutePath &);
-	virtual void load(const Token *);
-	//! Name
-	std::string name;
-	//! Resolution of map (upscaled/downscaled according to paintowns screensize)
-	int resolutionX;
-	int resolutionY;
-	//! Dimensions of the entire map
-	int dimensionsX;
-	int dimensionsY;
-	// Player info
-	
-	//! Cameras
-	std::map< int, Util::ReferenceCount<Camera> > cameras;
-	
-	//! Animation map
-	std::map< std::string, Util::ReferenceCount<Animation> > animations;
-	
-	//! Backgrounds
-	std::vector< Util::ReferenceCount<Background> > backgrounds;
+protected:
+    virtual void load(const Path::AbsolutePath &);
+    virtual void load(const Token *);
+    //! Name
+    std::string name;
+    //! Resolution of map (upscaled/downscaled according to paintowns screensize)
+    int resolutionX;
+    int resolutionY;
+    //! Dimensions of the entire map
+    int dimensionsX;
+    int dimensionsY;
+    // Player info
+    
+    //! Cameras
+    std::map< int, Util::ReferenceCount<Camera> > cameras;
+    
+    //! Animation map
+    std::map< std::string, Util::ReferenceCount<Animation> > animations;
+    
+    //! Backgrounds
+    std::vector< Util::ReferenceCount<Background> > backgrounds;
+    
+    std::vector< Util::ReferenceCount<Object> > objects;
     
     //! Script engine
     Util::ReferenceCount<Scriptable> scriptEngine;

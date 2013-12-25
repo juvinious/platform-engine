@@ -122,6 +122,11 @@ int Camera::getHeight() const {
 }
 
 void Camera::act(){
+    // Object following
+    if (follow){
+        set(object->getX() - getViewportWidth()/2, object->getY() - getViewportHeight()/2);
+    }
+    
     // Update camera to whatever object it may be following or to set destination
     if (smoothScrolling){
         if (smoothScrollWaitX > 0){

@@ -28,49 +28,53 @@ Game::Game(const std::string & filename){
      * Eventually it will be replaced with a class that handles the entire game (worlds, etc...)
      */
     try {
-	Global::debug(1,"platformer") << "Loading Platformer: " << filename << endl;
-	TokenReader tr;
-    
+        Global::debug(1,"platformer") << "Loading Platformer: " << filename << endl;
+        TokenReader tr;
         Token * platformToken = tr.readTokenFromFile(filename);
-    
-	if ( *platformToken != "platformer" ){
-	    throw LoadException(__FILE__, __LINE__, "Not a Platformer");
-	}
+        
+        if ( *platformToken != "platformer" ){
+            throw LoadException(__FILE__, __LINE__, "Not a Platformer");
+        }
 
-	TokenView view = platformToken->view();
-	while (view.hasMore()){
-	    try{
-		const Token * tok;
-		view >> tok;
-		if ( *tok == "world" ){
-                    worlds.push_back(Util::ReferenceCount<Platformer::World>(new Platformer::World(tok)));
+        TokenView view = platformToken->view();
+        while (view.hasMore()){
+            try{
+                const Token * tok;
+                view >> tok;
+                if ( *tok == "world" ){
+                    world = Util::ReferenceCount<Platformer::World>(new Platformer::World(tok));
                 } else if ( *tok == "cutscene" ){
-                    std::string file;
-                    tok->view() >> file;
+                    //std::string file;
+                    //tok->view() >> file;
                     //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(tok));
-                    Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(Filesystem::AbsolutePath(file)));
-                    cutscenes[cutscene->getName()] = cutscene;
+                    //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(Filesystem::AbsolutePath(file)));
+                    //cutscenes[cutscene->getName()] = cutscene;
                 } else {
-		    Global::debug(3) << "Unhandled Platformer attribute: " << endl;
-		    if (Global::getDebug() >= 3){
-			tok->print(" ");
-		    }
-		}
-	    } catch ( const TokenException & ex ) {
-		throw LoadException(__FILE__, __LINE__, ex, "Platformer parse error");
-	    } catch ( const LoadException & ex ) {
-		// delete current;
-		throw ex;
-	    }
-	}
+                    Global::debug(3) << "Unhandled Platformer attribute: " << endl;
+                    if (Global::getDebug() >= 3){
+                        tok->print(" ");
+                    }
+                }
+            } catch ( const TokenException & ex ) {
+                throw LoadException(__FILE__, __LINE__, ex, "Platformer parse error");
+            } catch ( const LoadException & ex ) {
+                // delete current;
+                throw ex;
+            }
+        }
     } catch (const TokenException & e){
         throw LoadException(__FILE__, __LINE__, e, "Error loading platformer file.");
     }
     
     // TODO remove test intro cutscene
-    if (cutscenes["intro"] != NULL){
+    /*if (cutscenes["intro"] != NULL){
         cutscenes["intro"]->setResolution(worlds[0]->getResolutionX(), worlds[0]->getResolutionY());
-    }
+    }*/
+    
+    // Create dummy object
+    object = Util::ReferenceCount<Object>(new Object());
+    world->getCamera(0)->followObject(object);
+    world->addObject(object);
 }
 
 Game::~Game(){
@@ -79,90 +83,63 @@ Game::~Game(){
 void Game::run(){
     // NOTE Testing purposes only
     
-    class Logic: public Util::Logic {
+    class DrawLogic: public Util::Logic, public Util::Draw {
     public:
-        Logic(InputMap<Keys> & input, std::vector < Util::ReferenceCount<Platformer::World> > & worlds):
+        DrawLogic(InputMap<Keys> & input, Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
         is_done(false),
         input(input),
-        worlds(worlds){
+        object(object),
+        world(world){
         }
 
         bool is_done;
-	InputMap<Keys> & input;
-	std::vector < Util::ReferenceCount<Platformer::World> > & worlds;
+        InputMap<Keys> & input;
+        Util::ReferenceCount<Object> & object;
+        Util::ReferenceCount<Platformer::World> & world;
         
-	bool done(){
+        bool done(){
             return is_done;
         }
 
-	void run(){
-	    // FIXME figure out how many worlds... etc
+        void run(){
+            // FIXME figure out how many worlds... etc
             vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input, InputSource(true));
-	    for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
-            const InputMap<Keys>::InputEvent & event = *it;
-            if (event.enabled){
-                if (event.out == Esc){
-                    is_done = true;
-                }
-                if (event.out == Up){
-                    worlds[0]->moveCamera(0, 0,-10);
-                }
-                if (event.out == Down){
-                    worlds[0]->moveCamera(0, 0,10);
-                }
-                if (event.out == Left){
-                    worlds[0]->moveCamera(0, -10,0);
-                }
-                if (event.out == Right){
-                    worlds[0]->moveCamera(0, 10,0);
-                }
-                if (event.out == K_1){
-                    worlds[0]->moveCamera(1, -10,0);
-                }
-                if (event.out == K_2){
-                    worlds[0]->moveCamera(1, 10,0);
-                }
-                if (event.out == K_3){
-                    worlds[0]->moveCamera(1, 0, -10);
-                }
-                if (event.out == K_4){
-                    worlds[0]->moveCamera(1, 0, 10);
+            for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
+                const InputMap<Keys>::InputEvent & event = *it;
+                if (event.enabled){
+                    if (event.out == Esc){
+                        is_done = true;
+                    }
+                    if (event.out == Up){
+                        object->move(0,-10);
+                    }
+                    if (event.out == Down){
+                        object->move(0,10);
+                    }
+                    if (event.out == Left){
+                        object->move(-10,0);
+                    }
+                    if (event.out == Right){
+                        object->move(10,0);
+                    }
                 }
             }
-        }
-        
-        worlds[0]->act();
-        
+            
+            world->act();
         }
 
         double ticks(double system){
             return Global::ticksPerSecond(60) * system;
         }
-    };
-
-    class Draw: public Util::Draw {
-    public:
-        Draw(std::vector < Util::ReferenceCount<Platformer::World> > & worlds, const Logic & logic):
-        worlds(worlds),
-        logic(logic){
-        }
         
-        std::vector < Util::ReferenceCount<Platformer::World> > & worlds;
-        const Logic & logic;
-
         void draw(const Graphics::Bitmap & buffer){
-            // FIXME change this later as the actual resolution is in the world configuration
-            Graphics::StretchedBitmap work(worlds[0]->getResolutionX(), worlds[0]->getResolutionY(), buffer);
+            Graphics::StretchedBitmap work(world->getResolutionX(), world->getResolutionY(), buffer);
             work.start();
-            worlds[0]->draw(work);
+            world->draw(work);
             ostringstream info;
-            info << "Camera Info - X: " << worlds[0]->getCamera(0)->getX() << " Y: " << worlds[0]->getCamera(0)->getY();
+            info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
             Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
-            info.str("");
-            info << "Camera Info - X: " << worlds[0]->getCamera(1)->getX() << " Y: " << worlds[0]->getCamera(1)->getY();
-            Font::getDefaultFont().printf( 10, 30, Graphics::makeColor(255,255,255), work, info.str(), 0);
             work.finish();
-            // buffer.BlitToScreen();
         }
     };
     
@@ -181,12 +158,11 @@ void Game::run(){
     
     // Graphics::Bitmap tmp(640, 480);
     
-    if (cutscenes["intro"] != NULL){
+    /*if (cutscenes["intro"] != NULL){
         cutscenes["intro"]->playAll();
-    }
+    }*/
     
-    Logic logic(input, worlds);
-    Draw draw(worlds, logic);
+    DrawLogic logic(input, object, world);
 
-    Util::standardLoop(logic, draw);
+    Util::standardLoop(logic, logic);
 }
