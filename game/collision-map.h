@@ -1,5 +1,5 @@
 #ifndef platformer_collision_map_h
-#define platformer_collinion_map_h
+#define platformer_collision_map_h
 
 #include <string>
 #include <vector>
@@ -32,12 +32,45 @@ struct CollisionInfo{
     Area area;
 };
 
+class CollisionBody{
+public:
+    CollisionBody(){}
+    virtual ~CollisionBody(){}
+    
+    virtual void collided(const CollisionInfo &) = 0;
+    
+    inline const Area & getMain() const {
+        return this->main;
+    }
+    inline const Area & getTop() const {
+        return this->top;
+    }
+    inline const Area & getBottom() const {
+        return this->bottom;
+    }
+    inline const Area & getLeft() const {
+        return this->left;
+    }
+    inline const Area & getRight() const {
+        return this->right;
+    }
+    
+protected:
+    Area main;
+    Area top;
+    Area bottom;
+    Area left;
+    Area right;
+};
+
 class CollisionMap{
 public:
     CollisionMap(const Token *);
     virtual ~CollisionMap();
     
-    CollisionInfo collides(Util::ReferenceCount<Object>);
+    bool collides(Util::ReferenceCount<CollisionBody>);
+    
+    void act();
     
     void render(const Camera &);
     

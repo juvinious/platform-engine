@@ -146,10 +146,13 @@ void World::act(){
         object->move(gravityX, gravityY);
         object->act();
         
-        /*if (collisionMap->collides(object)){
+        if (collisionMap->collides(object.convert<CollisionBody>())){
             // Do something  
-        }*/
-        const CollisionInfo & info = collisionMap->collides(object);
+            object->setCollided(true);
+        } else {
+            object->setCollided(false);
+        }
+        /*const CollisionInfo & info = collisionMap->collides(object);
         if (info.type != CollisionInfo::None){
             // Have collision adjust location
             object->setCollided(true);
@@ -175,7 +178,7 @@ void World::act(){
             }
         } else {
             object->setCollided(false);
-        }
+        }*/
     }
     
     // foregrounds
