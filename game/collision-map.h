@@ -20,12 +20,24 @@ struct Area{
     int height;
 };
 
+struct CollisionInfo{
+    enum CollisionType{
+        None,
+        Top,
+        Bottom,
+        Left,
+        Right,
+    };
+    CollisionType type;
+    Area area;
+};
+
 class CollisionMap{
 public:
     CollisionMap(const Token *);
     virtual ~CollisionMap();
     
-    bool collides(Util::ReferenceCount<Object>);
+    CollisionInfo collides(Util::ReferenceCount<Object>);
     
     void render(const Camera &);
     

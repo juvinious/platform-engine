@@ -20,7 +20,10 @@ World::World(const Token * token):
 resolutionX(0),
 resolutionY(0),
 dimensionsX(0),
-dimensionsY(0){
+dimensionsY(0),
+gravityX(0),
+gravityY(0),
+acceleration(0){
     if ( *token != "world" ){
         throw LoadException(__FILE__, __LINE__, "Not world.");
     }
@@ -68,6 +71,21 @@ void World::load(const Token * token){
                 tok->view() >> dimensionsX >> dimensionsY;
             } else if (*tok == "players"){
                 // Handle player info eventually
+            } else if (*tok == "mechanics"){
+                TokenView mechView = tok->view();
+                while (mechView.hasMore()){
+                    const Token * mechTok;
+                    mechView >> mechTok;
+                    if (*mechTok == "gravity"){
+                        // get the gravity
+                        mechTok->view() >> gravityX >> gravityY;
+                    } else if (*mechTok == "acceleration"){
+                        // Get the acceleration
+                        mechTok->view() >> acceleration;
+                    } else {
+                        Global::debug( 3 ) << "Unhandled mechanics attribute: "<<endl;
+                    }
+                }
             } else if (*tok == "camera"){
                 // Handle camera info
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
@@ -124,11 +142,40 @@ void World::act(){
     // Objects
     for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
         Util::ReferenceCount<Object> object = *i;
+        // Gravity (Do something about acceleration later)
+        object->move(gravityX, gravityY);
         object->act();
+        
         /*if (collisionMap->collides(object)){
             // Do something  
         }*/
-        object->setCollided(collisionMap->collides(object));
+        const CollisionInfo & info = collisionMap->collides(object);
+        if (info.type != CollisionInfo::None){
+            // Have collision adjust location
+            object->setCollided(true);
+            switch (info.type){
+                case CollisionInfo::Top:
+                    Global::debug(3) << "Hit top!" << std::endl;
+                    object->setY(info.area.y - object->getHeight());
+                    break;
+                case CollisionInfo::Bottom:
+                    Global::debug(3) << "Hit bottom!" << std::endl;
+                    object->setY((info.area.y + info.area.height));
+                    break;
+                case CollisionInfo::Left:
+                    Global::debug(3) << "Hit left!" << std::endl;
+                    object->setX(info.area.x - object->getWidth());
+                    break;
+                case CollisionInfo::Right:
+                    Global::debug(3) << "Hit right!" << std::endl;
+                    object->setX((info.area.x + info.area.width));
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            object->setCollided(false);
+        }
     }
     
     // foregrounds

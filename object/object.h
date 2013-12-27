@@ -18,6 +18,8 @@ public:
     virtual void act();
     virtual void draw(const Camera &);
     
+    void set(int x, int y);
+    
     void move(int x, int y);
     
     inline virtual void attachCamera(int id){
@@ -37,12 +39,20 @@ public:
         return this->followed;
     }
     
+    inline virtual void setX(int x){
+        this->x = x;
+    }
+    
     inline virtual int getX() const {
         return this->x;
     }
     
     inline virtual int getY() const {
         return this->y;
+    }
+    
+    inline virtual void setY(int y){
+        this->y = y;
     }
     
     inline virtual int getWidth() const {

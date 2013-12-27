@@ -60,6 +60,12 @@ protected:
     //! Dimensions of the entire map
     int dimensionsX;
     int dimensionsY;
+    
+    //! mechanics
+    double gravityX;
+    double gravityY;
+    double acceleration;
+    
     // Player info
     
     //! Cameras

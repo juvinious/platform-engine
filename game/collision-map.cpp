@@ -17,6 +17,44 @@ static bool within(const Area & area1, const Area & area2){
         (area2.y > area1.y + area1.height - 1));
 }
 
+static CollisionInfo::CollisionType where(const Area & area1, const Area & area2){
+    int leftdepth = 0;
+    int rightdepth = 0;
+    int topdepth = 0;
+    int bottomdepth = 0;
+    if ((area1.y + area1.height) > area2.y && (area1.y + area1.height) < (area2.y + area2.height)){
+        topdepth = (area1.y + area1.height) - area2.y;
+    }
+    if ((area1.x + area1.width) > area2.x && (area1.x + area1.width) < (area2.x + area2.width)){
+        leftdepth = (area1.x + area1.width) - area2.x;
+    }
+    if (area1.y < (area2.y + area2.height) && area1.y > area2.y){
+        bottomdepth = (area2.y + area2.height) - area1.y;
+    }
+    if (area1.x < (area2.x + area2.width) && area1.x > area2.x){
+        rightdepth = (area2.x + area2.width) - area1.x;
+    }
+    
+    /*if ((topdepth > leftdepth) && (topdepth > rightdepth)){
+        return CollisionInfo::Top;
+    } else if ((topdepth < leftdepth) && (topdepth > rightdepth)){
+        return CollisionInfo::Left;
+    }*/
+    
+    /*if (area2.y < area1.y + area1.height - 1){
+        return CollisionInfo::Top;
+    } else if (area2.x < area1.x + area1.width - 1){
+        return CollisionInfo::Left;
+    } else if (area1.x < area2.x + area2.width - 1){
+        return CollisionInfo::Right;
+    } else if (area1.y < area2.y + area2.height - 1){
+        return CollisionInfo::Bottom;
+    }*/
+    
+    return CollisionInfo::Top;
+    //return CollisionInfo::None;
+}
+
 CollisionMap::CollisionMap(const Token * token){
     if (*token != "collision-map"){
         throw LoadException(__FILE__, __LINE__, "Not a collision map.");
@@ -45,15 +83,17 @@ CollisionMap::CollisionMap(const Token * token){
 CollisionMap::~CollisionMap(){
 }
 
-bool CollisionMap::collides(Util::ReferenceCount<Object> object){
+CollisionInfo CollisionMap::collides(Util::ReferenceCount<Object> object){
     Area objectArea = { object->getX(), object->getY(), object->getWidth(), object->getHeight() };
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(objectArea, area)){
-            return true;
+            CollisionInfo info = { where(objectArea, area), area }; 
+            return info;
         }
     }
-    return false;
+    CollisionInfo info = { CollisionInfo::None, Area() };
+    return info;
 }
 
 void CollisionMap::render(const Camera & camera){
