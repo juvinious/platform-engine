@@ -45,6 +45,18 @@ public:
         return this->y;
     }
     
+    inline virtual int getWidth() const {
+        return this->width;
+    }
+    
+    inline virtual int getHeight() const {
+        return this->height;
+    }
+    
+    inline virtual void setCollided(bool collided){
+        this->collided = collided;
+    }
+    
 protected:
     /*! Camera Info */
     bool followed;
@@ -57,6 +69,8 @@ protected:
     int height;
     int life;
     bool invincible;
+    
+    bool collided;
 };
 
 }

@@ -22,6 +22,7 @@ namespace Platformer{
 class Animation;
 class Background;
 class Camera;
+class CollisionMap;
 class Scriptable;
 class Object;
     
@@ -70,6 +71,13 @@ protected:
     //! Backgrounds
     std::vector< Util::ReferenceCount<Background> > backgrounds;
     
+    //! Foregrounds
+    std::vector< Util::ReferenceCount<Background> > foregrounds;
+    
+    //! Collision map
+    Util::ReferenceCount<CollisionMap> collisionMap;
+    
+    //! Objects
     std::vector< Util::ReferenceCount<Object> > objects;
     
     //! Script engine

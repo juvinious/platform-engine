@@ -14,10 +14,11 @@ followed(false),
 attachedCamera(0),
 x(0),
 y(0),
-width(0),
-height(0),
+width(15),
+height(15),
 life(0),
-invincible(false){
+invincible(false),
+collided(false){
     
 }
 
@@ -36,7 +37,8 @@ void Object::draw(const Camera & camera){
             
             const int viewx = (x > camera.getX() ? x - camera.getX() : camera.getX() - x);
             const int viewy = (y > camera.getY() ? y - camera.getY() : camera.getY() - y);
-            camera.getWindow().rectangleFill(viewx, viewy, viewx+10, viewy+10, Graphics::makeColor(128,128,128));
+            camera.getWindow().rectangleFill(viewx, viewy, viewx+width, viewy+height, 
+                                             (collided ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }
 }
 

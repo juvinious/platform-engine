@@ -3,6 +3,7 @@
 #include "animation.h"
 #include "background.h"
 #include "camera.h"
+#include "collision-map.h"
 #include "platformer/script/script.h"
 
 #include "util/graphics/bitmap.h"
@@ -77,6 +78,11 @@ void World::load(const Token * token){
             } else if (*tok == "background"){
                 Util::ReferenceCount<Background> background(new Background(tok, animations));
                 backgrounds.push_back(background);
+            } else if (*tok == "foreground"){
+                Util::ReferenceCount<Background> foreground(new Background(tok, animations));
+                foregrounds.push_back(foreground);
+            } else if (*tok == "collision-map"){
+                collisionMap = Util::ReferenceCount<CollisionMap>(new CollisionMap(tok));
             } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
                 if (Global::getDebug() >= 3){
@@ -107,6 +113,7 @@ void World::act(){
         }
     }
     
+    // Backgrounds
     for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
         Util::ReferenceCount<Background> background = *i;
         if (background != NULL){
@@ -118,6 +125,16 @@ void World::act(){
     for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
         Util::ReferenceCount<Object> object = *i;
         object->act();
+        /*if (collisionMap->collides(object)){
+            // Do something  
+        }*/
+        object->setCollided(collisionMap->collides(object));
+    }
+    
+    // foregrounds
+    for (std::vector< Util::ReferenceCount<Background> >::iterator i = foregrounds.begin(); i != foregrounds.end(); ++i){
+        Util::ReferenceCount<Background> foreground = *i;
+        foreground->act();
     }
     
     scriptEngine->act();
@@ -127,16 +144,28 @@ void World::draw(const Graphics::Bitmap & bmp){
     // Go through all cameras
     for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
         Util::ReferenceCount<Camera> camera = c->second;
+        
+        // Backgrounds
         for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
             Util::ReferenceCount<Background> background = *i;
             if (background != NULL){
                 background->draw(*camera);
             }
         }
+        
         // Render objects to camera
         for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
             Util::ReferenceCount<Object> object = *i;
             object->draw(*camera);
+        }
+        
+        // Render collision maps
+        collisionMap->render(*camera);
+        
+        // foregrounds
+        for (std::vector< Util::ReferenceCount<Background> >::iterator i = foregrounds.begin(); i != foregrounds.end(); ++i){
+            Util::ReferenceCount<Background> foreground = *i;
+            foreground->draw(*camera);
         }
         
         // Render scriptable items to camera
