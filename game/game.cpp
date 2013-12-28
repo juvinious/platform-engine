@@ -80,97 +80,162 @@ Game::Game(const std::string & filename){
 Game::~Game(){
 }
 
-void Game::run(){
-    // NOTE Testing purposes only
+class DrawLogic: public Util::Logic, public Util::Draw {
+public:
     
-    class DrawLogic: public Util::Logic, public Util::Draw {
-    public:
-        DrawLogic(InputMap<Keys> & input, Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
-        is_done(false),
-        input(input),
-        object(object),
-        world(world){
-        }
+    //! keys
+    enum Keys{
+        Up,
+        Down,
+        Left,
+        Right,
+        Esc,
+    };
+    
+    struct KeyState{
+    KeyState():
+        esc(false),
+        up(false),
+        down(false),
+        left(false),
+        right(false){}
+        bool esc,up,down,left,right;
+    };
+    
+    DrawLogic(Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
+    isDone(false),
+    source(true),
+    object(object),
+    world(world){
+        // set input
+        input.set(Keyboard::Key_ESC, Esc);
+        input.set(Keyboard::Key_UP, Up);
+        input.set(Keyboard::Key_DOWN, Down);
+        input.set(Keyboard::Key_LEFT, Left);
+        input.set(Keyboard::Key_RIGHT, Right);
+    }
+    bool isDone;
+    InputMap<Keys> input;
+    InputSource source;
+    KeyState keystate;
+    Util::ReferenceCount<Object> & object;
+    Util::ReferenceCount<Platformer::World> & world;
+    
+    bool done(){
+        return isDone;
+    }
 
-        bool is_done;
-        InputMap<Keys> & input;
-        Util::ReferenceCount<Object> & object;
-        Util::ReferenceCount<Platformer::World> & world;
-        
-        bool done(){
-            return is_done;
-        }
+    void run(){
+        // Keys
+        class Handler: public InputHandler<Keys> {
+        public:
+            Handler(KeyState & keystate):
+            keystate(keystate){
+            }
 
-        void run(){
-            // FIXME figure out how many worlds... etc
-            vector<InputMap<Keys>::InputEvent> out = InputManager::getEvents(input, InputSource(true));
-            for (vector<InputMap<Keys>::InputEvent>::iterator it = out.begin(); it != out.end(); it++){
-                const InputMap<Keys>::InputEvent & event = *it;
-                if (event.enabled){
-                    if (event.out == Esc){
-                        is_done = true;
+            KeyState & keystate;
+
+            void release(const Keys & input, Keyboard::unicode_t unicode){
+                switch (input){
+                    case Esc:
+                        keystate.esc = false;
+                        break;
+                    case Up: {
+                        keystate.up = false;
+                        break;
                     }
-                    if (event.out == Up){
-                        if (object->getVelocityY() > -1){
-                            object->addVelocity(0,-.2);
-                        }
+                    case Down: {
+                        keystate.down = false;
+                        break;
                     }
-                    if (event.out == Down){
-                        if (object->getVelocityY() < 1){
-                            object->addVelocity(0,.2);
-                        }
+                    case Left: {
+                        keystate.left = false;
+                        break;
                     }
-                    if (event.out == Left){
-                        if (object->getVelocityX() > -1){
-                            object->addVelocity(-.2,0);
-                        }
-                    }
-                    if (event.out == Right){
-                        if (object->getVelocityX() < 1){
-                            object->addVelocity(.2,0);
-                        }
+                    case Right: {
+                        keystate.right = false;
+                        break;
                     }
                 }
             }
-            
-            world->act();
-        }
 
-        double ticks(double system){
-            return Global::ticksPerSecond(60) * system;
+            void press(const Keys & input, Keyboard::unicode_t unicode){
+                switch (input){
+                    case Esc:
+                        keystate.esc = true;
+                        break;
+                    case Up: {
+                        keystate.up = true;
+                        break;
+                    }
+                    case Down: {
+                        keystate.down = true;
+                        break;
+                    }
+                    case Left: {
+                        keystate.left = true;
+                        break;
+                    }
+                    case Right: {
+                        keystate.right = true;
+                        break;
+                    }
+                }
+            }
+        };
+
+        Handler handler(keystate);
+        InputManager::handleEvents(input, source, handler);
+        
+        isDone = keystate.esc;
+        
+        if (keystate.up){
+            if (object->getVelocityY() > -1){
+                object->addVelocity(0,-.2);
+            }
+        }
+        if (keystate.down){
+            if (object->getVelocityY() < 1){
+                object->addVelocity(0,.2);
+            }
+        }
+        if (keystate.left){
+            if (object->getVelocityX() > -1){
+                object->addVelocity(-.2,0);
+            }
+        }
+        if (keystate.right){
+            if (object->getVelocityX() < 1){
+                object->addVelocity(.2,0);
+            }
         }
         
-        void draw(const Graphics::Bitmap & buffer){
-            Graphics::StretchedBitmap work(world->getResolutionX(), world->getResolutionY(), buffer);
-            work.start();
-            world->draw(work);
-            ostringstream info;
-            info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
-            Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
-            work.finish();
-        }
-    };
+        world->act();
+    }
+
+    double ticks(double system){
+        return Global::ticksPerSecond(60) * system;
+    }
     
-    // set input
-    input.set(Keyboard::Key_ESC, 0, true, Esc);
-    input.set(Keyboard::Key_UP, 0, false, Up);
-    input.set(Keyboard::Key_DOWN, 0, false, Down);
-    input.set(Keyboard::Key_LEFT, 0, false, Left);
-    input.set(Keyboard::Key_RIGHT, 0, false, Right);
-    input.set(Keyboard::Key_1, 0, false, K_1);
-    input.set(Keyboard::Key_2, 0, false, K_2);
-    input.set(Keyboard::Key_3, 0, false, K_3);
-    input.set(Keyboard::Key_4, 0, false, K_4);
-    
-    Keyboard::pushRepeatState(true);
-    
-    // Graphics::Bitmap tmp(640, 480);
+    void draw(const Graphics::Bitmap & buffer){
+        Graphics::StretchedBitmap work(world->getResolutionX(), world->getResolutionY(), buffer);
+        work.start();
+        world->draw(work);
+        ostringstream info;
+        info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
+        Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
+        work.finish();
+    }
+};
+
+void Game::run(){
+    // NOTE Testing purposes only
     
     /*if (cutscenes["intro"] != NULL){
         cutscenes["intro"]->playAll();
     }*/
     
-    DrawLogic logic(input, object, world);
+    DrawLogic logic(object, world);
 
     Util::standardLoop(logic, logic);
 }

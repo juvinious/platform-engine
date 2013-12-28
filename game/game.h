@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "util/input/input-map.h"
 #include "util/pointer.h"
 
 class Token;
@@ -32,21 +31,6 @@ protected:
     Util::ReferenceCount<Platformer::World> world;
     
     Util::ReferenceCount<Object> object;
-    
-    //! keys
-    enum Keys{
-        Up=0,
-        Down,
-        Left,
-        Right,
-        Esc,
-        K_1,
-        K_2,
-        K_3,
-        K_4,
-    };
-    
-    InputMap<Keys> input;
 };
 }
 #endif

@@ -46,18 +46,8 @@ void Object::draw(const Camera & camera){
         x <= (camera.getX() + camera.getWidth()) &&
         y >= camera.getY() &&
         y <= (camera.getY() + camera.getHeight())){
-            
-            /*const int viewx = (x > camera.getX() ? x - camera.getX() : camera.getX() - x);
-            const int viewy = (y > camera.getY() ? y - camera.getY() : camera.getY() - y);
-            camera.getWindow().rectangleFill(viewx, viewy, viewx+width, viewy+height, 
-                                             (hasCollided ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));*/
             Area area = {x, y, width, height};
             rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-            //rectDraw(main, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-            //rectDraw(top, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-            //rectDraw(bottom, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-            //rectDraw(right, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-            //rectDraw(left, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
     }
 }
 
