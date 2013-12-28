@@ -124,7 +124,7 @@ int Camera::getHeight() const {
 void Camera::act(){
     // Object following
     if (follow){
-        set(object->getX() - getViewportWidth()/2, object->getY() - getViewportHeight()/2);
+        set(object->getX() - getViewportWidth()/followVariance, object->getY() - getViewportHeight()/followVariance);
     }
     
     // Update camera to whatever object it may be following or to set destination

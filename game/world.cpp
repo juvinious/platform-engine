@@ -142,7 +142,8 @@ void World::act(){
     // Objects
     for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
         Util::ReferenceCount<Object> object = *i;
-        // Gravity (Do something about acceleration later)
+        
+        // make gravity affect the object and append acceleration
         if (gravityX != 0 && object->getVelocityX() == 0){
             object->setVelocityX(gravityX);
         } else if (gravityX != 0){
@@ -153,8 +154,6 @@ void World::act(){
         } else if (gravityY != 0){
              object->addVelocity(0, acceleration);
         }
-        
-        object->act();
         
         class Collider : public CollisionBody{
         public:
@@ -191,8 +190,8 @@ void World::act(){
                     default:
                         break;
                 }*/
-                object->setX(info.area.x);
-                object->setY(info.area.y);
+                // FIXME this causes object to stop completely when standing on a platform
+                //       Need to set only the velocity that it unable to move in to 0
                 object->setVelocity(0,0);
             }
         };
@@ -205,6 +204,8 @@ void World::act(){
         } else {
             object->setCollided(false);
         }
+        
+        object->act();
     }
     
     // foregrounds

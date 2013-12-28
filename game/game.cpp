@@ -111,16 +111,24 @@ void Game::run(){
                         is_done = true;
                     }
                     if (event.out == Up){
-                        object->addVelocity(0,-.5);
+                        if (object->getVelocityY() > -1){
+                            object->addVelocity(0,-.2);
+                        }
                     }
                     if (event.out == Down){
-                        object->addVelocity(0,.5);
+                        if (object->getVelocityY() < 1){
+                            object->addVelocity(0,.2);
+                        }
                     }
                     if (event.out == Left){
-                        object->addVelocity(-.5,0);
+                        if (object->getVelocityX() > -1){
+                            object->addVelocity(-.2,0);
+                        }
                     }
                     if (event.out == Right){
-                        object->addVelocity(.5,0);
+                        if (object->getVelocityX() < 1){
+                            object->addVelocity(.2,0);
+                        }
                     }
                 }
             }
