@@ -64,7 +64,24 @@ bool CollisionMap::collides(const CollisionBody & body){
         const Area & area = *i;
         if (within(nextMovement, area)){
             CollisionInfo info;
+            info.top = info.bottom = info.left = info.right = false;
             // FIXME need to figure out where the collision occurs
+            if (nextMovement.getX2() >= area.x && body.getArea().getX2() <= area.x){
+                // Collision is happening at the top
+                info.left = true;
+            }
+            if (nextMovement.getY2() >= area.y && body.getArea().getY2() <= area.y){
+                // Collision is happening at the left
+                info.top = true;
+            }
+            if (nextMovement.x <= area.getX2() && body.getArea().x >= area.getX2()){
+                // Collision is happening at the bottom
+                info.right = true;
+            }
+            if (nextMovement.getY2() >= area.y && body.getArea().y >= area.getY2()){
+                // Collision is happening at the right
+                info.bottom = true;
+            }
             body.response(info);
             return true;
         }

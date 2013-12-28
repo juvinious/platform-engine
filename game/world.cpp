@@ -147,12 +147,20 @@ void World::act(){
         if (gravityX != 0 && object->getVelocityX() == 0){
             object->setVelocityX(gravityX);
         } else if (gravityX != 0){
-            object->addVelocity(acceleration, 0);
+            if (gravityX > 0){
+                object->addVelocity(acceleration, 0);
+            } else if (gravityX < 0){
+                object->addVelocity(acceleration * -1, 0);
+            }
         }
         if (gravityY != 0 && object->getVelocityY() == 0){
             object->setVelocityY(gravityY);
         } else if (gravityY != 0){
-             object->addVelocity(0, acceleration);
+            if (gravityY > 0){
+                object->addVelocity(0, acceleration);
+            } else if (gravityY < 0){
+                object->addVelocity(0, acceleration * -1);
+            }
         }
         
         class Collider : public CollisionBody{
@@ -170,29 +178,21 @@ void World::act(){
             mutable Util::ReferenceCount<Object> object;
             
             void response(const CollisionInfo & info) const {
-                /*switch (info.type){
-                    case CollisionInfo::Top:
-                        Global::debug(3) << "Hit top!" << std::endl;
-                        object->setY(info.area.y - object->getHeight());
-                        break;
-                    case CollisionInfo::Bottom:
-                        Global::debug(3) << "Hit bottom!" << std::endl;
-                        object->setY(info.area.y + info.area.height);
-                        break;
-                    case CollisionInfo::Left:
-                        Global::debug(3) << "Hit left!" << std::endl;
-                        object->setX(info.area.x - object->getWidth());
-                        break;
-                    case CollisionInfo::Right:
-                        Global::debug(3) << "Hit right!" << std::endl;
-                        object->setX(info.area.x + info.area.width);
-                        break;
-                    default:
-                        break;
-                }*/
+                if (info.top){
+                    object->setVelocityY(0);
+                }
+                if (info.bottom){
+                    object->setVelocityY(0);
+                }
+                if (info.left){
+                    object->setVelocityX(0);
+                }
+                if (info.right){
+                    object->setVelocityX(0);
+                }
                 // FIXME this causes object to stop completely when standing on a platform
                 //       Need to set only the velocity that it unable to move in to 0
-                object->setVelocity(0,0);
+                //object->setVelocity(0,0);
             }
         };
         

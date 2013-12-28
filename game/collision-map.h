@@ -18,17 +18,19 @@ struct Area{
     int y;
     int width;
     int height;
+    inline int getX2() const {
+        return this->x + this->width;
+    }
+    inline int getY2() const {
+        return this->y + this->height;
+    }
 };
 
 struct CollisionInfo{
-    enum CollisionType{
-        None,
-        Top,
-        Bottom,
-        Left,
-        Right,
-    };
-    CollisionType type;
+    bool top;
+    bool bottom;
+    bool right;
+    bool left;
     Area area;
 };
 
