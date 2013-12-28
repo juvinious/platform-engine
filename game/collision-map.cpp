@@ -64,16 +64,21 @@ bool CollisionMap::collides(const CollisionBody & body){
         const Area & area = *i;
         if (within(nextMovement, area)){
             CollisionInfo info;
-            info.area = area;
-            if (body.getVelocityY() > 0 && (body.getVelocityY() > fabs(body.getVelocityX()))){
-                info.type = CollisionInfo::Top;
-            } else if (body.getVelocityY() < 0 && (fabs(body.getVelocityY()) > fabs(body.getVelocityX()))){
-                info.type = CollisionInfo::Bottom;
-            } else if (body.getVelocityX() > 0 && (body.getVelocityX() > fabs(body.getVelocityY()))){
-                info.type = CollisionInfo::Left;
-            } else if (body.getVelocityX() < 0 && (fabs(body.getVelocityX()) > fabs(body.getVelocityY()))){
-                info.type = CollisionInfo::Right;
+            
+            info.area.x = body.getArea().x;
+            info.area.y = body.getArea().y;
+            
+            if (body.getVelocityY() > 0){
+                info.area.y = area.y - body.getArea().height;
+            } else if (body.getVelocityY() < 0){
+                info.area.y = area.y + area.height;
+            } else if (body.getVelocityX() > 0){
+                info.area.x = area.x - body.getArea().width;
+            } else if (body.getVelocityX() < 0){
+                info.area.x = area.x + area.width;
             }
+            
+            
             body.response(info);
             return true;
         }

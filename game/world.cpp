@@ -171,7 +171,7 @@ void World::act(){
             mutable Util::ReferenceCount<Object> object;
             
             void response(const CollisionInfo & info) const {
-                switch (info.type){
+                /*switch (info.type){
                     case CollisionInfo::Top:
                         Global::debug(3) << "Hit top!" << std::endl;
                         object->setY(info.area.y - object->getHeight());
@@ -190,7 +190,10 @@ void World::act(){
                         break;
                     default:
                         break;
-                }
+                }*/
+                object->setX(info.area.x);
+                object->setY(info.area.y);
+                object->setVelocity(0,0);
             }
         };
         
