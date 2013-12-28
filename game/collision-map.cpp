@@ -8,6 +8,8 @@
 #include "util/graphics/bitmap.h"
 #include "util/exceptions/load_exception.h"
 
+#include <math.h>
+
 namespace Platformer{
     
 static bool within(const Area & area1, const Area & area2){
@@ -15,6 +17,14 @@ static bool within(const Area & area1, const Area & area2){
         (area1.y > area2.y + area2.height - 1) ||
         (area2.x > area1.x + area1.width - 1) ||
         (area2.y > area1.y + area1.height - 1));
+}
+
+CollisionBody::CollisionBody():
+velocityX(0),
+velocityY(0){
+}
+
+CollisionBody::~CollisionBody(){
 }
 
 CollisionMap::CollisionMap(const Token * token){
@@ -45,22 +55,26 @@ CollisionMap::CollisionMap(const Token * token){
 CollisionMap::~CollisionMap(){
 }
 
-bool CollisionMap::collides(Util::ReferenceCount<CollisionBody> body){
+bool CollisionMap::collides(const CollisionBody & body){
+    Area nextMovement = body.getArea();
+    // Scan ahead
+    nextMovement.x += body.getVelocityX();
+    nextMovement.y += body.getVelocityY();
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
-        if (within(body->getMain(), area)){
+        if (within(nextMovement, area)){
             CollisionInfo info;
             info.area = area;
-            if (within(body->getBottom(), area)){
+            if (body.getVelocityY() > 0 && (body.getVelocityY() > fabs(body.getVelocityX()))){
                 info.type = CollisionInfo::Top;
-            } else if (within(body->getTop(), area)){
+            } else if (body.getVelocityY() < 0 && (fabs(body.getVelocityY()) > fabs(body.getVelocityX()))){
                 info.type = CollisionInfo::Bottom;
-            } else if (within(body->getLeft(), area)){
-                info.type = CollisionInfo::Right;
-            } else if (within(body->getRight(), area)){
+            } else if (body.getVelocityX() > 0 && (body.getVelocityX() > fabs(body.getVelocityY()))){
                 info.type = CollisionInfo::Left;
+            } else if (body.getVelocityX() < 0 && (fabs(body.getVelocityX()) > fabs(body.getVelocityY()))){
+                info.type = CollisionInfo::Right;
             }
-            body->collided(info);
+            body.response(info);
             return true;
         }
     }

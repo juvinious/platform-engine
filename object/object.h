@@ -3,8 +3,6 @@
 
 #include <vector>
 
-#include "platformer/game/collision-map.h"
-
 class Token;
 
 /*! Platformers object class */
@@ -13,7 +11,7 @@ namespace Platformer{
 
 class Camera;
       
-class Object : public CollisionBody{
+class Object{
 public:
     Object();
     virtual ~Object();
@@ -23,8 +21,6 @@ public:
     void set(int x, int y);
     
     void move(int x, int y);
-    
-    void collided(const CollisionInfo &);
     
     inline virtual void attachCamera(int id){
         this->attachedCamera = id;
@@ -67,6 +63,32 @@ public:
         return this->height;
     }
     
+    inline void setVelocity(double x, double y){
+        this->velocityX = x;
+        this->velocityY = y;
+    }
+    
+    inline void addVelocity(double x, double y){
+        this->velocityX += x;
+        this->velocityY += y;
+    }
+    
+    inline void setVelocityX(double velocity){
+        this->velocityX = velocity;
+    }
+    
+    inline void setVelocityY(double velocity){
+        this->velocityY = velocity;
+    }
+    
+    inline double getVelocityX() const {
+        return this->velocityX;
+    }
+    
+    inline double getVelocityY() const {
+        return this->velocityY;
+    }
+    
     inline virtual void setCollided(bool collided){
         this->hasCollided = collided;
     }
@@ -81,6 +103,8 @@ protected:
     int y;
     int width;
     int height;
+    double velocityX;
+    double velocityY;
     int life;
     bool invincible;
     

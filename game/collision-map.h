@@ -34,33 +34,27 @@ struct CollisionInfo{
 
 class CollisionBody{
 public:
-    CollisionBody(){}
-    virtual ~CollisionBody(){}
+    CollisionBody();
+    virtual ~CollisionBody();
     
-    virtual void collided(const CollisionInfo &) = 0;
+    virtual void response(const CollisionInfo &) const = 0;
     
-    inline const Area & getMain() const {
-        return this->main;
+    inline const Area & getArea() const {
+        return this->area;
     }
-    inline const Area & getTop() const {
-        return this->top;
+    
+    inline double getVelocityX() const {
+        return this->velocityX;
     }
-    inline const Area & getBottom() const {
-        return this->bottom;
-    }
-    inline const Area & getLeft() const {
-        return this->left;
-    }
-    inline const Area & getRight() const {
-        return this->right;
+    
+    inline double getVelocityY() const {
+        return this->velocityY;
     }
     
 protected:
-    Area main;
-    Area top;
-    Area bottom;
-    Area left;
-    Area right;
+    Area area;
+    double velocityX;
+    double velocityY;
 };
 
 class CollisionMap{
@@ -68,7 +62,7 @@ public:
     CollisionMap(const Token *);
     virtual ~CollisionMap();
     
-    bool collides(Util::ReferenceCount<CollisionBody>);
+    bool collides(const CollisionBody &);
     
     void act();
     

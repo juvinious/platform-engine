@@ -143,42 +143,65 @@ void World::act(){
     for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
         Util::ReferenceCount<Object> object = *i;
         // Gravity (Do something about acceleration later)
-        object->move(gravityX, gravityY);
+        if (gravityX != 0 && object->getVelocityX() == 0){
+            object->setVelocityX(gravityX);
+        } else if (gravityX != 0){
+            object->addVelocity(acceleration, 0);
+        }
+        if (gravityY != 0 && object->getVelocityY() == 0){
+            object->setVelocityY(gravityY);
+        } else if (gravityY != 0){
+             object->addVelocity(0, acceleration);
+        }
+        
         object->act();
         
-        if (collisionMap->collides(object.convert<CollisionBody>())){
+        class Collider : public CollisionBody{
+        public:
+            Collider(Util::ReferenceCount<Object> object):
+            object(object){
+                area.x = object->getX();
+                area.y = object->getY();
+                area.width = object->getWidth();
+                area.height = object->getHeight();
+                velocityX = object->getVelocityX();
+                velocityY = object->getVelocityY();
+            }
+            ~Collider(){}
+            mutable Util::ReferenceCount<Object> object;
+            
+            void response(const CollisionInfo & info) const {
+                switch (info.type){
+                    case CollisionInfo::Top:
+                        Global::debug(3) << "Hit top!" << std::endl;
+                        object->setY(info.area.y - object->getHeight());
+                        break;
+                    case CollisionInfo::Bottom:
+                        Global::debug(3) << "Hit bottom!" << std::endl;
+                        object->setY(info.area.y + info.area.height);
+                        break;
+                    case CollisionInfo::Left:
+                        Global::debug(3) << "Hit left!" << std::endl;
+                        object->setX(info.area.x - object->getWidth());
+                        break;
+                    case CollisionInfo::Right:
+                        Global::debug(3) << "Hit right!" << std::endl;
+                        object->setX(info.area.x + info.area.width);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+        
+        Collider collider(object);
+        
+        if (collisionMap->collides(collider)){
             // Do something  
             object->setCollided(true);
         } else {
             object->setCollided(false);
         }
-        /*const CollisionInfo & info = collisionMap->collides(object);
-        if (info.type != CollisionInfo::None){
-            // Have collision adjust location
-            object->setCollided(true);
-            switch (info.type){
-                case CollisionInfo::Top:
-                    Global::debug(3) << "Hit top!" << std::endl;
-                    object->setY(info.area.y - object->getHeight());
-                    break;
-                case CollisionInfo::Bottom:
-                    Global::debug(3) << "Hit bottom!" << std::endl;
-                    object->setY((info.area.y + info.area.height));
-                    break;
-                case CollisionInfo::Left:
-                    Global::debug(3) << "Hit left!" << std::endl;
-                    object->setX(info.area.x - object->getWidth());
-                    break;
-                case CollisionInfo::Right:
-                    Global::debug(3) << "Hit right!" << std::endl;
-                    object->setX((info.area.x + info.area.width));
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            object->setCollided(false);
-        }*/
     }
     
     // foregrounds
