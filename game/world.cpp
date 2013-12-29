@@ -163,50 +163,7 @@ void World::act(){
             }
         }
         
-        class Collider : public CollisionBody{
-        public:
-            Collider(Util::ReferenceCount<Object> object):
-            object(object){
-                area.x = object->getX();
-                area.y = object->getY();
-                area.width = object->getWidth();
-                area.height = object->getHeight();
-                velocityX = object->getVelocityX();
-                velocityY = object->getVelocityY();
-            }
-            ~Collider(){}
-            mutable Util::ReferenceCount<Object> object;
-            
-            void response(const CollisionInfo & info) const {
-                bool collided = false;
-                if (info.top){
-                    object->setVelocityY(0);
-                    collided = true;
-                }
-                if (info.bottom){
-                    object->setVelocityY(0);
-                    collided = true;
-                }
-                if (info.left){
-                    object->setVelocityX(0);
-                    collided = true;
-                }
-                if (info.right){
-                    object->setVelocityX(0);
-                    collided = true;
-                }
-                object->setCollided(collided);
-            }
-            
-            void noCollision() const {
-                object->setCollided(false);
-            }
-        };
-        
-        Collider collider(object);
-        collisionMap->collides(collider);
-        
-        object->act();
+        object->act(collisionMap);
     }
     
     // foregrounds
@@ -237,7 +194,7 @@ void World::draw(const Graphics::Bitmap & bmp){
             object->draw(*camera);
         }
         
-        // Render collision maps
+        // Render collision maps (NOTE Debugging only remove later)
         collisionMap->render(*camera);
         
         // foregrounds

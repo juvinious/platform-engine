@@ -18,10 +18,7 @@ y(0),
 width(20),
 height(20),
 velocityX(0),
-velocityY(0),
-life(0),
-invincible(false),
-hasCollided(false){
+velocityY(0){
     
 }
 
@@ -29,26 +26,10 @@ Object::~Object(){
     
 }
 
-void Object::act(){
-    x += velocityX;
-    y += velocityY;
-}
-
-static void rectDraw(Area area, int portx, int porty, const Graphics::Bitmap & bmp, bool collision){
-    const int viewx = (area.x > portx ? area.x - portx : portx - area.x);
-    const int viewy = (area.y > porty ? area.y - porty : porty - area.y);
-    bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
-                                             (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
+void Object::act(const Util::ReferenceCount<CollisionMap>){
 }
 
 void Object::draw(const Camera & camera){
-    if (x >= camera.getX() && 
-        x <= (camera.getX() + camera.getWidth()) &&
-        y >= camera.getY() &&
-        y <= (camera.getY() + camera.getHeight())){
-            Area area = {x, y, width, height};
-            rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-    }
 }
 
 void Object::set(int x, int y){

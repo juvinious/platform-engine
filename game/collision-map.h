@@ -66,7 +66,7 @@ public:
     CollisionMap(const Token *);
     virtual ~CollisionMap();
     
-    void collides(const CollisionBody &);
+    void collides(const CollisionBody &) const;
     
     void act();
     

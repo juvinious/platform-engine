@@ -55,13 +55,13 @@ CollisionMap::CollisionMap(const Token * token){
 CollisionMap::~CollisionMap(){
 }
 
-void CollisionMap::collides(const CollisionBody & body){
+void CollisionMap::collides(const CollisionBody & body) const{
     Area nextMovement = body.getArea();
     // Scan ahead
     nextMovement.x += body.getVelocityX();
     nextMovement.y += body.getVelocityY();
     bool collides = false;
-    for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
+    for (std::vector<Area>::const_iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(nextMovement, area)){
             CollisionInfo info;

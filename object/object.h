@@ -3,19 +3,22 @@
 
 #include <vector>
 
+#include "util/pointer.h"
+
 class Token;
 
 /*! Platformers object class */
 
 namespace Platformer{
 
+class CollisionMap;
 class Camera;
       
 class Object{
 public:
     Object();
     virtual ~Object();
-    virtual void act();
+    virtual void act(const Util::ReferenceCount<CollisionMap>);
     virtual void draw(const Camera &);
     
     void set(int x, int y);
@@ -88,11 +91,6 @@ public:
     inline double getVelocityY() const {
         return this->velocityY;
     }
-    
-    inline virtual void setCollided(bool collided){
-        this->hasCollided = collided;
-    }
-    
 protected:
     /*! Camera Info */
     bool followed;
@@ -105,10 +103,6 @@ protected:
     int height;
     double velocityX;
     double velocityY;
-    int life;
-    bool invincible;
-    
-    bool hasCollided;
 };
 
 }

@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "util/gui/cutscene.h"
 #include "world.h"
+#include "collision-map.h"
 
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"
@@ -70,11 +71,6 @@ Game::Game(const std::string & filename){
     /*if (cutscenes["intro"] != NULL){
         cutscenes["intro"]->setResolution(worlds[0]->getResolutionX(), worlds[0]->getResolutionY());
     }*/
-    
-    // Create dummy object
-    object = Util::ReferenceCount<Object>(new Object());
-    world->getCamera(0)->followObject(object);
-    world->addObject(object);
 }
 
 Game::~Game(){
@@ -228,12 +224,95 @@ public:
     }
 };
 
+class TestObject : public Object{
+public:
+    TestObject():
+    hasCollided(false){}
+    virtual ~TestObject(){}
+
+    void rectDraw(Area area, int portx, int porty, const Graphics::Bitmap & bmp, bool collision){
+        const int viewx = (area.x > portx ? area.x - portx : portx - area.x);
+        const int viewy = (area.y > porty ? area.y - porty : porty - area.y);
+        bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
+                                                 (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
+    }
+    
+    void act(const Util::ReferenceCount<CollisionMap> collisionMap){
+        
+        class Collider : public CollisionBody{
+        public:
+            Collider(TestObject & object):
+            object(object){
+                area.x = object.getX();
+                area.y = object.getY();
+                area.width = object.getWidth();
+                area.height = object.getHeight();
+                velocityX = object.getVelocityX();
+                velocityY = object.getVelocityY();
+            }
+            ~Collider(){}
+            TestObject & object;
+            
+            void response(const CollisionInfo & info) const {
+                bool collided = false;
+                if (info.top){
+                    object.setVelocityY(0);
+                    collided = true;
+                }
+                if (info.bottom){
+                    object.setVelocityY(0);
+                    collided = true;
+                }
+                if (info.left){
+                    object.setVelocityX(0);
+                    collided = true;
+                }
+                if (info.right){
+                    object.setVelocityX(0);
+                    collided = true;
+                }
+                object.setCollided(collided);
+            }
+            
+            void noCollision() const {
+                object.setCollided(false);
+            }
+        };
+        
+        Collider collider(*this);
+        collisionMap->collides(collider);
+        
+        x += velocityX;
+        y += velocityY;
+    }
+
+    void draw(const Camera & camera){
+        if (x >= camera.getX() && 
+            x <= (camera.getX() + camera.getWidth()) &&
+            y >= camera.getY() &&
+            y <= (camera.getY() + camera.getHeight())){
+                Area area = {x, y, width, height};
+                rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
+        }
+    }
+    void setCollided(bool collided){
+        this->hasCollided = collided;
+    }
+private:
+    bool hasCollided;
+};
+
 void Game::run(){
     // NOTE Testing purposes only
     
     /*if (cutscenes["intro"] != NULL){
         cutscenes["intro"]->playAll();
     }*/
+    
+    // Create dummy object
+    Util::ReferenceCount<Object> object = Util::ReferenceCount<Object>(new TestObject());
+    world->getCamera(0)->followObject(object);
+    world->addObject(object);
     
     DrawLogic logic(object, world);
 

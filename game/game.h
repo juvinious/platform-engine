@@ -29,8 +29,6 @@ public:
 protected:
     //std::map < std::string, Util::ReferenceCount<Gui::CutScene> > cutscenes;
     Util::ReferenceCount<Platformer::World> world;
-    
-    Util::ReferenceCount<Object> object;
 };
 }
 #endif
