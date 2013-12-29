@@ -105,11 +105,11 @@ void CollisionMap::render(const Camera & camera){
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(area, cameraWindow)){
-            const int x1 = (area.x <= camera.getX() ? 0 : area.x - camera.getX());
-            const int y1 = (area.y <= camera.getY() ? 0 : area.y - camera.getY());
-            const int x2 = ((area.x + area.width) >= (camera.getX() + camera.getWidth()) ? 
+            const double x1 = (area.x <= camera.getX() ? 0 : area.x - camera.getX());
+            const double y1 = (area.y <= camera.getY() ? 0 : area.y - camera.getY());
+            const double x2 = ((area.x + area.width) >= (camera.getX() + camera.getWidth()) ? 
                             0 : (camera.getX() + camera.getWidth()) - (area.x + area.width));
-            const int y2 = ((area.y + area.height) >= (camera.getY() + camera.getHeight()) ? 
+            const double y2 = ((area.y + area.height) >= (camera.getY() + camera.getHeight()) ? 
                             0 : (camera.getY() + camera.getHeight()) - (area.y + area.height));
             // Draw to current screen
             camera.getWindow().rectangle(x1, y1, (camera.getWidth() - x2), (camera.getHeight() - y2), Graphics::makeColor(0,255,0));
