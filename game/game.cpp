@@ -186,22 +186,22 @@ public:
         isDone = keystate.esc;
         
         if (keystate.up){
-            if (object->getVelocityY() > -1){
+            if (object->getVelocityY() > -3){
                 object->addVelocity(0,-.2);
             }
         }
         if (keystate.down){
-            if (object->getVelocityY() < 1){
+            if (object->getVelocityY() < 3){
                 object->addVelocity(0,.2);
             }
         }
         if (keystate.left){
-            if (object->getVelocityX() > -1){
+            if (object->getVelocityX() > -3){
                 object->addVelocity(-.2,0);
             }
         }
         if (keystate.right){
-            if (object->getVelocityX() < 1){
+            if (object->getVelocityX() < 3){
                 object->addVelocity(.2,0);
             }
         }
