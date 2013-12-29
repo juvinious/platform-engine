@@ -21,9 +21,9 @@ public:
     virtual void act(const Util::ReferenceCount<CollisionMap>);
     virtual void draw(const Camera &);
     
-    void set(int x, int y);
+    void set(double x, double y);
     
-    void move(int x, int y);
+    void move(double x, double y);
     
     inline virtual void attachCamera(int id){
         this->attachedCamera = id;
@@ -42,19 +42,19 @@ public:
         return this->followed;
     }
     
-    inline virtual void setX(int x){
+    inline virtual void setX(double x){
         this->x = x;
     }
     
-    inline virtual int getX() const {
+    inline virtual double getX() const {
         return this->x;
     }
     
-    inline virtual int getY() const {
+    inline virtual double getY() const {
         return this->y;
     }
     
-    inline virtual void setY(int y){
+    inline virtual void setY(double y){
         this->y = y;
     }
     
@@ -97,8 +97,8 @@ protected:
     int attachedCamera;
     
     /*! Object Info */
-    int x;
-    int y;
+    double x;
+    double y;
     int width;
     int height;
     double velocityX;

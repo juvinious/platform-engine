@@ -32,12 +32,12 @@ void Object::act(const Util::ReferenceCount<CollisionMap>){
 void Object::draw(const Camera & camera){
 }
 
-void Object::set(int x, int y){
+void Object::set(double x, double y){
     this->x = x;
     this->y = y;
 }
 
-void Object::move(int x, int y){
+void Object::move(double x, double y){
     this->x+=x;
     this->y+=y;
 }

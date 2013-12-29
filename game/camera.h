@@ -24,8 +24,8 @@ class Camera{
         virtual void act();
         virtual void draw(const Graphics::Bitmap &);
         
-        virtual void set(int x, int y);
-        virtual void move(int x, int y);
+        virtual void set(double x, double y);
+        virtual void move(double x, double y);
         
         // Add Follow object or whatever
         virtual void followObject(Util::ReferenceCount<Object>);
@@ -43,11 +43,11 @@ class Camera{
             return this->id;
         }
         
-        virtual inline int getX() const{
+        virtual inline double getX() const{
             return this->currentX;
         }
         
-        virtual inline int getY() const{
+        virtual inline double getY() const{
             return this->currentY;
         }
         
@@ -90,12 +90,12 @@ class Camera{
         int worldHeight;
         
         //! Right hand corner (location in which to move to)
-        int x;
-        int y;
+        double x;
+        double y;
         
         //! This is the current placement of the x and y
-        int currentX;
-        int currentY;
+        double currentX;
+        double currentY;
         
         //! The window (or viewport) of the camera 
         int windowX;

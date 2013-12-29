@@ -14,14 +14,14 @@ class Camera;
 class Object;
 
 struct Area{
-    int x;
-    int y;
+    double x;
+    double y;
     int width;
     int height;
-    inline int getX2() const {
+    inline double getX2() const {
         return this->x + this->width;
     }
-    inline int getY2() const {
+    inline double getY2() const {
         return this->y + this->height;
     }
 };

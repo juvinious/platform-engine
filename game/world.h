@@ -33,8 +33,8 @@ public:
     virtual void act();
     virtual void draw(const Graphics::Bitmap &);
     
-    virtual void setCamera(int id, int x, int y);
-    virtual void moveCamera(int id, int x, int y);
+    virtual void setCamera(int id, double x, double y);
+    virtual void moveCamera(int id, double x, double y);
     
     //! FIXME HANDLE Cameras correctly later
     virtual Util::ReferenceCount<Camera> getCamera(int id);

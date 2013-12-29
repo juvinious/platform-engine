@@ -13,10 +13,10 @@
 namespace Platformer{
     
 static bool within(const Area & area1, const Area & area2){
-    return !((area1.x > area2.x + area2.width - 1) ||
-        (area1.y > area2.y + area2.height - 1) ||
-        (area2.x > area1.x + area1.width - 1) ||
-        (area2.y > area1.y + area1.height - 1));
+    return !((area1.x > area2.getX2()) ||
+        (area1.y > area2.getY2()) ||
+        (area2.x > area1.getX2()) ||
+        (area2.y > area1.getY2()));
 }
 
 CollisionBody::CollisionBody():

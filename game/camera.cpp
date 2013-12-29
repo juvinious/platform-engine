@@ -87,14 +87,14 @@ object(NULL){
 Camera::~Camera(){
 }
 
-void Camera::set(int x, int y){
+void Camera::set(double x, double y){
     this->x = x;
     this->y = y;
     
     checkBounds();
 }
 
-void Camera::move(int x, int y){
+void Camera::move(double x, double y){
     this->x+=x;
     this->y+=y;
     

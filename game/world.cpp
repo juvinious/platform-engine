@@ -211,14 +211,14 @@ void World::draw(const Graphics::Bitmap & bmp){
     }
 }
 
-void World::setCamera(int id, int x, int y){
+void World::setCamera(int id, double x, double y){
     std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
     if (found != cameras.end()){
         found->second->set(x,y);
     }
 }
 
-void World::moveCamera(int id, int x, int y){
+void World::moveCamera(int id, double x, double y){
     std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
     if (found != cameras.end()){
         found->second->move(x,y);
