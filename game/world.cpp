@@ -180,15 +180,19 @@ void World::act(){
             void response(const CollisionInfo & info) const {
                 if (info.top){
                     object->setVelocityY(0);
+                    Global::debug(0) << "Hits top." << std::endl;
                 }
                 if (info.bottom){
                     object->setVelocityY(0);
+                    Global::debug(0) << "Hits bottom." << std::endl;
                 }
                 if (info.left){
                     object->setVelocityX(0);
+                    Global::debug(0) << "Hits left." << std::endl;
                 }
                 if (info.right){
                     object->setVelocityX(0);
+                    Global::debug(0) << "Hits right." << std::endl;
                 }
                 // FIXME this causes object to stop completely when standing on a platform
                 //       Need to set only the velocity that it unable to move in to 0

@@ -60,6 +60,7 @@ bool CollisionMap::collides(const CollisionBody & body){
     // Scan ahead
     nextMovement.x += body.getVelocityX();
     nextMovement.y += body.getVelocityY();
+    bool hit = false;
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(nextMovement, area)){
@@ -83,10 +84,10 @@ bool CollisionMap::collides(const CollisionBody & body){
                 info.bottom = true;
             }
             body.response(info);
-            return true;
+            hit = true;
         }
     }
-    return false;
+    return hit;
 }
 
 void CollisionMap::act(){
