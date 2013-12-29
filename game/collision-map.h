@@ -41,6 +41,8 @@ public:
     
     virtual void response(const CollisionInfo &) const = 0;
     
+    virtual void noCollision() const {};
+    
     inline const Area & getArea() const {
         return this->area;
     }
@@ -64,7 +66,7 @@ public:
     CollisionMap(const Token *);
     virtual ~CollisionMap();
     
-    bool collides(const CollisionBody &);
+    void collides(const CollisionBody &);
     
     void act();
     

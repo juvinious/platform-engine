@@ -178,36 +178,33 @@ void World::act(){
             mutable Util::ReferenceCount<Object> object;
             
             void response(const CollisionInfo & info) const {
+                bool collided = false;
                 if (info.top){
                     object->setVelocityY(0);
-                    Global::debug(0) << "Hits top." << std::endl;
+                    collided = true;
                 }
                 if (info.bottom){
                     object->setVelocityY(0);
-                    Global::debug(0) << "Hits bottom." << std::endl;
+                    collided = true;
                 }
                 if (info.left){
                     object->setVelocityX(0);
-                    Global::debug(0) << "Hits left." << std::endl;
+                    collided = true;
                 }
                 if (info.right){
                     object->setVelocityX(0);
-                    Global::debug(0) << "Hits right." << std::endl;
+                    collided = true;
                 }
-                // FIXME this causes object to stop completely when standing on a platform
-                //       Need to set only the velocity that it unable to move in to 0
-                //object->setVelocity(0,0);
+                object->setCollided(collided);
+            }
+            
+            void noCollision() const {
+                object->setCollided(false);
             }
         };
         
         Collider collider(object);
-        
-        if (collisionMap->collides(collider)){
-            // Do something  
-            object->setCollided(true);
-        } else {
-            object->setCollided(false);
-        }
+        collisionMap->collides(collider);
         
         object->act();
     }

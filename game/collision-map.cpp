@@ -55,12 +55,12 @@ CollisionMap::CollisionMap(const Token * token){
 CollisionMap::~CollisionMap(){
 }
 
-bool CollisionMap::collides(const CollisionBody & body){
+void CollisionMap::collides(const CollisionBody & body){
     Area nextMovement = body.getArea();
     // Scan ahead
     nextMovement.x += body.getVelocityX();
     nextMovement.y += body.getVelocityY();
-    bool hit = false;
+    bool collides = false;
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(nextMovement, area)){
@@ -84,10 +84,12 @@ bool CollisionMap::collides(const CollisionBody & body){
                 info.bottom = true;
             }
             body.response(info);
-            hit = true;
+            collides = true;
         }
     }
-    return hit;
+    if (!collides){
+        body.noCollision();
+    }
 }
 
 void CollisionMap::act(){
