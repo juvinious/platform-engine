@@ -216,6 +216,7 @@ public:
     void draw(const Graphics::Bitmap & buffer){
         Graphics::StretchedBitmap work(world->getResolutionX(), world->getResolutionY(), buffer);
         work.start();
+        work.clear();
         world->draw(work);
         ostringstream info;
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
@@ -236,9 +237,10 @@ public:
     hasCollided(false){}
     virtual ~TestObject(){}
 
-    void rectDraw(Area area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
+    void rectDraw(const Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
         const double viewx = (area.x > portx ? area.x - portx : portx - area.x);
         const double viewy = (area.y > porty ? area.y - porty : porty - area.y);
+        
         bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }

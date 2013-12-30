@@ -60,7 +60,11 @@ object(NULL){
                 tok->view() >> velocity;
             } else if (*tok == "follow-variance"){
                 // Follow variance of the camera when following an object
-                tok->view() >> followVariance;
+                double value = 0;
+                tok->view() >> value;
+                if (value != 0){
+                    followVariance = value;
+                }
             } else if (*tok == "smooth-scrolling"){
                 // Follow variance of the camera when following an object
                 tok->view() >> smoothScrolling;

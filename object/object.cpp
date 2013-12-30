@@ -7,7 +7,6 @@
 #include "util/token.h"
 #include "util/graphics/bitmap.h"
 
-using namespace std;
 using namespace Platformer;
 
 Object::Object():
@@ -29,7 +28,7 @@ Object::~Object(){
 void Object::act(const Util::ReferenceCount<CollisionMap>){
 }
 
-void Object::draw(const Camera & camera){
+void Object::draw(const Camera &){
 }
 
 void Object::set(double x, double y){
