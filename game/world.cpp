@@ -179,6 +179,9 @@ void World::draw(const Graphics::Bitmap & bmp){
     // Go through all cameras
     for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
         Util::ReferenceCount<Camera> camera = c->second;
+                
+        // Fill to black for now
+        camera->getWindow().fill(Graphics::makeColor(0,0,0));
         
         // Backgrounds
         for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){

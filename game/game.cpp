@@ -86,6 +86,7 @@ public:
         Left,
         Right,
         Esc,
+        Key1,
     };
     
     struct KeyState{
@@ -94,8 +95,9 @@ public:
         up(false),
         down(false),
         left(false),
-        right(false){}
-        bool esc,up,down,left,right;
+        right(false),
+        key1(false){}
+        bool esc,up,down,left,right,key1;
     };
     
     DrawLogic(Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
@@ -109,6 +111,7 @@ public:
         input.set(Keyboard::Key_DOWN, Down);
         input.set(Keyboard::Key_LEFT, Left);
         input.set(Keyboard::Key_RIGHT, Right);
+        input.set(Keyboard::Key_1, Key1);
     }
     bool isDone;
     InputMap<Keys> input;
@@ -152,6 +155,10 @@ public:
                         keystate.right = false;
                         break;
                     }
+                    case Key1: {
+                        keystate.key1 = false;
+                        break;
+                    }
                 }
             }
 
@@ -176,6 +183,10 @@ public:
                         keystate.right = true;
                         break;
                     }
+                    case Key1: {
+                        keystate.key1 = true;
+                        break;
+                    }
                 }
             }
         };
@@ -186,23 +197,46 @@ public:
         isDone = keystate.esc;
         
         if (keystate.up){
-            if (object->getVelocityY() > -3){
-                object->addVelocity(0,-.2);
+            if (world->getCamera(0)->isFollowing()){
+                if (object->getVelocityY() > -3){
+                    object->addVelocity(0,-.2);
+                }
+            } else {
+                world->getCamera(0)->move(0, -5);
             }
         }
         if (keystate.down){
-            if (object->getVelocityY() < 3){
-                object->addVelocity(0,.2);
+            if (world->getCamera(0)->isFollowing()){
+                if (object->getVelocityY() < 3){
+                    object->addVelocity(0,.2);
+                }
+            } else {
+                world->getCamera(0)->move(0, 5);
             }
         }
         if (keystate.left){
-            if (object->getVelocityX() > -3){
-                object->addVelocity(-.2,0);
+            if (world->getCamera(0)->isFollowing()){
+                if (object->getVelocityX() > -3){
+                    object->addVelocity(-.2,0);
+                }
+            } else {
+                world->getCamera(0)->move(-5, 0);
             }
         }
         if (keystate.right){
-            if (object->getVelocityX() < 3){
-                object->addVelocity(.2,0);
+            if (world->getCamera(0)->isFollowing()){
+                if (object->getVelocityX() < 3){
+                    object->addVelocity(.2,0);
+                }
+            } else {
+                world->getCamera(0)->move(5, 0);
+            }
+        }
+        if (keystate.key1){
+            if (world->getCamera(0)->isFollowing()){
+                world->getCamera(0)->stopFollowing();
+            } else {
+                world->getCamera(0)->followObject(object);
             }
         }
         
@@ -234,7 +268,10 @@ public:
 class TestObject : public Object{
 public:
     TestObject():
-    hasCollided(false){}
+    hasCollided(false){
+        x = 25;
+        y = 200;
+    }
     virtual ~TestObject(){}
 
     void rectDraw(const Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
