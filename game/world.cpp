@@ -163,7 +163,9 @@ void World::act(){
             }
         }
         
-        object->act(collisionMap);
+        if (collisionMap != NULL){
+            object->act(collisionMap);
+        }
     }
     
     // foregrounds
@@ -198,7 +200,9 @@ void World::draw(const Graphics::Bitmap & bmp){
         }
         
         // Render collision maps (NOTE Debugging only remove later)
-        collisionMap->render(*camera);
+        if (collisionMap != NULL){
+            collisionMap->render(*camera);
+        }
         
         // foregrounds
         for (std::vector< Util::ReferenceCount<Background> >::iterator i = foregrounds.begin(); i != foregrounds.end(); ++i){
