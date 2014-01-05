@@ -6,10 +6,8 @@
 #include <map>
 
 #include "util/pointer.h"
+#include "util/graphics/bitmap.h"
 
-namespace Graphics{
-class Bitmap;
-}
 namespace Path{
 class AbsolutePath;
 }
@@ -65,6 +63,9 @@ protected:
     double gravityX;
     double gravityY;
     double acceleration;
+    
+    //! Fill color
+    Graphics::Color fillColor;
     
     // Player info
     

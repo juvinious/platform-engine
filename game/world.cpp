@@ -6,7 +6,6 @@
 #include "collision-map.h"
 #include "platformer/script/script.h"
 
-#include "util/graphics/bitmap.h"
 #include "util/debug.h"
 #include "util/file-system.h"
 #include "util/exceptions/load_exception.h"
@@ -23,7 +22,8 @@ dimensionsX(0),
 dimensionsY(0),
 gravityX(0),
 gravityY(0),
-acceleration(0){
+acceleration(0),
+fillColor(Graphics::makeColor(0,0,0)){
     if ( *token != "world" ){
         throw LoadException(__FILE__, __LINE__, "Not world.");
     }
@@ -86,6 +86,10 @@ void World::load(const Token * token){
                         Global::debug( 3 ) << "Unhandled mechanics attribute: "<<endl;
                     }
                 }
+            } else if (*tok == "fill-color"){
+                int r, g, b;
+                tok->view() >> r >> g >> b;
+                fillColor = Graphics::makeColor(r,g,b);
             } else if (*tok == "camera"){
                 // Handle camera info
                 Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
@@ -183,7 +187,7 @@ void World::draw(const Graphics::Bitmap & bmp){
         Util::ReferenceCount<Camera> camera = c->second;
                 
         // Fill to black for now
-        camera->getWindow().fill(Graphics::makeColor(0,0,0));
+        camera->getWindow().fill(fillColor);
         
         // Backgrounds
         for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
