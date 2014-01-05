@@ -19,6 +19,58 @@ static bool within(const Area & area1, const Area & area2){
         (area2.y > area1.getY2()));
 }
 
+Area::Area():
+x(0),
+y(0),
+width(0),
+height(0){
+}
+
+Area::Area(double x, double y, int width, int height):
+x(x),
+y(y),
+width(width),
+height(height){
+}
+
+Area::Area(const Token * token):
+x(0),
+y(0),
+width(0),
+height(0){
+    if (*token != "area"){
+        throw LoadException(__FILE__, __LINE__, "Not a collision area.");
+    }
+    TokenView view = token->view();
+    while (view.hasMore()){
+        const Token * tok;
+        view >> tok;
+        if (*tok == "position"){
+            tok->view() >> x >> y >> width >> height;
+        } else {
+            Global::debug( 3 ) << "Unhandled Area attribute: " << tok->getName() << std::endl;
+        }
+    }
+}
+
+Area::Area(const Area & copy):
+x(copy.x),
+y(copy.y),
+width(copy.width),
+height(copy.height){
+}
+
+Area::~Area(){
+}
+
+const Area & Area::operator=(const Area & copy) {
+    x = copy.x;
+    y = copy.y;
+    width = copy.width;
+    height = copy.height;
+    return *this;
+}
+
 CollisionBody::CollisionBody():
 velocityX(0),
 velocityY(0){
@@ -37,10 +89,7 @@ CollisionMap::CollisionMap(const Token * token){
             const Token * tok;
             view >> tok;
             if (*tok == "area"){
-                // get the name
-                Area area;
-                tok->view() >> area.x >> area.y >> area.width >> area.height;
-                regions.push_back(area);
+                regions.push_back(Area(tok));
             } else {
                 Global::debug( 3 ) << "Unhandled Collision attribute: " << tok->getName() << std::endl;
             }
@@ -101,7 +150,7 @@ void CollisionMap::act(){
 }
 
 void CollisionMap::render(const Camera & camera){
-    Area cameraWindow = { camera.getX(), camera.getY(), camera.getWidth(), camera.getHeight() };
+    Area cameraWindow(camera.getX(), camera.getY(), camera.getWidth(), camera.getHeight());
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
         if (within(area, cameraWindow)){

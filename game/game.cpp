@@ -336,7 +336,7 @@ public:
             x <= (camera.getX() + camera.getWidth()) &&
             y >= camera.getY() &&
             y <= (camera.getY() + camera.getHeight())){
-                Area area = {x, y, width, height};
+                Area area(x, y, width, height);
                 rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
         }
     }

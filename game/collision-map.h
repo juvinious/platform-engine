@@ -13,14 +13,24 @@ namespace Platformer{
 class Camera;
 class Object;
 
-struct Area{
+class Area{
+public:
+    Area();
+    Area(double x, double y, int width, int height);
+    Area(const Token *);
+    Area(const Area &);
+    ~Area();
     double x;
     double y;
     int width;
     int height;
+    
+    const Area & operator=(const Area &);
+    
     inline double getX2() const {
         return this->x + this->width;
     }
+    
     inline double getY2() const {
         return this->y + this->height;
     }
