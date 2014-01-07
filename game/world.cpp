@@ -37,8 +37,7 @@ fillColor(Graphics::makeColor(0,0,0)){
     }
     
     //! Setup script engine
-    scriptEngine = Scriptable::getScriptable();
-    scriptEngine->init(this);
+    scriptEngine = Scriptable::getInstance(this);
 }
 
 void World::load(const Filesystem::AbsolutePath & filename){
