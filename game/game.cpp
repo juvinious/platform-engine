@@ -87,6 +87,7 @@ public:
         Right,
         Esc,
         Key1,
+        Key2,
     };
     
     struct KeyState{
@@ -96,8 +97,9 @@ public:
         down(false),
         left(false),
         right(false),
-        key1(false){}
-        bool esc,up,down,left,right,key1;
+        key1(false),
+        key2(false){}
+        bool esc,up,down,left,right,key1,key2;
     };
     
     DrawLogic(Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
@@ -112,6 +114,7 @@ public:
         input.set(Keyboard::Key_LEFT, Left);
         input.set(Keyboard::Key_RIGHT, Right);
         input.set(Keyboard::Key_1, Key1);
+        input.set(Keyboard::Key_2, Key2);
     }
     bool isDone;
     InputMap<Keys> input;
@@ -159,6 +162,10 @@ public:
                         keystate.key1 = false;
                         break;
                     }
+                    case Key2: {
+                        keystate.key2 = false;
+                        break;
+                    }
                 }
             }
 
@@ -185,6 +192,10 @@ public:
                     }
                     case Key1: {
                         keystate.key1 = true;
+                        break;
+                    }
+                    case Key2: {
+                        keystate.key2 = true;
                         break;
                     }
                 }
@@ -238,6 +249,10 @@ public:
             } else {
                 world->getCamera(0)->followObject(object);
             }
+        }
+        
+        if (keystate.key2){
+            world->invokeScript("script");
         }
         
         world->act();

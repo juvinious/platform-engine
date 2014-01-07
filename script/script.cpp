@@ -3,24 +3,27 @@
 #include "platformer/game/camera.h"
 #include "platformer/game/world.h"
 #include "platformer/object/object.h"
+#include "platformer/game/collision-map.h"
 
 #include "util/file-system.h"
+#include "util/funcs.h"
 
 #ifdef HAVE_PYTHON
 #include <Python.h>
 
-class TestObject : public Object{
+class TestObject : public Platformer::Object{
 public:
     TestObject(double x, double y, int width, int height):
-    x(x),
-    y(y)
-    width(width),
-    height(height),
-    hasCollided(false){
+    hasCollided(false),
+    ticks(0){
+        this->x = x;
+        this->y = y;
+        this->width = width;
+        this->height = height;
     }
     virtual ~TestObject(){}
 
-    void rectDraw(const Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
+    void rectDraw(const Platformer::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
         const double viewx = (area.x > portx ? area.x - portx : portx - area.x);
         const double viewy = (area.y > porty ? area.y - porty : porty - area.y);
         
@@ -28,9 +31,9 @@ public:
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }
     
-    void act(const Util::ReferenceCount<CollisionMap> collisionMap){
+    void act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap){
         
-        class Collider : public CollisionBody{
+        class Collider : public Platformer::CollisionBody{
         public:
             Collider(TestObject & object):
             object(object){
@@ -44,7 +47,7 @@ public:
             ~Collider(){}
             TestObject & object;
             
-            void response(const CollisionInfo & info) const {
+            void response(const Platformer::CollisionInfo & info) const {
                 bool collided = false;
                 if (info.top){
                     object.setVelocityY(0);
@@ -75,14 +78,35 @@ public:
         
         x += velocityX;
         y += velocityY;
+        
+        if (ticks < 60){
+            ticks++;
+        } else {
+            switch (Util::rnd(5)){
+                case 0:
+                    velocityX += 0.2;
+                    break;
+                case 1:
+                    velocityX += 0.2;
+                    break;
+                case 2:
+                    velocityY += -0.2;
+                    break;
+                case 3:
+                default:
+                    velocityY += 0.2;
+                    break;
+            }
+            ticks = 0;
+        }
     }
 
-    void draw(const Camera & camera){
+    void draw(const Platformer::Camera & camera){
         if (x >= camera.getX() && 
             x <= (camera.getX() + camera.getWidth()) &&
             y >= camera.getY() &&
             y <= (camera.getY() + camera.getHeight())){
-                Area area(x, y, width, height);
+                Platformer::Area area(x, y, width, height);
                 rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
         }
     }
@@ -91,17 +115,19 @@ public:
     }
 private:
     bool hasCollided;
+    int ticks;
 };
 
 static PyObject * createObject(PyObject *, PyObject * args){
-    PyObject * world;
+    PyObject * worldObject;
     double x = 0;
     double y = 0;
     int width = 0;
     int height = 0;
 
-    if (PyArg_ParseTuple(args, "Oddii", &world, &x, &y, &width, &height)){
-        Util::ReferenceCount<Object> object(new TestObject(x,y,width,height));
+    if (PyArg_ParseTuple(args, "Oddii", &worldObject, &x, &y, &width, &height)){
+        Platformer::World * world = (Platformer::World*) PyCObject_AsVoidPtr(worldObject);
+        Util::ReferenceCount<Platformer::Object> object(new TestObject(x,y,width,height));
         world->addObject(object);
     }
     
@@ -117,7 +143,7 @@ static PyMethodDef Methods[] = {
 // Python script support
 class Python : public Platformer::Scriptable{
 public:
-    Python(World * world):
+    Python(Platformer::World * world):
     world(world){
         Py_Initialize();
         Py_InitModule("platformer", Methods);
@@ -130,7 +156,7 @@ public:
     void act(){
     }
     
-    void render(const Camera & camera){
+    void render(const Platformer::Camera & camera){
     }
     
     void registerAnimation(void *){
@@ -139,18 +165,44 @@ public:
     }
     
     void loadScript(const std::string & module){
-        PyObject * sysPath = PySys_GetObject("path");
-        // FIXME Do not use a fixed location, for now make it data/platformer
-        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("data/platformer/")).path());
-        int result = PyList_Insert(sysPath, 0, path);
+        PyObject * sysPath = PySys_GetObject((char *)"path");
+        // FIXME Do not use a fixed location but for now make it data/platformer
+        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("data/platformer/")).path().c_str());
+        int insertResult = PyList_Insert(sysPath, 0, path);
+        
+        // Import the module
         PyObject * loadModule = PyImport_ImportModule(module.c_str());
-        if (PyErr_Occured()){
+        if (PyErr_Occurred()){
             // TODO Throw an exception for now print
             PyErr_Print();
         }
+        
+        // Script execute function
+        PyObject * execute = PyObject_GetAttrString(loadModule, "run");
+        if (execute == NULL){
+            PyErr_Print();
+        }
+        
+        // Create world object
+        PyObject * worldObject = PyCObject_FromVoidPtr((void*) world, NULL);
+        if (worldObject == NULL){
+            PyErr_Print();
+        }
+        
+        //PyObject * worldObject = PyCapsule_New((void *) &world
+        
+        // Execute the script passing world in
+        PyObject * result = PyObject_CallFunction(execute, (char*) "(O)", worldObject);
+        if (result == NULL){
+            PyErr_Print();
+        } else {
+            Py_DECREF(result);
+        }
+        Py_DECREF(execute);
+        Py_DECREF(worldObject);
     }
 
-    World * world;
+    Platformer::World * world;
 };
 
 #endif

@@ -247,3 +247,7 @@ Util::ReferenceCount<Camera> World::getCamera(int id){
 void World::addObject(Util::ReferenceCount<Object> object){
     objects.push_back(object);
 }
+
+void World::invokeScript(const std::string & module){
+    scriptEngine->loadScript(module);
+}

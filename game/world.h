@@ -39,6 +39,8 @@ public:
     
     virtual void addObject(Util::ReferenceCount<Object>);
     
+    void invokeScript(const std::string &);
+    
     inline virtual int getResolutionX() const {
         return this->resolutionX;
     }
