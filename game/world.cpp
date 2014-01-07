@@ -248,6 +248,6 @@ void World::addObject(Util::ReferenceCount<Object> object){
     objects.push_back(object);
 }
 
-void World::invokeScript(const std::string & module){
-    scriptEngine->loadScript(module);
+void World::invokeScript(const std::string & module, const std::string & func){
+    scriptEngine->loadScript(module, func);
 }

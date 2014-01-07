@@ -252,7 +252,7 @@ public:
         }
         
         if (keystate.key2){
-            world->invokeScript("script");
+            world->invokeScript("script", "run");
         }
         
         world->act();
@@ -290,8 +290,8 @@ public:
     virtual ~TestObject(){}
 
     void rectDraw(const Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
-        const double viewx = (area.x > portx ? area.x - portx : portx - area.x);
-        const double viewy = (area.y > porty ? area.y - porty : porty - area.y);
+        const double viewx = area.x - portx;
+        const double viewy = area.y - porty;
         
         bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
@@ -347,9 +347,9 @@ public:
     }
 
     void draw(const Camera & camera){
-        if (x >= camera.getX() && 
+        if (x >= (camera.getX() - width) && 
             x <= (camera.getX() + camera.getWidth()) &&
-            y >= camera.getY() &&
+            y >= (camera.getY() - height) &&
             y <= (camera.getY() + camera.getHeight())){
                 Area area(x, y, width, height);
                 rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);

@@ -27,14 +27,8 @@ public:
     /*! Will render the registered animations that scripted objects may use */
     virtual void render(const Camera &) = 0;
     
-    /*! Render an animation created in script */
-    virtual void registerAnimation(void *) = 0;
-    
-    /*! Register a scripted object */
-    virtual void registerObject(void *) = 0;
-    
-    /*! Load a user script */
-    virtual void loadScript(const std::string &) = 0;
+    /*! Load a user script and execute the function */
+    virtual void loadScript(const std::string &, const std::string &) = 0;
     
     /*! Get Scriptable */
     static Util::ReferenceCount<Scriptable> getInstance(World *);

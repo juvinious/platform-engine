@@ -17,7 +17,8 @@ endif(PYTHON_EMBEDABLE)
 
 # Source
 set(SCRIPT_SRC
-script/script.cpp)
+script/script.cpp
+script/object.cpp)
 
 # -------------------------------------------------------
 # Include directory

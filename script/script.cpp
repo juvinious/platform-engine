@@ -24,8 +24,8 @@ public:
     virtual ~PyTestObject(){}
 
     void rectDraw(const Platformer::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
-        const double viewx = (area.x > portx ? area.x - portx : portx - area.x);
-        const double viewy = (area.y > porty ? area.y - porty : porty - area.y);
+        const double viewx = area.x - portx;//(area.x > portx ? area.x - portx : portx - area.x);
+        const double viewy = area.y - porty;//(area.y > porty ? area.y - porty : porty - area.y);
         
         bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
@@ -48,7 +48,7 @@ public:
                     break;
                 case 3:
                 default:
-                    velocityY -= 2;
+                    velocityY -= 3.5;
                     break;
             }
             ticks = 0;
@@ -102,9 +102,9 @@ public:
     }
 
     void draw(const Platformer::Camera & camera){
-        if (x >= camera.getX() && 
+        if (x >= (camera.getX() - width) && 
             x <= (camera.getX() + camera.getWidth()) &&
-            y >= camera.getY() &&
+            y >= (camera.getY() - height) &&
             y <= (camera.getY() + camera.getHeight())){
                 Platformer::Area area(x, y, width, height);
                 rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
@@ -126,7 +126,7 @@ static PyObject * createObject(PyObject *, PyObject * args){
     int height = 0;
 
     if (PyArg_ParseTuple(args, "Oddii", &worldObject, &x, &y, &width, &height)){
-        Platformer::World * world = (Platformer::World*) PyCObject_AsVoidPtr(worldObject);
+        Platformer::World * world = (Platformer::World*) PyCapsule_GetPointer(worldObject, "world");
         Util::ReferenceCount<Platformer::Object> object(new PyTestObject(x,y,width,height));
         world->addObject(object);
     }
@@ -159,12 +159,7 @@ public:
     void render(const Platformer::Camera & camera){
     }
     
-    void registerAnimation(void *){
-    }
-    void registerObject(void *){
-    }
-    
-    void loadScript(const std::string & module){
+    void loadScript(const std::string & module, const std::string & func){
         PyObject * sysPath = PySys_GetObject((char *)"path");
         // FIXME Do not use a fixed location but for now make it data/platformer
         PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("platformer/")).path().c_str());
@@ -178,28 +173,28 @@ public:
         }
         
         // Script execute function
-        PyObject * execute = PyObject_GetAttrString(loadModule, "run");
+        PyObject * execute = PyObject_GetAttrString(loadModule, func.c_str());
         if (execute == NULL){
             PyErr_Print();
         }
         
-        // Create world object
-        PyObject * worldObject = PyCObject_FromVoidPtr((void*) world, NULL);
+        PyObject * worldObject = PyCapsule_New((void *) world, "world", NULL);
         if (worldObject == NULL){
             PyErr_Print();
         }
-        
-        //PyObject * worldObject = PyCapsule_New((void *) &world
         
         // Execute the script passing world in
         PyObject * result = PyObject_CallFunction(execute, (char*) "(O)", worldObject);
         if (result == NULL){
             PyErr_Print();
-        } else {
-            Py_DECREF(result);
         }
+        
+        /*Py_DECREF(sysPath);
+        Py_DECREF(path);
+        Py_DECREF(loadModule);*/
         Py_DECREF(execute);
         Py_DECREF(worldObject);
+        Py_DECREF(result);
     }
 
     Platformer::World * world;
@@ -225,10 +220,6 @@ Util::ReferenceCount<Platformer::Scriptable> Platformer::Scriptable::getInstance
         void render(const Camera &){
         }
         void registerAnimation(void *){
-        }
-        void registerObject(void *){
-        }
-        void loadScript(const std::string &){
         }
     };
     return Util::ReferenceCount<Platformer::Scriptable>(new NoScript());
