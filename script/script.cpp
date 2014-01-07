@@ -11,9 +11,9 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 
-class TestObject : public Platformer::Object{
+class PyTestObject : public Platformer::Object{
 public:
-    TestObject(double x, double y, int width, int height):
+    PyTestObject(double x, double y, int width, int height):
     hasCollided(false),
     ticks(0){
         this->x = x;
@@ -21,7 +21,7 @@ public:
         this->width = width;
         this->height = height;
     }
-    virtual ~TestObject(){}
+    virtual ~PyTestObject(){}
 
     void rectDraw(const Platformer::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
         const double viewx = (area.x > portx ? area.x - portx : portx - area.x);
@@ -33,9 +33,30 @@ public:
     
     void act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap){
         
+        if (ticks < 60){
+            ticks++;
+        } else {
+            switch (Util::rnd(5)){
+                case 0:
+                    velocityX += 2;
+                    break;
+                case 1:
+                    velocityX -= 2;
+                    break;
+                case 2:
+                    velocityY += .02;
+                    break;
+                case 3:
+                default:
+                    velocityY -= 2;
+                    break;
+            }
+            ticks = 0;
+        }
+        
         class Collider : public Platformer::CollisionBody{
         public:
-            Collider(TestObject & object):
+            Collider(PyTestObject & object):
             object(object){
                 area.x = object.getX();
                 area.y = object.getY();
@@ -45,7 +66,7 @@ public:
                 velocityY = object.getVelocityY();
             }
             ~Collider(){}
-            TestObject & object;
+            PyTestObject & object;
             
             void response(const Platformer::CollisionInfo & info) const {
                 bool collided = false;
@@ -78,27 +99,6 @@ public:
         
         x += velocityX;
         y += velocityY;
-        
-        if (ticks < 60){
-            ticks++;
-        } else {
-            switch (Util::rnd(5)){
-                case 0:
-                    velocityX += 0.2;
-                    break;
-                case 1:
-                    velocityX += 0.2;
-                    break;
-                case 2:
-                    velocityY += -0.2;
-                    break;
-                case 3:
-                default:
-                    velocityY += 0.2;
-                    break;
-            }
-            ticks = 0;
-        }
     }
 
     void draw(const Platformer::Camera & camera){
@@ -127,7 +127,7 @@ static PyObject * createObject(PyObject *, PyObject * args){
 
     if (PyArg_ParseTuple(args, "Oddii", &worldObject, &x, &y, &width, &height)){
         Platformer::World * world = (Platformer::World*) PyCObject_AsVoidPtr(worldObject);
-        Util::ReferenceCount<Platformer::Object> object(new TestObject(x,y,width,height));
+        Util::ReferenceCount<Platformer::Object> object(new PyTestObject(x,y,width,height));
         world->addObject(object);
     }
     
@@ -167,7 +167,7 @@ public:
     void loadScript(const std::string & module){
         PyObject * sysPath = PySys_GetObject((char *)"path");
         // FIXME Do not use a fixed location but for now make it data/platformer
-        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("data/platformer/")).path().c_str());
+        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("platformer/")).path().c_str());
         int insertResult = PyList_Insert(sysPath, 0, path);
         
         // Import the module
