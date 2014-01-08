@@ -1,6 +1,7 @@
 #ifndef platformer_object_h
 #define platformer_object_h
 
+#include <string>
 #include <vector>
 
 #include "util/pointer.h"
@@ -18,12 +19,24 @@ class Object{
 public:
     Object();
     virtual ~Object();
-    virtual void act(const Util::ReferenceCount<CollisionMap>);
+    virtual void act(const Util::ReferenceCount<CollisionMap>, std::vector< Util::ReferenceCount<Object> > &);
     virtual void draw(const Camera &);
     
     void set(double x, double y);
     
     void move(double x, double y);
+    
+    inline const int getID() const {
+        return this->id;
+    }
+    
+    inline virtual void setLabel(const std::string & label){
+        this->label = label;
+    }
+    
+    inline virtual const std::string & getLabel() const {
+        return this->label;
+    }
     
     inline virtual void attachCamera(int id){
         this->attachedCamera = id;
@@ -58,8 +71,16 @@ public:
         this->y = y;
     }
     
+    inline virtual void setWidth(int w){
+        this->width = w;
+    }
+    
     inline virtual int getWidth() const {
         return this->width;
+    }
+    
+    inline virtual void setHeight(int h){
+        this->height = h;
     }
     
     inline virtual int getHeight() const {
@@ -91,7 +112,15 @@ public:
     inline double getVelocityY() const {
         return this->velocityY;
     }
+private: 
+    /*! ID */
+    const int id;
+    
 protected:
+    
+    /*! Label */
+    std::string label;
+    
     /*! Camera Info */
     bool followed;
     int attachedCamera;

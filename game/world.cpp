@@ -167,7 +167,7 @@ void World::act(){
         }
         
         if (collisionMap != NULL){
-            object->act(collisionMap);
+            object->act(collisionMap, objects);
         }
     }
     

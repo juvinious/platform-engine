@@ -1,4 +1,9 @@
+#ifdef HAVE_PYTHON
+#include <Python.h>
+#endif 
+
 #include "script.h"
+#include "object.h"
 
 #include "platformer/game/camera.h"
 #include "platformer/game/world.h"
@@ -9,8 +14,7 @@
 #include "util/funcs.h"
 
 #ifdef HAVE_PYTHON
-#include <Python.h>
-
+/*
 class PyTestObject : public Platformer::Object{
 public:
     PyTestObject(double x, double y, int width, int height):
@@ -24,14 +28,14 @@ public:
     virtual ~PyTestObject(){}
 
     void rectDraw(const Platformer::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
-        const double viewx = area.x - portx;//(area.x > portx ? area.x - portx : portx - area.x);
-        const double viewy = area.y - porty;//(area.y > porty ? area.y - porty : porty - area.y);
+        const double viewx = area.x - portx;
+        const double viewy = area.y - porty;
         
         bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }
     
-    void act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap){
+    void act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
         
         if (ticks < 60){
             ticks++;
@@ -116,18 +120,17 @@ public:
 private:
     bool hasCollided;
     int ticks;
-};
+};*/
 
 static PyObject * createObject(PyObject *, PyObject * args){
     PyObject * worldObject;
-    double x = 0;
-    double y = 0;
-    int width = 0;
-    int height = 0;
+    char * module;
+    char * initFunction;
 
-    if (PyArg_ParseTuple(args, "Oddii", &worldObject, &x, &y, &width, &height)){
+    if (PyArg_ParseTuple(args, "Oss", &worldObject, &module, &initFunction)){
         Platformer::World * world = (Platformer::World*) PyCapsule_GetPointer(worldObject, "world");
-        Util::ReferenceCount<Platformer::Object> object(new PyTestObject(x,y,width,height));
+        //Util::ReferenceCount<Platformer::Object> object(new PyTestObject(x,y,width,height));
+        Util::ReferenceCount<Platformer::Object> object(new Platformer::ScriptObject(module, initFunction));
         world->addObject(object);
     }
     
@@ -147,6 +150,7 @@ public:
     world(world){
         Py_Initialize();
         Py_InitModule("platformer", Methods);
+        Py_InitModule("platformer_object", Platformer::ScriptObject::Methods);
     }
     
     virtual ~Python(){
@@ -190,8 +194,8 @@ public:
         }
         
         /*Py_DECREF(sysPath);
-        Py_DECREF(path);
-        Py_DECREF(loadModule);*/
+        Py_DECREF(path);*/
+        Py_DECREF(loadModule);
         Py_DECREF(execute);
         Py_DECREF(worldObject);
         Py_DECREF(result);

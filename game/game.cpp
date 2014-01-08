@@ -252,7 +252,7 @@ public:
         }
         
         if (keystate.key2){
-            world->invokeScript("script", "run");
+            world->invokeScript("script", "createRandomTest");
         }
         
         world->act();
@@ -286,6 +286,7 @@ public:
     hasCollided(false){
         x = 25;
         y = 200;
+        label = "player";
     }
     virtual ~TestObject(){}
 
@@ -297,7 +298,7 @@ public:
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }
     
-    void act(const Util::ReferenceCount<CollisionMap> collisionMap){
+    void act(const Util::ReferenceCount<CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > &){
         
         class Collider : public CollisionBody{
         public:

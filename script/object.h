@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 
+class PyMethodDef;
+
 namespace Graphics{
 class Bitmap;
 }
@@ -23,7 +25,8 @@ class Animation;
 
 class Runnable{
 public:
-    Runnable(const std::string, const std::string);
+    Runnable();
+    Runnable(const std::string &, const std::string &);
     Runnable(const Runnable &);
     ~Runnable();
     
@@ -33,7 +36,7 @@ public:
         return this->module;
     }
     const std::string & getFunction() const {
-        return this->module;
+        return this->function;
     }
     
 private:
@@ -41,17 +44,24 @@ private:
     std::string function;
 };
 
+typedef std::map<std::string, Runnable> RunMap;
+
 class ScriptObject : public Object{
 public:
-    ScriptObject();
+    ScriptObject(const std::string &, const std::string &);
     virtual ~ScriptObject();
     
-    void act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap);
-    void draw(const Platformer::Camera & camera);
+    void act(const Util::ReferenceCount<Platformer::CollisionMap>, std::vector< Util::ReferenceCount<Object> > &);
+    void draw(const Platformer::Camera &);
+    
+    void add(const std::string &, const Runnable &);
+    
+    
+    static PyMethodDef * Methods;
 private:
 
     std::map<std::string, Util::ReferenceCount<Animation> > animations;
-    std::map<std::string, Runnable> scripts;
+    RunMap scripts;
 };
 
 }

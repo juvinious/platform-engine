@@ -9,7 +9,10 @@
 
 using namespace Platformer;
 
+static int OBJECT_IDS = 0;
+
 Object::Object():
+id(OBJECT_IDS++),
 followed(false),
 attachedCamera(0),
 x(0),
@@ -25,7 +28,7 @@ Object::~Object(){
     
 }
 
-void Object::act(const Util::ReferenceCount<CollisionMap>){
+void Object::act(const Util::ReferenceCount<CollisionMap>, std::vector< Util::ReferenceCount<Object> > &){
 }
 
 void Object::draw(const Camera &){
