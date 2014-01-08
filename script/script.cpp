@@ -81,7 +81,7 @@ public:
 Util::ReferenceCount<Platformer::Scriptable> Platformer::Scriptable::getInstance(World * world){
 #ifdef HAVE_PYTHON
     return Util::ReferenceCount<Platformer::Scriptable>(new Python(world));
-#else
+#endif
     // No script support
     class NoScript : public Platformer::Scriptable{
     public:
@@ -93,11 +93,13 @@ Util::ReferenceCount<Platformer::Scriptable> Platformer::Scriptable::getInstance
         void act(){
         }
         
+        void loadScript(const std::string &, const std::string &){
+        }
+        
         void render(const Camera &){
         }
         void registerAnimation(void *){
         }
     };
     return Util::ReferenceCount<Platformer::Scriptable>(new NoScript());
-#endif
 }
