@@ -1,6 +1,10 @@
+#ifdef HAVE_PYTHON
+#include <Python.h>
+#endif
+
 #include "object.h"
 
-#include <Python.h>
+#ifdef HAVE_PYTHON
 
 using namespace Platformer;
 
@@ -39,3 +43,4 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> coll
 
 void ScriptObject::draw(const Platformer::Camera & camera){
 }
+#endif
