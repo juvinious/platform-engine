@@ -159,11 +159,11 @@ public:
                         break;
                     }
                     case Key1: {
-                        keystate.key1 = false;
+                        keystate.key1 = true;
                         break;
                     }
                     case Key2: {
-                        keystate.key2 = false;
+                        keystate.key2 = true;
                         break;
                     }
                 }
@@ -191,11 +191,11 @@ public:
                         break;
                     }
                     case Key1: {
-                        keystate.key1 = true;
+                        keystate.key1 = false;
                         break;
                     }
                     case Key2: {
-                        keystate.key2 = true;
+                        keystate.key2 = false;
                         break;
                     }
                 }
@@ -249,10 +249,12 @@ public:
             } else {
                 world->getCamera(0)->followObject(object);
             }
+            keystate.key1 = false;
         }
         
         if (keystate.key2){
             world->invokeScript("script", "createRandomTest");
+            keystate.key2 = false;
         }
         
         world->act();

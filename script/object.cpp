@@ -10,27 +10,77 @@
 
 using namespace Platformer;
 
-Runnable::Runnable(){
+AutoRef::AutoRef(PyObject * object):
+object(object){
 }
 
-Runnable::Runnable(const std::string & module, const std::string & function):
-module(module),
-function(function){
+AutoRef::AutoRef(const AutoRef & copy):
+object(copy.object){
+    Py_XINCREF(object);
+}
+
+AutoRef::~AutoRef(){
+    Py_XDECREF(object);
+}
+
+const AutoRef & AutoRef::operator=(const AutoRef & copy){
+    object = copy.object;
+    Py_XINCREF(object);
+    
+    return *this;
+}
+
+PyObject * AutoRef::getObject() const {
+    return object;
+}
+
+Runnable::RefMap Runnable::modules;
+
+Runnable::Runnable(const std::string & moduleName, const std::string & functionName):
+moduleName(moduleName),
+functionName(functionName){
+    RefMap::iterator module = modules.find(moduleName);
+    if (module == modules.end()){
+        PyObject * sysPath = PySys_GetObject((char *)"path");
+        // FIXME Do not use a fixed location but for now make it data/platformer
+        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("platformer/")).path().c_str());
+        int insertResult = PyList_Insert(sysPath, 0, path);
+        
+        // Import the module
+        PyObject * importedModule = PyImport_ImportModule(moduleName.c_str());
+        if (PyErr_Occurred()){
+            PyErr_Print();
+        }
+        
+        modules.insert(std::pair<std::string, AutoRef>(moduleName, importedModule));
+    }
 }
 
 Runnable::Runnable(const Runnable & copy):
-module(copy.module),
-function(copy.function){
+moduleName(copy.moduleName),
+functionName(copy.functionName){
 }
 
 Runnable::~Runnable(){
 }
 
 const Runnable & Runnable::operator=(const Runnable & copy){
-    module = copy.module;
-    function = copy.function;
+    moduleName = copy.moduleName;
+    functionName = copy.functionName;
     
     return *this;
+}
+
+const AutoRef Runnable::getModule() const {
+    return modules.find(moduleName)->second;
+}
+
+PyObject * Runnable::getFunction() const {
+    PyObject * retrievedFunction = PyObject_GetAttrString(getModule().getObject(), functionName.c_str());
+    if (retrievedFunction == NULL){
+        PyErr_Print();
+    }
+    return retrievedFunction;
 }
 
 static PyObject * getID(PyObject *, PyObject * args){
@@ -243,30 +293,22 @@ static PyObject * getModule(const std::string & module){
 }
 
 ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction){
-    // Module
-    PyObject * module = getModule(initModule);
-    
-    // Init function
-    PyObject * function = PyObject_GetAttrString(module, initFunction.c_str());
-    if (function == NULL){
-        PyErr_Print();
-    }
-    
+    // Run init function
+    Runnable init(initModule, initFunction);
     PyObject * self = PyCapsule_New((void *) this, "object", NULL);
     if (self == NULL){
         PyErr_Print();
     }
     
-    // Execute the script passing world in
+    // Execute init
+    PyObject * function = init.getFunction();
     PyObject * result = PyObject_CallFunction(function, (char*) "(O)", self);
     if (result == NULL){
         PyErr_Print();
     }
-    
-    Py_DECREF(module);
-    Py_DECREF(function);
     Py_DECREF(self);
-    Py_DECREF(result);
+    Py_DECREF(function);
+    Py_XDECREF(result);
 }
 
 ScriptObject::~ScriptObject(){
@@ -276,34 +318,38 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> coll
     // Act
     RunMap::iterator act = scripts.find("act-object");
     if (act != scripts.end()){
-        for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
-            PyObject * module = getModule(act->second.getModule());
-             // runnable
-            PyObject * function = PyObject_GetAttrString(module, act->second.getFunction().c_str());
-            if (function == NULL){
-                PyErr_Print();
+        const Runnable actFunction = act->second;
+        PyObject * self = PyCapsule_New((void *) this, "object", NULL);
+        if (self == NULL){
+            PyErr_Print();
+        } else { 
+            for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+                Py_INCREF(self);
+                PyObject * function = actFunction.getFunction();
+                Py_INCREF(function);
+                if (function == NULL){
+                    PyErr_Print();
+                    continue;
+                }        
+                PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
+                if (object == NULL){
+                    PyErr_Print();
+                    Py_DECREF(function);
+                    Py_DECREF(self);
+                    continue;
+                }
+                // run act-object
+                PyObject * result = PyObject_CallFunction(function, (char *)"(OO)", self, object);
+                if (result == NULL){
+                    PyErr_Print();
+                }
+                Py_DECREF(self);
+                Py_DECREF(object);
+                Py_DECREF(function);
+                Py_XDECREF(result);
             }
-            PyObject * self = PyCapsule_New((void *) this, "object", NULL);
-            if (self == NULL){
-                PyErr_Print();
-            }            
-            PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
-            if (object == NULL){
-                PyErr_Print();
-            }
-            
-            // Execute the script passing world in
-            PyObject * result = PyObject_CallFunction(function, (char *)"(OO)", self, object);
-            if (result == NULL){
-                PyErr_Print();
-            }
-            
-            Py_DECREF(module);
-            Py_DECREF(function);
-            Py_DECREF(self);
-            Py_DECREF(object);
-            Py_DECREF(result);
-        }    
+        }
+        Py_XDECREF(self); 
     }
     
     class Collider : public CollisionBody{
@@ -355,6 +401,6 @@ void ScriptObject::draw(const Platformer::Camera & camera){
 }
 
 void ScriptObject::add(const std::string & what, const Runnable & runnable){
-    scripts[what] = runnable;
+    scripts.insert(std::pair<std::string, Runnable>(what, runnable));
 }
 #endif

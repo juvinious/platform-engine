@@ -23,25 +23,44 @@ class Object;
 class World;
 class Animation;
 
+class AutoRef{
+public:
+    AutoRef(PyObject *);
+    AutoRef(const AutoRef &);
+    ~AutoRef();
+    
+    const AutoRef & operator=(const AutoRef &);
+    
+    PyObject * getObject() const;
+    
+private:
+    PyObject * object;
+};
+
 class Runnable{
 public:
-    Runnable();
     Runnable(const std::string &, const std::string &);
     Runnable(const Runnable &);
     ~Runnable();
     
     const Runnable & operator=(const Runnable &);
     
-    const std::string & getModule() const {
-        return this->module;
+    const AutoRef getModule() const;
+    PyObject * getFunction() const;
+    
+    const std::string & getModuleName() const {
+        return this->moduleName;
     }
-    const std::string & getFunction() const {
-        return this->function;
+    const std::string & getFunctionName() const {
+        return this->functionName;
     }
     
 private:
-    std::string module;
-    std::string function;
+    std::string moduleName;
+    std::string functionName;
+    typedef std::map<std::string, AutoRef> RefMap;
+    static RefMap modules;
+    static RefMap functions;
 };
 
 typedef std::map<std::string, Runnable> RunMap;
