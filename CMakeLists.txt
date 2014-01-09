@@ -12,17 +12,17 @@ set(ARGUMENT_SRC
 argument.cpp)
 
 set(GAME_SRC
-game/animation.cpp
-game/background.cpp
-game/camera.cpp
-game/collision-map.cpp
 game/game.cpp
 game/options.cpp
-game/tile.cpp
 game/world.cpp)
 
-set(OBJECT_SRC
-object/object.cpp)
+set(RESOURCES_SRC
+resources/animation.cpp
+resources/background.cpp
+resources/camera.cpp
+resources/collisions.cpp
+resources/object.cpp
+resources/tile.cpp)
 
 add_subdirectory(script)
 

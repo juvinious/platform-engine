@@ -4,8 +4,8 @@
 #ifdef HAVE_PYTHON
 
 #include "util/pointer.h"
-#include "platformer/object/object.h"
-#include "platformer/game/animation.h"
+#include "platformer/resources/object.h"
+#include "platformer/resources/animation.h"
 #include "python.h"
 
 #include <string>
@@ -40,11 +40,31 @@ public:
     
     void setCurrentAnimation(const std::string &);
     
+    const std::string getCurrentAnimation() const;
+    
+    inline bool getAnimationVerticalFlip() const {
+        return this->animationVerticalFlip;
+    }
+    
+    inline bool getAnimationHorizontalFlip() const {
+        return this->animationHorizontalFlip;
+    }
+    
+    inline void setAnimationVerticalFlip(bool flip) {
+        this->animationVerticalFlip = flip;
+    }
+    
+    inline void setAnimationHorizontalFlip(bool flip) {
+        this->animationHorizontalFlip = flip;
+    }
+    
     static PyMethodDef * Methods;
 private:
     // Animations
     typedef std::map<std::string, Util::ReferenceCount<Animation> > AnimationMap;
     AnimationMap::iterator currentAnimation;
+    bool animationHorizontalFlip;
+    bool animationVerticalFlip;
     AnimationMap animations;
     
     // Scripts

@@ -1,7 +1,7 @@
 #include "tile.h"
 #include "animation.h"
 #include "camera.h"
-#include "platformer/object/object.h"
+#include "platformer/resources/object.h"
 
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"

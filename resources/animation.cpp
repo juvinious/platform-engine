@@ -106,11 +106,11 @@ static void renderSprite(int x, int y, const Graphics::Bitmap & sprite, int alph
     }
 }
 
-void Frame::draw(int x, int y, const Graphics::Bitmap & work){
+void Frame::draw(int x, int y, const Graphics::Bitmap & work, bool hflipOverride, bool vflipOverride){
     if (!bmp){
         return;
     }
-    renderSprite(x, y, *bmp, alpha, horizontalFlip, verticalFlip, work);
+    renderSprite(x, y, *bmp, alpha, (hflipOverride ? !horizontalFlip : horizontalFlip), (vflipOverride ? !verticalFlip : verticalFlip), work);
 }
 
 static int findPosition(int end, int offset){
@@ -248,8 +248,8 @@ void Animation::act(){
 	    }
     }
 }
-void Animation::draw(int x, int y, const Graphics::Bitmap & work){
-    frames[currentFrame]->draw(x, y,work);
+void Animation::draw(int x, int y, const Graphics::Bitmap & work, bool hflip, bool vflip){
+    frames[currentFrame]->draw(x, y,work, hflip, vflip);
 }
 
 void Animation::drawRepeatable(int x, int y, const Graphics::Bitmap & work){

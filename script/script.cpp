@@ -6,10 +6,10 @@
 #include "object.h"
 #include "python.h"
 
-#include "platformer/game/camera.h"
+#include "platformer/resources/camera.h"
 #include "platformer/game/world.h"
-#include "platformer/object/object.h"
-#include "platformer/game/collision-map.h"
+#include "platformer/resources/object.h"
+#include "platformer/resources/collisions.h"
 
 #include "util/file-system.h"
 #include "util/funcs.h"

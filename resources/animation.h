@@ -21,7 +21,7 @@ class Frame{
 	Frame(const Token *token, imageMap &);
 	Frame(Graphics::Bitmap *);
 	virtual ~Frame();
-	virtual void draw(int x, int y, const Graphics::Bitmap &);
+	virtual void draw(int x, int y, const Graphics::Bitmap &, bool hflipOverride, bool vflipOverride);
 	virtual void drawRepeatable(int x, int y, const Graphics::Bitmap &);
 	
 	virtual inline const Graphics::Bitmap & getBitmap() const {
@@ -66,7 +66,7 @@ class Animation{
 	virtual ~Animation();
 	
 	virtual void act();
-	virtual void draw(int x, int y, const Graphics::Bitmap &);
+	virtual void draw(int x, int y, const Graphics::Bitmap &, bool hflip = false, bool vflip = false);
 	virtual void drawRepeatable(int x, int y, const Graphics::Bitmap &);
 	virtual void forwardFrame();
 	virtual void backFrame();

@@ -1,8 +1,8 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 #include "object.h"
-#include "platformer/game/camera.h"
-#include "platformer/game/collision-map.h"
+#include "platformer/resources/camera.h"
+#include "platformer/resources/collisions.h"
 
 #include "util/graphics/bitmap.h"
 #include "util/file-system.h"
@@ -232,6 +232,58 @@ static PyObject * setAnimation(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * getAnimation(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    if (PyArg_ParseTuple(args, "O", &charPointer)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("s", obj->getCurrentAnimation().c_str());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setAnimationHflip(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    int flip;
+    if (PyArg_ParseTuple(args, "Oi", &charPointer, &flip)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setAnimationHorizontalFlip(flip);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getAnimationHflip(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    if (PyArg_ParseTuple(args, "O", &charPointer)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("i", obj->getAnimationHorizontalFlip());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setAnimationVflip(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    int flip;
+    if (PyArg_ParseTuple(args, "Oi", &charPointer, &flip)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setAnimationVerticalFlip(flip);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getAnimationVflip(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    if (PyArg_ParseTuple(args, "O", &charPointer)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("i", obj->getAnimationVerticalFlip());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef ObjectMethods[] = {
     {"getID", getID, METH_VARARGS, "Get ID."},
     {"getLabel", getLabel, METH_VARARGS, "Get label."},
@@ -253,13 +305,20 @@ static PyMethodDef ObjectMethods[] = {
     {"addAction", addAction, METH_VARARGS, "Add an action from a function directly."},
     {"addAnimationByToken", addAnimationByToken, METH_VARARGS, "Add animation in Token form."},
     {"setAnimation", setAnimation, METH_VARARGS, "Set current animation."},
+    {"getAnimation", getAnimation, METH_VARARGS, "Get current animation."},
+    {"setAnimationHorizontalFlip", setAnimationHflip, METH_VARARGS, "Set animation horizontal flip."},
+    {"getAnimationHorizontalFlip", getAnimationHflip, METH_VARARGS, "Get animation horizontal flip."},
+    {"setAnimationVerticalFlip", setAnimationVflip, METH_VARARGS, "Set animation horizontal flip."},
+    {"getAnimationVerticalFlip", getAnimationVflip, METH_VARARGS, "Get animation horizontal flip."},
     {NULL, NULL, 0, NULL}
 };
 
 PyMethodDef * ScriptObject::Methods = ObjectMethods;
 
 ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction):
-currentAnimation(animations.end()){
+currentAnimation(animations.end()),
+animationHorizontalFlip(false),
+animationVerticalFlip(false){
     // Run init function
     Script::Runnable init(initModule, initFunction);
     PyObject * self = PyCapsule_New((void *) this, "object", NULL);
@@ -427,7 +486,7 @@ void ScriptObject::draw(const Platformer::Camera & camera){
                 const double viewx = x - camera.getX();
                 const double viewy = y - camera.getY();
                 if (currentAnimation != animations.end()){
-                    currentAnimation->second->draw(viewx, viewy, camera.getWindow());
+                    currentAnimation->second->draw(viewx, viewy, camera.getWindow(), animationHorizontalFlip, animationVerticalFlip);
                 }
         }
 }
@@ -443,5 +502,16 @@ void ScriptObject::addAnimation(const Token * token){
 
 void ScriptObject::setCurrentAnimation(const std::string & id){
     currentAnimation = animations.find(id);
+    if (currentAnimation != animations.end()){
+        currentAnimation->second->reset();
+        animationHorizontalFlip = animationVerticalFlip = false;
+    }
+}
+
+const std::string ScriptObject::getCurrentAnimation() const {
+    if (currentAnimation != animations.end()){
+        return currentAnimation->second->getId();
+    }
+    return "";
 }
 #endif

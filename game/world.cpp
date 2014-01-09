@@ -1,9 +1,9 @@
 #include "world.h"
 
-#include "animation.h"
-#include "background.h"
-#include "camera.h"
-#include "collision-map.h"
+#include "platformer/resources/animation.h"
+#include "platformer/resources/background.h"
+#include "platformer/resources/camera.h"
+#include "platformer/resources/collisions.h"
 #include "platformer/script/script.h"
 
 #include "util/debug.h"

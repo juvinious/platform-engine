@@ -1,7 +1,7 @@
-#include "collision-map.h"
+#include "collisions.h"
 
-#include "platformer/object/object.h"
-#include "platformer/game/camera.h"
+#include "object.h"
+#include "camera.h"
 
 #include "util/debug.h"
 #include "util/token.h"

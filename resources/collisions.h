@@ -1,5 +1,5 @@
-#ifndef platformer_collision_map_h
-#define platformer_collision_map_h
+#ifndef platformer_collisions_h
+#define platformer_collisions_h
 
 #include <string>
 #include <vector>

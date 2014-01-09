@@ -1,9 +1,9 @@
 #include "game.h"
 
-#include "camera.h"
+#include "platformer/resources/camera.h"
 #include "util/gui/cutscene.h"
 #include "world.h"
-#include "collision-map.h"
+#include "platformer/resources/collisions.h"
 
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"
