@@ -51,6 +51,7 @@ typedef std::map<std::string, Module> ModuleMap;
 
 class Runnable{
 public:
+    Runnable(const AutoRef object);
     Runnable(const std::string &, const std::string &);
     Runnable(const Runnable &);
     ~Runnable();
@@ -73,6 +74,9 @@ private:
     std::string moduleName;
     std::string functionName;
     static ModuleMap modules;
+    
+    bool isDirect;
+    AutoRef direct;
 };
 
 typedef std::map<std::string, Runnable> RunMap;

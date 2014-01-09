@@ -85,9 +85,16 @@ const AutoRef Module::getFunction(const std::string & functionName) const{
 
 ModuleMap Runnable::modules;
 
+Runnable::Runnable(const AutoRef object):
+isDirect(true),
+direct(object){
+}
+
 Runnable::Runnable(const std::string & moduleName, const std::string & functionName):
 moduleName(moduleName),
-functionName(functionName){
+functionName(functionName),
+isDirect(false),
+direct(NULL){
     ModuleMap::iterator module = modules.find(moduleName);
     if (module == modules.end()){
         // Insert
@@ -103,7 +110,9 @@ functionName(functionName){
 
 Runnable::Runnable(const Runnable & copy):
 moduleName(copy.moduleName),
-functionName(copy.functionName){
+functionName(copy.functionName),
+isDirect(copy.isDirect),
+direct(copy.direct){
 }
 
 Runnable::~Runnable(){
@@ -112,6 +121,8 @@ Runnable::~Runnable(){
 const Runnable & Runnable::operator=(const Runnable & copy){
     moduleName = copy.moduleName;
     functionName = copy.functionName;
+    isDirect = copy.isDirect;
+    direct = copy.direct;
     
     return *this;
 }
@@ -121,7 +132,10 @@ const Module Runnable::getModule() const{
 }
 
 const AutoRef Runnable::getFunction() const{
-    return modules.find(moduleName)->second.getFunction(functionName);
+    if (!isDirect){
+        return modules.find(moduleName)->second.getFunction(functionName);
+    }
+    return direct;
 }
 
 #endif

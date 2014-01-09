@@ -167,7 +167,7 @@ static PyObject * setVelocityY(PyObject *, PyObject * args){
     return Py_None;
 }
 
-static PyObject * addScript(PyObject *, PyObject * args){
+static PyObject * addScriptAction(PyObject *, PyObject * args){
     PyObject * charPointer;
     char * action;
     char * module;
@@ -175,6 +175,20 @@ static PyObject * addScript(PyObject *, PyObject * args){
     if (PyArg_ParseTuple(args, "Osss", &charPointer, &action, &module, &function)){
         ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
         obj->add(action, Script::Runnable(module, function));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * addAction(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * action;
+    PyObject * func;
+    if (PyArg_ParseTuple(args, "OsO", &charPointer, &action, &func)){
+        Script::AutoRef function(func);
+        
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->add(action, Script::Runnable(function));
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -196,7 +210,8 @@ static PyMethodDef ObjectMethods[] = {
     {"setVelocityX", setVelocityX, METH_VARARGS, "Set x velocity."},
     {"getVelocityY", getVelocityY, METH_VARARGS, "Get y velocity."},
     {"setVelocityY", setVelocityY, METH_VARARGS, "Set y velocity."},
-    {"addScript", addScript, METH_VARARGS, "Add a script."},
+    {"addScriptAction", addScriptAction, METH_VARARGS, "Add an action from a script."},
+    {"addAction", addAction, METH_VARARGS, "Add an action from a function directly."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -242,7 +257,7 @@ ScriptObject::~ScriptObject(){
 
 void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
     // Act
-    Script::RunMap::iterator act = scripts.find("act-object");
+    Script::RunMap::iterator act = scripts.find("act-objects");
     if (act != scripts.end()){
         const Script::Runnable actFunction = act->second;
         PyObject * self = PyCapsule_New((void *) this, "object", NULL);
@@ -256,7 +271,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> coll
                 if (object == NULL){
                     PyErr_Print();
                 }
-                // run act-object
+                // run act-objects
                 PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self, object);
                 if (result == NULL){
                     PyErr_Print();
@@ -302,8 +317,19 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> coll
     Collider collider(*this);
     collisionMap->collides(collider);
     
-    x += velocityX;
-    y += velocityY;    
+    act = scripts.find("act");
+    if (act != scripts.end()){
+        const Script::Runnable actFunction = act->second;
+        PyObject * self = PyCapsule_New((void *) this, "object", NULL);
+        // run act
+        Script::AutoRef function = actFunction.getFunction();
+        PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self);
+        if (result == NULL){
+            PyErr_Print();
+        }
+        Py_DECREF(self);
+        Py_XDECREF(result);
+    }
 }
 
 void ScriptObject::draw(const Platformer::Camera & camera){
