@@ -5,6 +5,8 @@
 
 #include <string>
 
+class Token;
+
 namespace Graphics{
 class Bitmap;
 }
@@ -29,6 +31,9 @@ public:
     
     /*! Load a user script and execute the function */
     virtual void loadScript(const std::string &, const std::string &) = 0;
+    
+    /*! Load script from token */
+    virtual void importObject(const Token *) = 0;
     
     /*! Get Scriptable */
     static Util::ReferenceCount<Scriptable> getInstance(World *);

@@ -7,8 +7,11 @@
 
 using namespace Platformer::Script;
 
-AutoRef::AutoRef(PyObject * object):
+AutoRef::AutoRef(PyObject * object, bool increaseRef):
 object(object){
+    if (increaseRef){
+        Py_INCREF(object);
+    }
 }
 
 AutoRef::AutoRef(const AutoRef & copy):

@@ -42,25 +42,25 @@ value(copy.value){
 Value::~Value(){
 }
 
-const Value & Value::operator=(const Value & copy) const{
+const Value & Value::operator=(const Value & copy) {
     type = copy.type;
     value = copy.value;
     return *this;
 }
 
-const Value & Value::operator=(const char * value) const{
+const Value & Value::operator=(const char * value) {
     this->value = std::string(value);
     type = String;
     return *this;
 }
 
-const Value & Value::operator=(const std::string & value) const{
+const Value & Value::operator=(const std::string & value) {
     this->value = value;
     type = String;
     return *this;
 }
 
-const Value & Value::operator=(int value) const{
+const Value & Value::operator=(int value) {
     std::ostringstream out;
     out << value;
     this->value = out.str();
@@ -68,7 +68,7 @@ const Value & Value::operator=(int value) const{
     return *this;
 }
 
-const Value & Value::operator=(double value) const{
+const Value & Value::operator=(double value) {
     std::ostringstream out;
     out << value;
     this->value = out.str();
@@ -76,7 +76,7 @@ const Value & Value::operator=(double value) const{
     return *this;
 }
 
-const Value & Value::operator=(bool value) const{
+const Value & Value::operator=(bool value) {
     std::ostringstream out;
     out << value;
     this->value = out.str();
@@ -84,24 +84,24 @@ const Value & Value::operator=(bool value) const{
     return *this;
 }
 
-const Value & Value::operator>>(std::string & value) const{
+const Value & Value::operator>>(std::string & value) {
     value = this->value;
     return *this;
 }
 
-const Value & Value::operator>>(int value) const{
+const Value & Value::operator>>(int value) {
     std::istringstream in(this->value);
     in >> value;
     return *this;
 }
 
-const Value & Value::operator>>(double value) const{
+const Value & Value::operator>>(double value) {
     std::istringstream in(this->value);
     in >> value;
     return *this;
 }
 
-const Value & Value::operator>>(bool value) const{
+const Value & Value::operator>>(bool value) {
     std::istringstream in(this->value);
     in >> value;
     return *this;

@@ -22,17 +22,17 @@ public:
     
     ~Value();
     
-    const Value & operator=(const Value &) const;
-    const Value & operator=(const char *) const;
-    const Value & operator=(const std::string &) const;
-    const Value & operator=(int value) const;
-    const Value & operator=(double value) const;
-    const Value & operator=(bool value) const;
+    const Value & operator=(const Value &);
+    const Value & operator=(const char *);
+    const Value & operator=(const std::string &);
+    const Value & operator=(int value);
+    const Value & operator=(double value);
+    const Value & operator=(bool value);
     
-    const Value & operator>>(std::string &) const;
-    const Value & operator>>(int value) const;
-    const Value & operator>>(double value) const;
-    const Value & operator>>(bool value) const;
+    const Value & operator>>(std::string &);
+    const Value & operator>>(int value);
+    const Value & operator>>(double value);
+    const Value & operator>>(bool value);
     
     const std::string & toString() const;
     int toInt() const;
@@ -46,8 +46,8 @@ public:
     }
     
 private:
-    mutable Type type;
-    mutable std::string value;
+    Type type;
+    std::string value;
 };
 
 }

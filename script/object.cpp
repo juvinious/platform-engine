@@ -429,7 +429,26 @@ animationVerticalFlip(false){
     
     // Execute init
     Script::AutoRef function = init.getFunction();
-    PyObject * result = PyObject_CallFunction(function.getObject(), (char*) "(O)", self);
+    PyObject * result = PyObject_CallFunction(function.getObject(), (char*) "O", self);
+    if (result == NULL){
+        PyErr_Print();
+    }
+    Py_DECREF(self);
+    Py_DECREF(result);
+}
+
+ScriptObject::ScriptObject(const Platformer::Script::Runnable & init):
+currentAnimation(animations.end()),
+animationHorizontalFlip(false),
+animationVerticalFlip(false){
+    PyObject * self = PyCapsule_New((void *) this, "object", NULL);
+    if (self == NULL){
+        PyErr_Print();
+    }
+    
+    // Execute init
+    Script::AutoRef function = init.getFunction();
+    PyObject * result = PyObject_CallFunction(function.getObject(), (char*) "O", self);
     if (result == NULL){
         PyErr_Print();
     }
@@ -470,7 +489,7 @@ public:
             Script::AutoRef function = collision.getFunction();
             PyObject * result = NULL; 
             if (other == NULL){
-                result = PyObject_CallFunction(function.getObject(), (char *)"(O{sisisisi}{sdsdsisi})", 
+                result = PyObject_CallFunction(function.getObject(), (char *)"O{sisisisi}{sdsdsisi}", 
                                 self.getObject(),
                                 "top",info.top,
                                 "bottom",info.bottom,
@@ -481,7 +500,7 @@ public:
                                 "width",info.area.width,
                                 "height",info.area.height);
             } else {
-                result = PyObject_CallFunction(function.getObject(), (char *)"(OO{sisisisi}{sdsdsisi})", 
+                result = PyObject_CallFunction(function.getObject(), (char *)"OO{sisisisi}{sdsdsisi}", 
                                 self.getObject(),
                                 other,
                                 "top",info.top,
@@ -506,9 +525,9 @@ public:
             Script::AutoRef function = none.getFunction();
             PyObject * result = NULL;
             if (other == NULL){
-                result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self.getObject());
+                result = PyObject_CallFunction(function.getObject(), (char *)"O", self.getObject());
             } else {
-                result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self.getObject(), other);
+                result = PyObject_CallFunction(function.getObject(), (char *)"OO", self.getObject(), other);
             }
             if (result == NULL){
                 PyErr_Print();
@@ -539,7 +558,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
                 Script::AutoRef function = actFunction.getFunction();
                 
                 // run act-objects
-                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self.getObject(), object);
+                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"OO", self.getObject(), object);
                 if (result == NULL){
                     PyErr_Print();
                 }
@@ -565,7 +584,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
             const Script::Runnable actFunction = act->second;
             // run act
             Script::AutoRef function = actFunction.getFunction();
-            PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self.getObject());
+            PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"O", self.getObject());
             if (result == NULL){
                 PyErr_Print();
             }

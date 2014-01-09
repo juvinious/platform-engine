@@ -12,7 +12,7 @@ namespace Script{
 
 class AutoRef{
 public:
-    AutoRef(PyObject *);
+    AutoRef(PyObject *, bool increaseRef = false);
     AutoRef(const AutoRef &);
     ~AutoRef();
     

@@ -28,6 +28,9 @@ fillColor(Graphics::makeColor(0,0,0)){
         throw LoadException(__FILE__, __LINE__, "Not world.");
     }
     
+    //! Setup script engine
+    scriptEngine = Scriptable::getInstance(this);
+    
     if (token->numTokens() == 1){
         std::string temp;
         token->view() >> temp;
@@ -35,9 +38,6 @@ fillColor(Graphics::makeColor(0,0,0)){
     } else {
         load(token);
     }
-    
-    //! Setup script engine
-    scriptEngine = Scriptable::getInstance(this);
 }
 
 void World::load(const Filesystem::AbsolutePath & filename){
@@ -104,6 +104,12 @@ void World::load(const Token * token){
                 foregrounds.push_back(foreground);
             } else if (*tok == "collision-map"){
                 collisionMap = Util::ReferenceCount<Collisions::Map>(new Collisions::Map(tok));
+            } else if (*tok == "script"){
+                std::string module, function;
+                tok->view() >> module >> function;
+                scriptEngine->loadScript(module, function);
+            } else if (*tok == "object-script"){
+                scriptEngine->importObject(tok);
             } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
                 if (Global::getDebug() >= 3){
