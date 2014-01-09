@@ -5,7 +5,7 @@
 
 #include "util/pointer.h"
 #include "platformer/resources/object.h"
-#include "platformer/resources/animation.h"
+#include "platformer/resources/value.h"
 #include "python.h"
 
 #include <string>
@@ -42,6 +42,10 @@ public:
     
     const std::string getCurrentAnimation() const;
     
+    void setValue(const std::string &, const Value &) const;
+    
+    const Value getValue(const std::string &) const;
+    
     inline bool getAnimationVerticalFlip() const {
         return this->animationVerticalFlip;
     }
@@ -69,6 +73,10 @@ private:
     
     // Scripts
     Script::RunMap scripts;
+    
+    // Values
+    typedef std::map<std::string, Value> ValueMap;
+    mutable ValueMap values;
 };
 
 }

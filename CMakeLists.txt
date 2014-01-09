@@ -22,11 +22,12 @@ resources/background.cpp
 resources/camera.cpp
 resources/collisions.cpp
 resources/object.cpp
-resources/tile.cpp)
+resources/tile.cpp
+resources/value.cpp)
 
 add_subdirectory(script)
 
 # -------------------------------------------------------
 # module
 # -------------------------------------------------------
-add_library (platformer_module ${ARGUMENT_SRC} ${GAME_SRC} ${OBJECT_SRC})
+add_library (platformer_module ${ARGUMENT_SRC} ${GAME_SRC} ${RESOURCES_SRC})

@@ -1,6 +1,7 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 #include "object.h"
+#include "platformer/resources/animation.h"
 #include "platformer/resources/camera.h"
 #include "platformer/resources/collisions.h"
 
@@ -284,6 +285,98 @@ static PyObject * getAnimationVflip(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * setValueAsInt(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    int value;
+    if (PyArg_ParseTuple(args, "Osi", &charPointer,&name, &value)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setValue(name, Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsInt(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &name)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("i", obj->getValue(name).toInt());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsDouble(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    double value;
+    if (PyArg_ParseTuple(args, "Osd", &charPointer,&name, &value)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setValue(name, Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsDouble(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &name)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("d", obj->getValue(name).toDouble());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsString(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    char * value;
+    if (PyArg_ParseTuple(args, "Oss", &charPointer,&name, &value)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setValue(name, Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsString(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &name)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("s", obj->getValue(name).toString().c_str());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsBool(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    int value;
+    if (PyArg_ParseTuple(args, "Osi", &charPointer,&name, &value)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setValue(name, Value((bool)value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsBool(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &name)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        return Py_BuildValue("i", obj->getValue(name).toBool());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef ObjectMethods[] = {
     {"getID", getID, METH_VARARGS, "Get ID."},
     {"getLabel", getLabel, METH_VARARGS, "Get label."},
@@ -310,6 +403,14 @@ static PyMethodDef ObjectMethods[] = {
     {"getAnimationHorizontalFlip", getAnimationHflip, METH_VARARGS, "Get animation horizontal flip."},
     {"setAnimationVerticalFlip", setAnimationVflip, METH_VARARGS, "Set animation horizontal flip."},
     {"getAnimationVerticalFlip", getAnimationVflip, METH_VARARGS, "Get animation horizontal flip."},
+    {"setValueAsInt", setValueAsInt, METH_VARARGS, "Set value as int."},
+    {"getValueAsInt", getValueAsInt, METH_VARARGS, "Get value as int."},
+    {"setValueAsDouble", setValueAsDouble, METH_VARARGS, "Set value as double."},
+    {"getValueAsDouble", getValueAsDouble, METH_VARARGS, "Get value as double."},
+    {"setValueAsString", setValueAsString, METH_VARARGS, "Set value as string."},
+    {"getValueAsString", getValueAsString, METH_VARARGS, "Get value as string."},
+    {"setValueAsBool", setValueAsBool, METH_VARARGS, "Set value as bool."},
+    {"getValueAsBool", getValueAsBool, METH_VARARGS, "Get value as bool."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -513,5 +614,13 @@ const std::string ScriptObject::getCurrentAnimation() const {
         return currentAnimation->second->getId();
     }
     return "";
+}
+
+void ScriptObject::setValue(const std::string & label, const Value & value) const{
+    values[label] = value;
+}
+
+const Value ScriptObject::getValue(const std::string & label) const{
+    return values[label];
 }
 #endif
