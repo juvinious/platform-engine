@@ -15,6 +15,10 @@ namespace Graphics{
 class Bitmap;
 }
 
+namespace Util{
+class Token;
+}
+
 namespace Platformer{
     
 class Camera;
@@ -32,11 +36,18 @@ public:
     
     void add(const std::string &, const Script::Runnable &);
     
+    void addAnimation(const Token *);
+    
+    void setCurrentAnimation(const std::string &);
     
     static PyMethodDef * Methods;
 private:
-
-    std::map<std::string, Util::ReferenceCount<Animation> > animations;
+    // Animations
+    typedef std::map<std::string, Util::ReferenceCount<Animation> > AnimationMap;
+    AnimationMap::iterator currentAnimation;
+    AnimationMap animations;
+    
+    // Scripts
     Script::RunMap scripts;
 };
 

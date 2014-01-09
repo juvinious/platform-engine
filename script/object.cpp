@@ -7,6 +7,7 @@
 #include "util/graphics/bitmap.h"
 #include "util/file-system.h"
 #include "util/funcs.h"
+#include "util/tokenreader.h"
 
 using namespace Platformer;
 
@@ -208,6 +209,29 @@ static PyObject * addAction(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * addAnimationByToken(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * tok;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &tok)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        TokenReader reader;
+        obj->addAnimation(reader.readTokenFromString(tok));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setAnimation(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    char * animation;
+    if (PyArg_ParseTuple(args, "Os", &charPointer, &animation)){
+        ScriptObject * obj = reinterpret_cast<ScriptObject*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->setCurrentAnimation(animation);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef ObjectMethods[] = {
     {"getID", getID, METH_VARARGS, "Get ID."},
     {"getLabel", getLabel, METH_VARARGS, "Get label."},
@@ -227,29 +251,15 @@ static PyMethodDef ObjectMethods[] = {
     {"setVelocityY", setVelocityY, METH_VARARGS, "Set y velocity."},
     {"addScriptAction", addScriptAction, METH_VARARGS, "Add an action from a script."},
     {"addAction", addAction, METH_VARARGS, "Add an action from a function directly."},
+    {"addAnimationByToken", addAnimationByToken, METH_VARARGS, "Add animation in Token form."},
+    {"setAnimation", setAnimation, METH_VARARGS, "Set current animation."},
     {NULL, NULL, 0, NULL}
 };
 
 PyMethodDef * ScriptObject::Methods = ObjectMethods;
 
-// Decrement after done
-static PyObject * getModule(const std::string & module){
-    PyObject * sysPath = PySys_GetObject((char *)"path");
-    // FIXME Do not use a fixed location but for now make it data/platformer
-    PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("platformer/")).path().c_str());
-    int insertResult = PyList_Insert(sysPath, 0, path);
-    
-    // Import the module
-    PyObject * loadModule = PyImport_ImportModule(module.c_str());
-    if (PyErr_Occurred()){
-        // TODO Throw an exception for now print
-        PyErr_Print();
-    }
-    
-    return loadModule;
-}
-
-ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction){
+ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction):
+currentAnimation(animations.end()){
     // Run init function
     Script::Runnable init(initModule, initFunction);
     PyObject * self = PyCapsule_New((void *) this, "object", NULL);
@@ -349,6 +359,11 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> coll
             Py_XDECREF(result);
         }
     }
+    
+    // Act animation
+    if (currentAnimation != animations.end()){
+        currentAnimation->second->act();
+    }
 }
 
 void ScriptObject::draw(const Platformer::Camera & camera){
@@ -358,11 +373,23 @@ void ScriptObject::draw(const Platformer::Camera & camera){
             y <= (camera.getY() + camera.getHeight())){
                 const double viewx = x - camera.getX();
                 const double viewy = y - camera.getY();
-                camera.getWindow().rectangle(viewx, viewy, viewx+width, viewy+height, Graphics::makeColor(128,128,128));
+                //camera.getWindow().rectangle(viewx, viewy, viewx+width, viewy+height, Graphics::makeColor(128,128,128));
+                if (currentAnimation != animations.end()){
+                    currentAnimation->second->draw(viewx, viewy, camera.getWindow());
+                }
         }
 }
 
 void ScriptObject::add(const std::string & what, const Script::Runnable & runnable){
     scripts.insert(std::pair<std::string, Script::Runnable>(what, runnable));
+}
+
+void ScriptObject::addAnimation(const Token * token){
+    Util::ReferenceCount<Animation> animation = Util::ReferenceCount<Animation>(new Animation(token));
+    animations.insert(std::pair<std::string, Util::ReferenceCount<Animation> >(animation->getId(), animation));
+}
+
+void ScriptObject::setCurrentAnimation(const std::string & id){
+    currentAnimation = animations.find(id);
 }
 #endif
