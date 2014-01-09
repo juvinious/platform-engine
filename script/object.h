@@ -31,7 +31,7 @@ public:
     ScriptObject(const std::string &, const std::string &);
     virtual ~ScriptObject();
     
-    void act(const Util::ReferenceCount<Platformer::CollisionMap>, std::vector< Util::ReferenceCount<Object> > &);
+    void act(const Util::ReferenceCount<Platformer::Collisions::Map>, std::vector< Util::ReferenceCount<Object> > &);
     void draw(const Platformer::Camera &);
     
     void add(const std::string &, const Script::Runnable &);

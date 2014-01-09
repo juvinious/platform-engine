@@ -280,71 +280,124 @@ currentAnimation(animations.end()){
 ScriptObject::~ScriptObject(){
 }
 
-void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
+class Collider : public Collisions::Body{
+public:
+    Collider(ScriptObject * owner, Script::AutoRef self, PyObject * other, Script::RunMap::iterator & hit, Script::RunMap::iterator & noHit, const Script::RunMap & scripts):
+    owner(owner),
+    self(self),
+    other(other),
+    hit(hit),
+    noHit(noHit),
+    scripts(scripts){
+        area.x = owner->getX();
+        area.y = owner->getY();
+        area.width = owner->getWidth();
+        area.height = owner->getHeight();
+        velocityX = owner->getVelocityX();
+        velocityY = owner->getVelocityY();
+    }
+    ~Collider(){
+    }
+    ScriptObject * owner;
+    Script::AutoRef self;
+    PyObject * other;
+    Script::RunMap::iterator & hit;
+    Script::RunMap::iterator & noHit;
+    const Script::RunMap & scripts;
+    void response(const Collisions::Info & info) const {
+        if (hit != scripts.end()){
+            const Script::Runnable collision = hit->second;
+            Script::AutoRef function = collision.getFunction();
+            PyObject * result = NULL; 
+            if (other == NULL){
+                result = PyObject_CallFunction(function.getObject(), (char *)"(O{sisisisi}{sdsdsisi})", 
+                                self.getObject(),
+                                "top",info.top,
+                                "bottom",info.bottom,
+                                "left",info.left,
+                                "right",info.right,
+                                "x",info.area.x,
+                                "y",info.area.y,
+                                "width",info.area.width,
+                                "height",info.area.height);
+            } else {
+                result = PyObject_CallFunction(function.getObject(), (char *)"(OO{sisisisi}{sdsdsisi})", 
+                                self.getObject(),
+                                other,
+                                "top",info.top,
+                                "bottom",info.bottom,
+                                "left",info.left,
+                                "right",info.right,
+                                "x",info.area.x,
+                                "y",info.area.y,
+                                "width",info.area.width,
+                                "height",info.area.height);
+            }
+            if (result == NULL){
+                PyErr_Print();
+            }
+            Py_XDECREF(result);
+        }
+    }
+    
+    void noCollision() const {
+        if (noHit != scripts.end()){
+            const Script::Runnable none = noHit->second;
+            Script::AutoRef function = none.getFunction();
+            PyObject * result = NULL;
+            if (other == NULL){
+                result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self.getObject());
+            } else {
+                result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self.getObject(), other);
+            }
+            if (result == NULL){
+                PyErr_Print();
+            }
+            Py_XDECREF(result);
+        }
+    }
+};
+
+void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
     Script::AutoRef self(PyCapsule_New((void *) this, "object", NULL));
     if (self.getObject() == NULL){
         PyErr_Print();
     } else {
         // Act
-        Script::RunMap::iterator act = scripts.find("act-objects");
-        if (act != scripts.end()){
-            const Script::Runnable actFunction = act->second;
-            for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+        Script::RunMap::iterator act = scripts.find("act-object");
+        Script::RunMap::iterator hitObject = scripts.find("object-collision-hit");
+        Script::RunMap::iterator missObject = scripts.find("object-collision-miss");
+        
+        for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+            PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
+            if (object == NULL){
+                PyErr_Print();
+            }
+            // Act on objects
+            if (act != scripts.end()){
+                const Script::Runnable actFunction = act->second;
                 Script::AutoRef function = actFunction.getFunction();
-                PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
-                if (object == NULL){
-                    PyErr_Print();
-                }
+                
                 // run act-objects
                 PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self.getObject(), object);
                 if (result == NULL){
                     PyErr_Print();
                 }
-                Py_DECREF(object);
                 Py_XDECREF(result);
             }
+            
+            // Do collision checks
+            Collider collider(this, self, object, hitObject, missObject, scripts);
+            if (!collider.collides(Collisions::Area((*i)->getX(), (*i)->getY(), (*i)->getWidth(), (*i)->getHeight()))){
+                collider.noCollision();
+            }
+            
+            Py_DECREF(object);
         }
         
-        class Collider : public CollisionBody{
-        public:
-            Collider(ScriptObject & object, Script::AutoRef self):
-            object(object),
-            self(self){
-                area.x = object.getX();
-                area.y = object.getY();
-                area.width = object.getWidth();
-                area.height = object.getHeight();
-                velocityX = object.getVelocityX();
-                velocityY = object.getVelocityY();
-            }
-            ~Collider(){
-            }
-            ScriptObject & object;
-            Script::AutoRef self;
-            void response(const CollisionInfo & info) const {
-                Script::RunMap::iterator hit = object.scripts.find("collision-map");
-                if (hit != object.scripts.end()){
-                    const Script::Runnable collision = hit->second;
-                    Script::AutoRef function = collision.getFunction();
-                    PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O{sisisisi}{sdsdsisi})", 
-                                        self.getObject(),
-                                        "top",info.top,
-                                        "bottom",info.bottom,
-                                        "left",info.left,
-                                        "right",info.right,
-                                        "x",info.area.x,
-                                        "y",info.area.y,
-                                        "width",info.area.width,
-                                        "height",info.area.height);
-                    if (result == NULL){
-                        PyErr_Print();
-                    }
-                    Py_XDECREF(result);
-                }
-            }
-        };
-        
-        Collider collider(*this, self);
+        Script::RunMap::iterator collisionMapHit = scripts.find("collision-map-hit");
+        Script::RunMap::iterator collisionMapMiss = scripts.find("collision-map-miss");
+        Collider collider(this, self, NULL, collisionMapHit, collisionMapMiss, scripts);
         collisionMap->collides(collider);
         
         act = scripts.find("act");
@@ -373,7 +426,6 @@ void ScriptObject::draw(const Platformer::Camera & camera){
             y <= (camera.getY() + camera.getHeight())){
                 const double viewx = x - camera.getX();
                 const double viewy = y - camera.getY();
-                //camera.getWindow().rectangle(viewx, viewy, viewx+width, viewy+height, Graphics::makeColor(128,128,128));
                 if (currentAnimation != animations.end()){
                     currentAnimation->second->draw(viewx, viewy, camera.getWindow());
                 }

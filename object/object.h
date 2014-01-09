@@ -12,14 +12,17 @@ class Token;
 
 namespace Platformer{
 
-class CollisionMap;
 class Camera;
+
+namespace Collisions{
+class Map;
+}
       
 class Object{
 public:
     Object();
     virtual ~Object();
-    virtual void act(const Util::ReferenceCount<CollisionMap>, std::vector< Util::ReferenceCount<Object> > &);
+    virtual void act(const Util::ReferenceCount<Collisions::Map>, std::vector< Util::ReferenceCount<Object> > &);
     virtual void draw(const Camera &);
     
     void set(double x, double y);

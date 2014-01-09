@@ -13,6 +13,8 @@ namespace Platformer{
 class Camera;
 class Object;
 
+namespace Collisions {
+
 class Area{
 public:
     Area();
@@ -36,7 +38,7 @@ public:
     }
 };
 
-struct CollisionInfo{
+struct Info{
     bool top;
     bool bottom;
     bool right;
@@ -44,14 +46,16 @@ struct CollisionInfo{
     Area area;
 };
 
-class CollisionBody{
+class Body{
 public:
-    CollisionBody();
-    virtual ~CollisionBody();
+    Body();
+    virtual ~Body();
     
-    virtual void response(const CollisionInfo &) const = 0;
+    virtual void response(const Collisions::Info &) const = 0;
     
-    virtual void noCollision() const {};
+    virtual void noCollision() const;
+    
+    bool collides(const Area &) const;
     
     inline const Area & getArea() const {
         return this->area;
@@ -71,12 +75,12 @@ protected:
     double velocityY;
 };
 
-class CollisionMap{
+class Map{
 public:
-    CollisionMap(const Token *);
-    virtual ~CollisionMap();
+    Map(const Token *);
+    virtual ~Map();
     
-    void collides(const CollisionBody &) const;
+    void collides(const Collisions::Body &) const;
     
     void act();
     
@@ -86,5 +90,6 @@ protected:
     std::vector<Area> regions;
 };
 
+} // Collisions
 }
 #endif

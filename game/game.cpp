@@ -296,7 +296,7 @@ public:
     }
     virtual ~TestObject(){}
 
-    void rectDraw(const Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
+    void rectDraw(const Collisions::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
         const double viewx = area.x - portx;
         const double viewy = area.y - porty;
         
@@ -304,9 +304,9 @@ public:
                                                  (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
     }
     
-    void act(const Util::ReferenceCount<CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > &){
+    void act(const Util::ReferenceCount<Collisions::Map> collisionMap, std::vector< Util::ReferenceCount<Object> > &){
         
-        class Collider : public CollisionBody{
+        class Collider : public Collisions::Body{
         public:
             Collider(TestObject & object):
             object(object){
@@ -320,7 +320,7 @@ public:
             ~Collider(){}
             TestObject & object;
             
-            void response(const CollisionInfo & info) const {
+            void response(const Collisions::Info & info) const {
                 bool collided = false;
                 if (info.top){
                     object.setVelocityY(0);
@@ -358,7 +358,7 @@ public:
             x <= (camera.getX() + camera.getWidth()) &&
             y >= (camera.getY() - height) &&
             y <= (camera.getY() + camera.getHeight())){
-                Area area(x, y, width, height);
+                Collisions::Area area(x, y, width, height);
                 rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
         }
     }

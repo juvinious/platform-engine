@@ -103,7 +103,7 @@ void World::load(const Token * token){
                 Util::ReferenceCount<Background> foreground(new Background(tok, animations));
                 foregrounds.push_back(foreground);
             } else if (*tok == "collision-map"){
-                collisionMap = Util::ReferenceCount<CollisionMap>(new CollisionMap(tok));
+                collisionMap = Util::ReferenceCount<Collisions::Map>(new Collisions::Map(tok));
             } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
                 if (Global::getDebug() >= 3){

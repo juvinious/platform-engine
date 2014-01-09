@@ -20,9 +20,12 @@ namespace Platformer{
 class Animation;
 class Background;
 class Camera;
-class CollisionMap;
 class Scriptable;
 class Object;
+
+namespace Collisions{
+class Map;
+}
     
 class World{
 public:
@@ -84,7 +87,7 @@ protected:
     std::vector< Util::ReferenceCount<Background> > foregrounds;
     
     //! Collision map
-    Util::ReferenceCount<CollisionMap> collisionMap;
+    Util::ReferenceCount<Collisions::Map> collisionMap;
     
     //! Objects
     std::vector< Util::ReferenceCount<Object> > objects;

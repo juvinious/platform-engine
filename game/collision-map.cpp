@@ -11,6 +11,7 @@
 #include <math.h>
 
 namespace Platformer{
+namespace Collisions{
     
 static bool within(const Area & area1, const Area & area2){
     return !((area1.x > area2.getX2()) ||
@@ -71,15 +72,49 @@ const Area & Area::operator=(const Area & copy) {
     return *this;
 }
 
-CollisionBody::CollisionBody():
+Body::Body():
 velocityX(0),
 velocityY(0){
 }
 
-CollisionBody::~CollisionBody(){
+Body::~Body(){
 }
 
-CollisionMap::CollisionMap(const Token * token){
+void Body::noCollision() const {
+}
+
+bool Body::collides(const Area & check) const {
+    Area nextMovement = area;
+    // Scan ahead
+    nextMovement.x += velocityX;
+    nextMovement.y += velocityY;
+    if (within(nextMovement, check)){
+        Collisions::Info info;
+        info.top = info.bottom = info.left = info.right = false;
+        // FIXME need to figure out where the collision occurs
+        if (nextMovement.getX2() >= check.x && area.getX2() <= check.x){
+            // Collision is happening at the top
+            info.left = true;
+        }
+        if (nextMovement.getY2() >= check.y && area.getY2() <= check.y){
+            // Collision is happening at the left
+            info.top = true;
+        }
+        if (nextMovement.x <= check.getX2() && area.x >= check.getX2()){
+            // Collision is happening at the bottom
+            info.right = true;
+        }
+        if (nextMovement.y <= check.getY2() && area.y >= check.getY2()){
+            // Collision is happening at the right
+            info.bottom = true;
+        }
+        response(info);
+        return true;
+    }
+    return false;
+}
+
+Map::Map(const Token * token){
     if (*token != "collision-map"){
         throw LoadException(__FILE__, __LINE__, "Not a collision map.");
     }
@@ -101,38 +136,14 @@ CollisionMap::CollisionMap(const Token * token){
     }
 }
 
-CollisionMap::~CollisionMap(){
+Map::~Map(){
 }
 
-void CollisionMap::collides(const CollisionBody & body) const{
-    Area nextMovement = body.getArea();
-    // Scan ahead
-    nextMovement.x += body.getVelocityX();
-    nextMovement.y += body.getVelocityY();
+void Map::collides(const Collisions::Body & body) const{
     bool collides = false;
     for (std::vector<Area>::const_iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
-        if (within(nextMovement, area)){
-            CollisionInfo info;
-            info.top = info.bottom = info.left = info.right = false;
-            // FIXME need to figure out where the collision occurs
-            if (nextMovement.getX2() >= area.x && body.getArea().getX2() <= area.x){
-                // Collision is happening at the top
-                info.left = true;
-            }
-            if (nextMovement.getY2() >= area.y && body.getArea().getY2() <= area.y){
-                // Collision is happening at the left
-                info.top = true;
-            }
-            if (nextMovement.x <= area.getX2() && body.getArea().x >= area.getX2()){
-                // Collision is happening at the bottom
-                info.right = true;
-            }
-            if (nextMovement.y <= area.getY2() && body.getArea().y >= area.getY2()){
-                // Collision is happening at the right
-                info.bottom = true;
-            }
-            body.response(info);
+        if (body.collides(area)){
             collides = true;
         }
     }
@@ -141,7 +152,7 @@ void CollisionMap::collides(const CollisionBody & body) const{
     }
 }
 
-void CollisionMap::act(){
+void Map::act(){
     // Check if they collide with bodies
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
@@ -149,7 +160,7 @@ void CollisionMap::act(){
     }
 }
 
-void CollisionMap::render(const Camera & camera){
+void Map::render(const Camera & camera){
     Area cameraWindow(camera.getX(), camera.getY(), camera.getWidth(), camera.getHeight());
     for (std::vector<Area>::iterator i = regions.begin(); i != regions.end(); i++){
         const Area & area = *i;
@@ -166,4 +177,5 @@ void CollisionMap::render(const Camera & camera){
     }
 }
 
+}
 }
