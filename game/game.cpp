@@ -253,7 +253,7 @@ public:
         }
         
         if (keystate.key2){
-            world->invokeScript("script", "createRandomTest");
+            world->invokeScript("script", "createObject");
             keystate.key2 = false;
         }
         

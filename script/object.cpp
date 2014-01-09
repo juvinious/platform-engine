@@ -125,6 +125,20 @@ static PyObject * setHeight(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * getArea(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    if (PyArg_ParseTuple(args, "O", &charPointer)){
+        Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));    
+        return Py_BuildValue("{sdsdsisi}", 
+                                "x", obj->getX(), 
+                                "y", obj->getY(),
+                                "width", obj->getWidth(),
+                                "height", obj->getHeight());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * getVelocityX(PyObject *, PyObject * args){
     PyObject * charPointer;
     if (PyArg_ParseTuple(args, "O", &charPointer)){
@@ -206,6 +220,7 @@ static PyMethodDef ObjectMethods[] = {
     {"setWidth", setWidth, METH_VARARGS, "Set width."},
     {"getHeight", getHeight, METH_VARARGS, "Get height."},
     {"setHeight", setHeight, METH_VARARGS, "Set height."},
+    {"getArea", getArea, METH_VARARGS, "Get Area {x:#,y:#,width:#,height:#}."},
     {"getVelocityX", getVelocityX, METH_VARARGS, "Get x velocity."},
     {"setVelocityX", setVelocityX, METH_VARARGS, "Set x velocity."},
     {"getVelocityY", getVelocityY, METH_VARARGS, "Get y velocity."},
@@ -256,79 +271,83 @@ ScriptObject::~ScriptObject(){
 }
 
 void ScriptObject::act(const Util::ReferenceCount<Platformer::CollisionMap> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
-    // Act
-    Script::RunMap::iterator act = scripts.find("act-objects");
-    if (act != scripts.end()){
-        const Script::Runnable actFunction = act->second;
-        PyObject * self = PyCapsule_New((void *) this, "object", NULL);
-        if (self == NULL){
-            PyErr_Print();
-        } else { 
+    Script::AutoRef self(PyCapsule_New((void *) this, "object", NULL));
+    if (self.getObject() == NULL){
+        PyErr_Print();
+    } else {
+        // Act
+        Script::RunMap::iterator act = scripts.find("act-objects");
+        if (act != scripts.end()){
+            const Script::Runnable actFunction = act->second;
             for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
-                Py_INCREF(self);
                 Script::AutoRef function = actFunction.getFunction();
                 PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
                 if (object == NULL){
                     PyErr_Print();
                 }
                 // run act-objects
-                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self, object);
+                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(OO)", self.getObject(), object);
                 if (result == NULL){
                     PyErr_Print();
                 }
-                Py_DECREF(self);
                 Py_DECREF(object);
                 Py_XDECREF(result);
             }
         }
-        Py_XDECREF(self);
-    }
-    
-    class Collider : public CollisionBody{
-    public:
-        Collider(ScriptObject & object):
-        object(object){
-            area.x = object.getX();
-            area.y = object.getY();
-            area.width = object.getWidth();
-            area.height = object.getHeight();
-            velocityX = object.getVelocityX();
-            velocityY = object.getVelocityY();
-        }
-        ~Collider(){}
-        ScriptObject & object;
         
-        void response(const CollisionInfo & info) const {
-            if (info.top){
-                object.setVelocityY(0);
+        class Collider : public CollisionBody{
+        public:
+            Collider(ScriptObject & object, Script::AutoRef self):
+            object(object),
+            self(self){
+                area.x = object.getX();
+                area.y = object.getY();
+                area.width = object.getWidth();
+                area.height = object.getHeight();
+                velocityX = object.getVelocityX();
+                velocityY = object.getVelocityY();
             }
-            if (info.bottom){
-                object.setVelocityY(0);
+            ~Collider(){
             }
-            if (info.left){
-                object.setVelocityX(0);
+            ScriptObject & object;
+            Script::AutoRef self;
+            void response(const CollisionInfo & info) const {
+                Script::RunMap::iterator hit = object.scripts.find("collision-map");
+                if (hit != object.scripts.end()){
+                    const Script::Runnable collision = hit->second;
+                    Script::AutoRef function = collision.getFunction();
+                    PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O{sisisisi}{sdsdsisi})", 
+                                        self.getObject(),
+                                        "top",info.top,
+                                        "bottom",info.bottom,
+                                        "left",info.left,
+                                        "right",info.right,
+                                        "x",info.area.x,
+                                        "y",info.area.y,
+                                        "width",info.area.width,
+                                        "height",info.area.height);
+                    if (result == NULL){
+                        PyErr_Print();
+                    }
+                    Py_XDECREF(result);
+                }
             }
-            if (info.right){
-                object.setVelocityX(0);
+        };
+        
+        Collider collider(*this, self);
+        collisionMap->collides(collider);
+        
+        act = scripts.find("act");
+        if (act != scripts.end()){
+            const Script::Runnable actFunction = act->second;
+            // run act
+            Script::AutoRef function = actFunction.getFunction();
+            PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self.getObject());
+            if (result == NULL){
+                PyErr_Print();
             }
+            Py_XDECREF(result);
         }
-    };
-    
-    Collider collider(*this);
-    collisionMap->collides(collider);
-    
-    act = scripts.find("act");
-    if (act != scripts.end()){
-        const Script::Runnable actFunction = act->second;
-        PyObject * self = PyCapsule_New((void *) this, "object", NULL);
-        // run act
-        Script::AutoRef function = actFunction.getFunction();
-        PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"(O)", self);
-        if (result == NULL){
-            PyErr_Print();
-        }
-        Py_DECREF(self);
-        Py_XDECREF(result);
     }
 }
 
