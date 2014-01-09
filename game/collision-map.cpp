@@ -128,7 +128,7 @@ void CollisionMap::collides(const CollisionBody & body) const{
                 // Collision is happening at the bottom
                 info.right = true;
             }
-            if (nextMovement.getY2() >= area.y && body.getArea().y >= area.getY2()){
+            if (nextMovement.y <= area.getY2() && body.getArea().y >= area.getY2()){
                 // Collision is happening at the right
                 info.bottom = true;
             }
