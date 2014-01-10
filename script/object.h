@@ -43,9 +43,9 @@ public:
     
     const std::string getCurrentAnimation() const;
     
-    void setValue(const std::string &, const Value &) const;
+    void setValue(const std::string &, const Value &);
     
-    const Value getValue(const std::string &) const;
+    const Value getValue(const std::string &);
     
     inline bool getAnimationVerticalFlip() const {
         return this->animationVerticalFlip;
@@ -77,7 +77,7 @@ private:
     
     // Values
     typedef std::map<std::string, Value> ValueMap;
-    mutable ValueMap values;
+    ValueMap values;
 };
 
 }

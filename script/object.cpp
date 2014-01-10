@@ -635,11 +635,11 @@ const std::string ScriptObject::getCurrentAnimation() const {
     return "";
 }
 
-void ScriptObject::setValue(const std::string & label, const Value & value) const{
+void ScriptObject::setValue(const std::string & label, const Value & value){
     values[label] = value;
 }
 
-const Value ScriptObject::getValue(const std::string & label) const{
+const Value ScriptObject::getValue(const std::string & label){
     return values[label];
 }
 #endif

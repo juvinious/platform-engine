@@ -291,7 +291,9 @@ public:
     TestObject():
     hasCollided(false){
         x = 25;
-        y = 200;
+        y = 150;
+        width = 16;
+        height = 16;
         label = "player";
     }
     virtual ~TestObject(){}
