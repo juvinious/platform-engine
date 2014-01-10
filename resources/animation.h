@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "util/pointer.h"
 
 /*! Platformers temporary animation class (replace with some other workaround tied into the system later) */
 
@@ -13,12 +14,27 @@ class Bitmap;
 class Token;
 
 namespace Platformer{
+
+class ImageManager{
+public:
+    ImageManager();
+    ~ImageManager();
     
-typedef std::map< int, Graphics::Bitmap *> imageMap;
+    void add(int id, const std::string &);
+    
+    Util::ReferenceCount<Graphics::Bitmap> get(int id) const;
+    
+private:
+    typedef std::map<std::string, Util::ReferenceCount<Graphics::Bitmap> > ImageStore;
+    static ImageStore storage;
+    
+    typedef std::map<int, Util::ReferenceCount<Graphics::Bitmap> > ImageMap;
+    ImageMap images;
+};
 
 class Frame{
     public:
-	Frame(const Token *token, imageMap &);
+	Frame(const Token *token, const ImageManager &);
 	Frame(Graphics::Bitmap *);
 	virtual ~Frame();
 	virtual void draw(int x, int y, const Graphics::Bitmap &, bool hflipOverride, bool vflipOverride);
@@ -49,7 +65,7 @@ class Frame{
 	}
     private:
 	/*! Bitmap of this frame */
-        Graphics::Bitmap * bmp;
+    Util::ReferenceCount<Graphics::Bitmap> bmp;
 	/*! Duration to show this frame (a duration of -1 is forever) */
 	int time;
 	/*! Flip the bitmap horizontally */
@@ -94,9 +110,9 @@ class Animation{
 	/*! Loop point */
 	unsigned int loop;
 	/*! All frames */
-	std::vector<Frame *> frames;
-	/*! Image map */
-	imageMap images;
+	std::vector<Util::ReferenceCount<Frame> > frames;
+	/*! Image manager */
+    ImageManager images;
 };
 }
 #endif

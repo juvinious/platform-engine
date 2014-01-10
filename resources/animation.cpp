@@ -12,7 +12,34 @@
 using namespace std;
 using namespace Platformer;
 
-Frame::Frame(const Token *the_token, imageMap &images):
+ImageManager::ImageStore ImageManager::storage;
+
+ImageManager::ImageManager(){
+    images.insert(std::pair<int, Util::ReferenceCount<Graphics::Bitmap> >(-1, Util::ReferenceCount<Graphics::Bitmap>(NULL)));
+}
+
+ImageManager::~ImageManager(){
+}
+
+void ImageManager::add(int id, const std::string & location){
+    ImageStore::iterator check = storage.find(location);
+    if (check == storage.end()){
+        Global::debug(1, "Platformer") << "Loading image [" << location << "] and placing in storage." << endl;
+        Util::ReferenceCount<Graphics::Bitmap> bmp = Util::ReferenceCount<Graphics::Bitmap>(new Graphics::Bitmap(Storage::instance().find(Filesystem::RelativePath(location)).path()));
+        if (bmp->getError()){
+            throw LoadException(__FILE__, __LINE__, "Could not load image [" + location + "]");
+        } else {
+            check = storage.insert(std::pair<std::string, Util::ReferenceCount<Graphics::Bitmap> >(location, bmp)).first;
+        }
+    }
+    images.insert(std::pair<int, Util::ReferenceCount<Graphics::Bitmap> >(id, check->second));
+}
+
+Util::ReferenceCount<Graphics::Bitmap> ImageManager::get(int id) const {
+    return images.find(id)->second;
+}
+
+Frame::Frame(const Token *the_token, const ImageManager & images):
 bmp(0),
 time(0),
 horizontalFlip(false),
@@ -43,7 +70,7 @@ alpha(255){
                 int num;
                 token->view() >> num;
                 // now assign the bitmap
-                bmp = images[num];
+                bmp = images.get(num);
             } else if (*token == "alpha"){
                 // get alpha
                 token->view() >> alpha;
@@ -107,23 +134,23 @@ static void renderSprite(int x, int y, const Graphics::Bitmap & sprite, int alph
 }
 
 void Frame::draw(int x, int y, const Graphics::Bitmap & work, bool hflipOverride, bool vflipOverride){
-    if (!bmp){
+    if (bmp == NULL){
         return;
     }
-    renderSprite(x, y, *bmp, alpha, (hflipOverride ? !horizontalFlip : horizontalFlip), (vflipOverride ? !verticalFlip : verticalFlip), work);
+    renderSprite(x, y, *bmp.raw(), alpha, (hflipOverride ? !horizontalFlip : horizontalFlip), (vflipOverride ? !verticalFlip : verticalFlip), work);
 }
 
 static int findPosition(int end, int offset){
     while (true){
-	offset-=end;
-	if (offset < end){
-	    return offset;
-	}
+        offset-=end;
+        if (offset < end){
+            return offset;
+        }
     }
 }
 
 void Frame::drawRepeatable(int x, int y, const Graphics::Bitmap & work){
-    if (!bmp){
+    if (bmp == NULL){
         return;
     }
     
@@ -156,7 +183,6 @@ Animation::Animation(const Token *the_token):
 ticks(0),
 currentFrame(0),
 loop(0){
-    images[-1] = 0;
     std::string basedir = "";
     if ( *the_token != "animation" ){
         throw LoadException(__FILE__, __LINE__, "Not an animation");
@@ -188,27 +214,21 @@ loop(0){
                 int number;
                 std::string temp;
                 token->view() >> number >> temp;
-		Global::debug(1, "Platformer") << "Loading image for animation number: " << id << ". Image: " << temp << endl;
-                Graphics::Bitmap *bmp = new Graphics::Bitmap(Storage::instance().find(Filesystem::RelativePath(basedir + temp)).path());
-                if (bmp->getError()){
-                    delete bmp;
-                } else {
-                    images[number] = bmp;
-                }
+                images.add(number, basedir + temp);
             } else if (*token == "frame"){
                 // new frame
-                Frame *frame = new Frame(token, images);
+                Util::ReferenceCount<Frame> frame = Util::ReferenceCount<Frame>(new Frame(token, images));
                 frames.push_back(frame);
             } else if (*token == "loop"){
                 // start loop here
                 int l;
                 token->view() >> l;
-		if (l >= (int)frames.size()){
-		    ostringstream out;
-		    out << "Loop location is larger than the number of frames. Loop: " << loop << " Frames: " << frames.size();
-		    throw LoadException(__FILE__, __LINE__, out.str());
-		}
-		loop = l;
+                if (l >= (int)frames.size()){
+                    ostringstream out;
+                    out << "Loop location is larger than the number of frames. Loop: " << loop << " Frames: " << frames.size();
+                    throw LoadException(__FILE__, __LINE__, out.str());
+                }
+                loop = l;
             } else {
                 Global::debug( 3 ) << "Unhandled Animation attribute: "<<endl;
                 if (Global::getDebug() >= 3){
@@ -222,23 +242,13 @@ loop(0){
         }
     }
     if (id.empty()){
-	throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a name.");
+        throw LoadException(__FILE__, __LINE__, "The animation has no identification, give it a name.");
     }
 }
 
 Animation::~Animation(){
-    for (std::vector<Frame *>::iterator i = frames.begin(); i != frames.end(); ++i){
-        if (*i){
-            delete *i;
-        }
-    }
-
-    for (imageMap::iterator i = images.begin(); i != images.end(); ++i){
-        if (i->second){
-            delete i->second;
-        }
-    }
 }
+
 void Animation::act(){
     if( frames[currentFrame]->getTime() != -1 ){
 	    ticks++;
