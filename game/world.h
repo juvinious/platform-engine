@@ -20,6 +20,7 @@ namespace Platformer{
 class Animation;
 class Background;
 class Camera;
+class Control;
 class Scriptable;
 class Object;
 
@@ -41,6 +42,10 @@ public:
     virtual Util::ReferenceCount<Camera> getCamera(int id);
     
     virtual void addObject(Util::ReferenceCount<Object>);
+    
+    virtual void addControl(Util::ReferenceCount<Control>);
+    
+    virtual Util::ReferenceCount<Control> getControl(int id);
     
     void invokeScript(const std::string &, const std::string &);
     
@@ -76,6 +81,9 @@ protected:
     
     //! Cameras
     std::map< int, Util::ReferenceCount<Camera> > cameras;
+    
+    //! Controls
+    std::map<int, Util::ReferenceCount<Control> > controls;
     
     //! Animation map
     std::map< std::string, Util::ReferenceCount<Animation> > animations;

@@ -4,6 +4,7 @@
 #include "platformer/resources/background.h"
 #include "platformer/resources/camera.h"
 #include "platformer/resources/collisions.h"
+#include "platformer/resources/control.h"
 #include "platformer/script/script.h"
 
 #include "util/debug.h"
@@ -107,7 +108,7 @@ void World::load(const Token * token){
             } else if (*tok == "script"){
                 std::string module, function;
                 tok->view() >> module >> function;
-                scriptEngine->loadScript(module, function);
+                scriptEngine->runScript(module, function);
             } else if (*tok == "object-script"){
                 scriptEngine->importObject(tok);
             } else {
@@ -183,6 +184,13 @@ void World::act(){
         foreground->act();
     }
     
+    // Controls
+    for (std::map< int, Util::ReferenceCount<Control> >::iterator i = controls.begin(); i != controls.end(); i++){
+        Util::ReferenceCount<Control> control = i->second;
+        
+        control->act();
+    }
+    
     scriptEngine->act();
 }
 
@@ -191,7 +199,7 @@ void World::draw(const Graphics::Bitmap & bmp){
     for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
         Util::ReferenceCount<Camera> camera = c->second;
                 
-        // Fill to black for now
+        // Fill to color
         camera->getWindow().fill(fillColor);
         
         // Backgrounds
@@ -254,6 +262,19 @@ void World::addObject(Util::ReferenceCount<Object> object){
     objects.push_back(object);
 }
 
+void World::addControl(Util::ReferenceCount<Control> control){
+    controls.insert(std::pair<int, Util::ReferenceCount<Control> >(control->getID(), control));
+}
+
+Util::ReferenceCount<Control> World::getControl(int id){
+    std::map<int, Util::ReferenceCount<Control> >::iterator found = controls.find(id);
+    if (found != controls.end()){
+        return found->second;
+    }
+    
+    return Util::ReferenceCount<Control>(NULL);
+}
+
 void World::invokeScript(const std::string & module, const std::string & func){
-    scriptEngine->loadScript(module, func);
+    scriptEngine->runScript(module, func);
 }

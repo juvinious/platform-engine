@@ -30,7 +30,7 @@ public:
     virtual void render(const Camera &) = 0;
     
     /*! Load a user script and execute the function */
-    virtual void loadScript(const std::string &, const std::string &) = 0;
+    virtual void runScript(const std::string &, const std::string &) = 0;
     
     /*! Load script from token */
     virtual void importObject(const Token *) = 0;

@@ -115,6 +115,14 @@ public:
     inline double getVelocityY() const {
         return this->velocityY;
     }
+    
+    inline void addVelocityX(double velocity) {
+        this->velocityX += velocity;
+    }
+    
+    inline void addVelocityY(double velocity) {
+        this->velocityY += velocity;
+    }
 private: 
     /*! ID */
     const int id;

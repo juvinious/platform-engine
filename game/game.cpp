@@ -271,17 +271,20 @@ public:
         world->draw(work);
         ostringstream info;
         
+        const Font & font = Font::getDefaultFont(10,10);
+        const Graphics::Color color = Graphics::makeColor(0,0,255);
+        
         info << "FPS: " << getFps();
-        Font::getDefaultFont().printf( 10, 10, Graphics::makeColor(255,255,255), work, info.str(), 0);
+        font.printf( 10, 10, color, work, info.str(), 0);
         info.str(std::string());
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
-        Font::getDefaultFont().printf( 10, 25, Graphics::makeColor(255,255,255), work, info.str(), 0);
+        font.printf( 10, 25, color, work, info.str(), 0);
         info.str(std::string());
         info << "Object Info - X: " << object->getX() << " Y: " << object->getY();
-        Font::getDefaultFont().printf( 10, 40, Graphics::makeColor(255,255,255), work, info.str(), 0);
+        font.printf( 10, 40, color, work, info.str(), 0);
         info.str(std::string());
         info << "Object Velocity X: " << object->getVelocityX() << " Velocity Y: " << object->getVelocityY();
-        Font::getDefaultFont().printf( 10, 55, Graphics::makeColor(255,255,255), work, info.str(), 0);
+        font.printf( 10, 55, color, work, info.str(), 0);
         work.finish();
     }
 };

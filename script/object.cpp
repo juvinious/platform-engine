@@ -162,6 +162,17 @@ static PyObject * setVelocityX(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * addVelocityX(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    double velocity = 0;
+    if (PyArg_ParseTuple(args, "Od", &charPointer, &velocity)){
+        Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->addVelocityX(velocity);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * getVelocityY(PyObject *, PyObject * args){
     PyObject * charPointer;
     if (PyArg_ParseTuple(args, "O", &charPointer)){
@@ -178,6 +189,17 @@ static PyObject * setVelocityY(PyObject *, PyObject * args){
     if (PyArg_ParseTuple(args, "Od", &charPointer, &velocity)){
         Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
         obj->setVelocityY(velocity);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * addVelocityY(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    double velocity = 0;
+    if (PyArg_ParseTuple(args, "Od", &charPointer, &velocity)){
+        Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->addVelocityY(velocity);
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -392,8 +414,10 @@ static PyMethodDef ObjectMethods[] = {
     {"getArea", getArea, METH_VARARGS, "Get Area {x:#,y:#,width:#,height:#}."},
     {"getVelocityX", getVelocityX, METH_VARARGS, "Get x velocity."},
     {"setVelocityX", setVelocityX, METH_VARARGS, "Set x velocity."},
+    {"addVelocityX", addVelocityX, METH_VARARGS, "Add x velocity."},
     {"getVelocityY", getVelocityY, METH_VARARGS, "Get y velocity."},
     {"setVelocityY", setVelocityY, METH_VARARGS, "Set y velocity."},
+    {"addVelocityY", addVelocityY, METH_VARARGS, "Add y velocity."},
     {"addScriptAction", addScriptAction, METH_VARARGS, "Add an action from a script."},
     {"addAction", addAction, METH_VARARGS, "Add an action from a function directly."},
     {"addAnimationByToken", addAnimationByToken, METH_VARARGS, "Add animation in Token form."},

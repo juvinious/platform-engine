@@ -17,6 +17,7 @@ endif(PYTHON_EMBEDABLE)
 
 # Source
 set(SCRIPT_SRC
+script/control.cpp
 script/script.cpp
 script/object.cpp
 script/python.cpp)
