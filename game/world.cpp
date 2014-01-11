@@ -107,8 +107,25 @@ void World::load(const Token * token){
                 collisionMap = Util::ReferenceCount<Collisions::Map>(new Collisions::Map(tok));
             } else if (*tok == "script"){
                 std::string module, function;
-                tok->view() >> module >> function;
-                scriptEngine->runScript(module, function);
+                TokenView scriptView = tok->view();
+                while (scriptView.hasMore()){
+                    const Token * scriptTok;
+                    scriptView >> scriptTok;
+                    if (*scriptTok == "id"){
+                        // get the name?
+                    } else if (*scriptTok == "module"){
+                        // Get the module
+                        scriptTok->view() >> module;
+                    } else if (*scriptTok == "function"){
+                        // Get the function
+                        scriptTok->view() >> function;
+                    } else {
+                        Global::debug( 3 ) << "Unhandled script attribute: "<<endl;
+                    }
+                }
+                if (!module.empty() && !function.empty()){
+                    scriptEngine->runScript(module, function);
+                }
             } else if (*tok == "object-script"){
                 scriptEngine->importObject(tok);
             } else {
