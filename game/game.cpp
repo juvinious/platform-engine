@@ -10,10 +10,8 @@
 #include "util/events.h"
 #include "util/font.h"
 #include "util/init.h"
-#include "util/input/input-map.h"
-#include "util/input/input-manager.h"
-#include "util/input/input-source.h"
 #include "util/file-system.h"
+#include "util/exceptions/exception.h"
 #include "util/exceptions/load_exception.h"
 #include "util/token.h"
 #include "util/tokenreader.h"
@@ -79,48 +77,11 @@ Game::~Game(){
 class DrawLogic: public Util::Logic, public Util::Draw {
 public:
     
-    //! keys
-    enum Keys{
-        Up,
-        Down,
-        Left,
-        Right,
-        Esc,
-        Key1,
-        Key2,
-    };
-    
-    struct KeyState{
-    KeyState():
-        esc(false),
-        up(false),
-        down(false),
-        left(false),
-        right(false),
-        key1(false),
-        key2(false){}
-        bool esc,up,down,left,right,key1,key2;
-    };
-    
-    DrawLogic(Util::ReferenceCount<Object> & object, Util::ReferenceCount<Platformer::World> & world):
+    DrawLogic(Util::ReferenceCount<Platformer::World> & world):
     isDone(false),
-    source(true),
-    object(object),
     world(world){
-        // set input
-        input.set(Keyboard::Key_ESC, Esc);
-        input.set(Keyboard::Key_UP, Up);
-        input.set(Keyboard::Key_DOWN, Down);
-        input.set(Keyboard::Key_LEFT, Left);
-        input.set(Keyboard::Key_RIGHT, Right);
-        input.set(Keyboard::Key_1, Key1);
-        input.set(Keyboard::Key_2, Key2);
     }
     bool isDone;
-    InputMap<Keys> input;
-    InputSource source;
-    KeyState keystate;
-    Util::ReferenceCount<Object> & object;
     Util::ReferenceCount<Platformer::World> & world;
     
     bool done(){
@@ -128,136 +89,11 @@ public:
     }
 
     void run(){
-        // Keys
-        class Handler: public InputHandler<Keys> {
-        public:
-            Handler(KeyState & keystate):
-            keystate(keystate){
-            }
-
-            KeyState & keystate;
-
-            void release(const Keys & input, Keyboard::unicode_t unicode){
-                switch (input){
-                    case Esc:
-                        keystate.esc = false;
-                        break;
-                    case Up: {
-                        keystate.up = false;
-                        break;
-                    }
-                    case Down: {
-                        keystate.down = false;
-                        break;
-                    }
-                    case Left: {
-                        keystate.left = false;
-                        break;
-                    }
-                    case Right: {
-                        keystate.right = false;
-                        break;
-                    }
-                    case Key1: {
-                        keystate.key1 = true;
-                        break;
-                    }
-                    case Key2: {
-                        keystate.key2 = true;
-                        break;
-                    }
-                }
-            }
-
-            void press(const Keys & input, Keyboard::unicode_t unicode){
-                switch (input){
-                    case Esc:
-                        keystate.esc = true;
-                        break;
-                    case Up: {
-                        keystate.up = true;
-                        break;
-                    }
-                    case Down: {
-                        keystate.down = true;
-                        break;
-                    }
-                    case Left: {
-                        keystate.left = true;
-                        break;
-                    }
-                    case Right: {
-                        keystate.right = true;
-                        break;
-                    }
-                    case Key1: {
-                        keystate.key1 = false;
-                        break;
-                    }
-                    case Key2: {
-                        keystate.key2 = false;
-                        break;
-                    }
-                }
-            }
-        };
-
-        Handler handler(keystate);
-        InputManager::handleEvents(input, source, handler);
-        
-        isDone = keystate.esc;
-        
-        if (keystate.up){
-            if (world->getCamera(0)->isFollowing()){
-                if (object->getVelocityY() > -3){
-                    object->addVelocity(0,-.2);
-                }
-            } else {
-                world->getCamera(0)->move(0, -5);
-            }
+        try {
+            world->act();
+        } catch (const Exception::Quit & ex){
+            isDone = true;
         }
-        if (keystate.down){
-            if (world->getCamera(0)->isFollowing()){
-                if (object->getVelocityY() < 3){
-                    object->addVelocity(0,.2);
-                }
-            } else {
-                world->getCamera(0)->move(0, 5);
-            }
-        }
-        if (keystate.left){
-            if (world->getCamera(0)->isFollowing()){
-                if (object->getVelocityX() > -3){
-                    object->addVelocity(-.2,0);
-                }
-            } else {
-                world->getCamera(0)->move(-5, 0);
-            }
-        }
-        if (keystate.right){
-            if (world->getCamera(0)->isFollowing()){
-                if (object->getVelocityX() < 3){
-                    object->addVelocity(.2,0);
-                }
-            } else {
-                world->getCamera(0)->move(5, 0);
-            }
-        }
-        if (keystate.key1){
-            if (world->getCamera(0)->isFollowing()){
-                world->getCamera(0)->stopFollowing();
-            } else {
-                world->getCamera(0)->followObject(object);
-            }
-            keystate.key1 = false;
-        }
-        
-        if (keystate.key2){
-            world->invokeScript("script", "createObject");
-            keystate.key2 = false;
-        }
-        
-        world->act();
     }
 
     double ticks(double system){
@@ -280,98 +116,13 @@ public:
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
         font.printf( 10, 25, color, work, info.str(), 0);
         info.str(std::string());
-        info << "Object Info - X: " << object->getX() << " Y: " << object->getY();
+        /*info << "Object Info - X: " << object->getX() << " Y: " << object->getY();
         font.printf( 10, 40, color, work, info.str(), 0);
         info.str(std::string());
         info << "Object Velocity X: " << object->getVelocityX() << " Velocity Y: " << object->getVelocityY();
-        font.printf( 10, 55, color, work, info.str(), 0);
+        font.printf( 10, 55, color, work, info.str(), 0);*/
         work.finish();
     }
-};
-
-class TestObject : public Object{
-public:
-    TestObject():
-    hasCollided(false){
-        x = 25;
-        y = 150;
-        width = 16;
-        height = 16;
-        label = "player";
-    }
-    virtual ~TestObject(){}
-
-    void rectDraw(const Collisions::Area & area, double portx, double porty, const Graphics::Bitmap & bmp, bool collision){
-        const double viewx = area.x - portx;
-        const double viewy = area.y - porty;
-        
-        bmp.rectangle(viewx, viewy, viewx+area.width, viewy+area.height, 
-                                                 (collision ? Graphics::makeColor(255, 0, 0) : Graphics::makeColor(128,128,128)));
-    }
-    
-    void act(const Util::ReferenceCount<Collisions::Map> collisionMap, std::vector< Util::ReferenceCount<Object> > &){
-        
-        class Collider : public Collisions::Body{
-        public:
-            Collider(TestObject & object):
-            object(object){
-                area.x = object.getX();
-                area.y = object.getY();
-                area.width = object.getWidth();
-                area.height = object.getHeight();
-                velocityX = object.getVelocityX();
-                velocityY = object.getVelocityY();
-            }
-            ~Collider(){}
-            TestObject & object;
-            
-            void response(const Collisions::Info & info) const {
-                bool collided = false;
-                if (info.top){
-                    object.setVelocityY(0);
-                    collided = true;
-                }
-                if (info.bottom){
-                    object.setVelocityY(0);
-                    collided = true;
-                }
-                if (info.left){
-                    object.setVelocityX(0);
-                    collided = true;
-                }
-                if (info.right){
-                    object.setVelocityX(0);
-                    collided = true;
-                }
-                object.setCollided(collided);
-            }
-            
-            void noCollision() const {
-                object.setCollided(false);
-            }
-        };
-        
-        Collider collider(*this);
-        collisionMap->collides(collider);
-        
-        x += velocityX;
-        y += velocityY;
-    }
-
-    void draw(const Camera & camera){
-        if (x >= (camera.getX() - width) && 
-            x <= (camera.getX() + camera.getWidth()) &&
-            y >= (camera.getY() - height) &&
-            y <= (camera.getY() + camera.getHeight())){
-                Collisions::Area area(x, y, width, height);
-                rectDraw(area, camera.getX(), camera.getY(), camera.getWindow(), hasCollided);
-        }
-    }
-    void setCollided(bool collided){
-        this->hasCollided = collided;
-    }
-private:
-    bool hasCollided;
 };
 
 void Game::run(){
@@ -381,12 +132,8 @@ void Game::run(){
         cutscenes["intro"]->playAll();
     }*/
     
-    // Create dummy object
-    Util::ReferenceCount<Object> object = Util::ReferenceCount<Object>(new TestObject());
-    world->getCamera(0)->followObject(object);
-    world->addObject(object);
-    
-    DrawLogic logic(object, world);
+    // Create logic/draw
+    DrawLogic logic(world);
 
     Util::standardLoop(logic, logic);
 }

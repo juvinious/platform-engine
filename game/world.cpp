@@ -10,6 +10,7 @@
 #include "util/debug.h"
 #include "util/file-system.h"
 #include "util/exceptions/load_exception.h"
+#include "util/exceptions/exception.h"
 #include "util/token.h"
 #include "util/tokenreader.h"
 
@@ -24,7 +25,8 @@ dimensionsY(0),
 gravityX(0),
 gravityY(0),
 acceleration(0),
-fillColor(Graphics::makeColor(0,0,0)){
+fillColor(Graphics::makeColor(0,0,0)),
+quitRequest(false){
     if ( *token != "world" ){
         throw LoadException(__FILE__, __LINE__, "Not world.");
     }
@@ -209,6 +211,10 @@ void World::act(){
     }
     
     scriptEngine->act();
+    
+    if (quitRequest){
+        throw Exception::Quit(__FILE__, __LINE__);
+    }
 }
 
 void World::draw(const Graphics::Bitmap & bmp){
@@ -277,6 +283,17 @@ Util::ReferenceCount<Camera> World::getCamera(int id){
 
 void World::addObject(Util::ReferenceCount<Object> object){
     objects.push_back(object);
+}
+
+Util::ReferenceCount<Object> World::getObject(int id){
+    for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+        Util::ReferenceCount<Object> object = *i;
+        if (object->getID() == id){
+            return object;
+        }
+    }
+    
+    return Util::ReferenceCount<Object>(NULL);
 }
 
 void World::addControl(Util::ReferenceCount<Control> control){

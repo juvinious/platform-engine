@@ -11,6 +11,7 @@
 #include "platformer/game/world.h"
 #include "platformer/resources/object.h"
 #include "platformer/resources/collisions.h"
+#include "platformer/resources/value.h"
 
 #include "util/debug.h"
 #include "util/file-system.h"
@@ -111,6 +112,24 @@ static PyObject * createObjectAt(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * getObject(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int id;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &id)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        Util::ReferenceCount<Platformer::Object> object = world->getObject(id);
+        
+        PyObject * returnable = PyCapsule_New((void *) object.raw(), "object", NULL);
+        if (returnable == NULL){
+            PyErr_Print();
+        }
+        return Py_BuildValue("O", returnable);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 static PyObject * createControl(PyObject *, PyObject * args){
     PyObject * worldObject;
@@ -132,17 +151,68 @@ static PyObject * createControl(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * getControl(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int id = 0;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &id)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        Util::ReferenceCount<Platformer::Control> control = world->getControl(id);
+        
+        PyObject * returnable = PyCapsule_New((void *) control.raw(), "control", NULL);
+        if (returnable == NULL){
+            PyErr_Print();
+        }
+        return Py_BuildValue("O", returnable);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * addRuntimeActionFromScript(PyObject *, PyObject * args);
 static PyObject * addRuntimeAction(PyObject *, PyObject * args);
+
+static PyObject * throwQuit(PyObject *, PyObject * args){
+    PyObject * worldObject;
+
+    if (PyArg_ParseTuple(args, "O", &worldObject)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->requestQuit();
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsInt(PyObject *, PyObject * args);
+static PyObject * getValueAsInt(PyObject *, PyObject * args);
+static PyObject * setValueAsDouble(PyObject *, PyObject * args);
+static PyObject * getValueAsDouble(PyObject *, PyObject * args);
+static PyObject * setValueAsString(PyObject *, PyObject * args);
+static PyObject * getValueAsString(PyObject *, PyObject * args);
+static PyObject * setValueAsBool(PyObject *, PyObject * args);
+static PyObject * getValueAsBool(PyObject *, PyObject * args);
 
 static PyMethodDef Methods[] = {
     {"createObjectFromModule",  createObjectFromModule, METH_VARARGS, "Create a new object from given module and function."},
     {"createObjectFromModuleAt",  createObjectFromModuleAt, METH_VARARGS, "Create a new object at x and y coordinates from given module and function."},
     {"createObject",  createObject, METH_VARARGS, "Create a new object from given module and function."},
     {"createObjectAt",  createObjectAt, METH_VARARGS, "Create a new object at x and y coordinates from given module and function."},
+    {"getObject", getObject, METH_VARARGS, "Get an object by id."},
     {"createControl", createControl, METH_VARARGS, "Create a new control."},
+    {"getControl", getControl, METH_VARARGS, "Get control by id."},
     {"addRuntimeActionFromScript", addRuntimeActionFromScript, METH_VARARGS, "Add a runtime action from script that will execute on act or render."},
     {"addRuntimeAction", addRuntimeAction, METH_VARARGS, "Add a runtime action that will execute on act or render."},
+    {"throwQuit", throwQuit, METH_VARARGS, "Throw quit exception to shutdown."},
+    {"setValueAsInt", setValueAsInt, METH_VARARGS, "Set value as int."},
+    {"getValueAsInt", getValueAsInt, METH_VARARGS, "Get value as int."},
+    {"setValueAsDouble", setValueAsDouble, METH_VARARGS, "Set value as double."},
+    {"getValueAsDouble", getValueAsDouble, METH_VARARGS, "Get value as double."},
+    {"setValueAsString", setValueAsString, METH_VARARGS, "Set value as string."},
+    {"getValueAsString", getValueAsString, METH_VARARGS, "Get value as string."},
+    {"setValueAsBool", setValueAsBool, METH_VARARGS, "Set value as bool."},
+    {"getValueAsBool", getValueAsBool, METH_VARARGS, "Get value as bool."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -249,13 +319,28 @@ public:
         }
         world->addObject(object);
     }
+    
+    void setValue(const std::string & label, const Platformer::Value & value){
+        values[label] = value;
+    }
+
+    const Platformer::Value getValue(const std::string & label){
+        return values[label];
+    }
 
     Platformer::World * world;
     
     // Scripts
     Platformer::Script::RunMap scripts;
+    
+    // Objects
+    typedef std::map<std::string, Util::ReferenceCount<Platformer::Object> > ObjectMap;
+    ObjectMap objects;
+    
+    // Values
+    typedef std::map<std::string, Platformer::Value> ValueMap;
+    ValueMap values;
 };
-
 
 static PyObject * addRuntimeActionFromScript(PyObject *, PyObject * args){
     PyObject * enginePointer;
@@ -278,6 +363,98 @@ static PyObject * addRuntimeAction(PyObject *, PyObject * args){
         Platformer::Script::AutoRef function(func);
         Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(enginePointer, "engine"));
         python->addRuntimeAction(action, Platformer::Script::Runnable(function));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsInt(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    int value;
+    if (PyArg_ParseTuple(args, "Osi", &scriptPointer,&name, &value)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        python->setValue(name, Platformer::Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsInt(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &scriptPointer, &name)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        return Py_BuildValue("i", python->getValue(name).toInt());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsDouble(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    double value;
+    if (PyArg_ParseTuple(args, "Osd", &scriptPointer,&name, &value)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        python->setValue(name, Platformer::Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsDouble(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &scriptPointer, &name)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        return Py_BuildValue("d", python->getValue(name).toDouble());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsString(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    char * value;
+    if (PyArg_ParseTuple(args, "Oss", &scriptPointer,&name, &value)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        python->setValue(name, Platformer::Value(value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsString(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &scriptPointer, &name)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        return Py_BuildValue("s", python->getValue(name).toString().c_str());
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * setValueAsBool(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    int value;
+    if (PyArg_ParseTuple(args, "Osi", &scriptPointer,&name, &value)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        python->setValue(name, Platformer::Value((bool)value));
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getValueAsBool(PyObject *, PyObject * args){
+    PyObject * scriptPointer;
+    char * name;
+    if (PyArg_ParseTuple(args, "Os", &scriptPointer, &name)){
+        Python * python = reinterpret_cast<Python*>(PyCapsule_GetPointer(scriptPointer, "engine"));
+        return Py_BuildValue("i", python->getValue(name).toBool());
     }
     Py_INCREF(Py_None);
     return Py_None;

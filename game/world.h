@@ -43,6 +43,8 @@ public:
     
     virtual void addObject(Util::ReferenceCount<Object>);
     
+    virtual Util::ReferenceCount<Object> getObject(int id);
+    
     virtual void addControl(Util::ReferenceCount<Control>);
     
     virtual Util::ReferenceCount<Control> getControl(int id);
@@ -55,6 +57,10 @@ public:
     
     inline virtual int getResolutionY() const {
         return this->resolutionY;
+    }
+    
+    inline void requestQuit() {
+        this->quitRequest = true;
     }
     
 protected:
@@ -102,6 +108,9 @@ protected:
     
     //! Script engine
     Util::ReferenceCount<Scriptable> scriptEngine;
+    
+    //! Throw quit
+    bool quitRequest;
 };
 }
 #endif
