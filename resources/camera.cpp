@@ -112,8 +112,10 @@ void Camera::followObject(Util::ReferenceCount<Object> obj){
 }
 
 void Camera::stopFollowing(){
-    object->detachCamera();
-    object = NULL;
+    if (object != NULL){
+        object->detachCamera();
+        object = NULL;
+    }
     follow = false;
 }
 

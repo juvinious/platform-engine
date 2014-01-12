@@ -170,6 +170,72 @@ static PyObject * getControl(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * createCamera(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int id = 0;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &id)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        /*Util::ReferenceCount<Platformer::Control> control(new Platformer::Script::Control(id));
+        world->addControl(control);
+        
+        PyObject * returnable = PyCapsule_New((void *) control.raw(), "control", NULL);
+        if (returnable == NULL){
+            PyErr_Print();
+        }
+        return Py_BuildValue("O", returnable);*/
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getCamera(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int id = 0;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &id)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        Util::ReferenceCount<Platformer::Camera> camera = world->getCamera(id);
+        
+        PyObject * returnable = PyCapsule_New((void *) camera.raw(), "camera", NULL);
+        if (returnable == NULL){
+            PyErr_Print();
+        }
+        return Py_BuildValue("O", returnable);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * followObject(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+    int objectid = 0;
+
+    if (PyArg_ParseTuple(args, "Oii", &worldObject, &cameraid, &objectid)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->followObject(cameraid, objectid);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * followNextObject(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &cameraid)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->followNextObject(cameraid);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * addRuntimeActionFromScript(PyObject *, PyObject * args);
 static PyObject * addRuntimeAction(PyObject *, PyObject * args);
 
@@ -202,6 +268,10 @@ static PyMethodDef Methods[] = {
     {"getObject", getObject, METH_VARARGS, "Get an object by id."},
     {"createControl", createControl, METH_VARARGS, "Create a new control."},
     {"getControl", getControl, METH_VARARGS, "Get control by id."},
+    {"createCamera", createCamera, METH_VARARGS, "Create a new camera."},
+    {"getCamera", getControl, METH_VARARGS, "Get control by id."},
+    {"followObject", followObject, METH_VARARGS, "Follow object by id."},
+    {"followNextObject", followNextObject, METH_VARARGS, "Follow next object in objects list."},
     {"addRuntimeActionFromScript", addRuntimeActionFromScript, METH_VARARGS, "Add a runtime action from script that will execute on act or render."},
     {"addRuntimeAction", addRuntimeAction, METH_VARARGS, "Add a runtime action that will execute on act or render."},
     {"throwQuit", throwQuit, METH_VARARGS, "Throw quit exception to shutdown."},

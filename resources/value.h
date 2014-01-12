@@ -14,6 +14,7 @@ public:
         Boolean,
     };
     Value();
+    Value(const char *);
     Value(const std::string &);
     Value(int value);
     Value(double value);

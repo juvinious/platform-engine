@@ -8,6 +8,11 @@ Value::Value():
 type(String){
 }
 
+Value::Value(const char * value):
+type(String),
+value(std::string(value)){
+}
+
 Value::Value(const std::string & value):
 type(String),
 value(value){

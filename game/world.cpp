@@ -94,8 +94,9 @@ void World::load(const Token * token){
                 fillColor = Graphics::makeColor(r,g,b);
             } else if (*tok == "camera"){
                 // Handle camera info
-                Camera * camera = new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok);
-                cameras[camera->getId()] = camera;
+                Util::ReferenceCount<Camera> camera = Util::ReferenceCount<Camera>(new Camera(resolutionX, resolutionY, dimensionsX, dimensionsY, tok));
+                CameraInfo info = { -1 , camera };
+                cameras[camera->getId()] = info;
             } else if (*tok == "animation"){
                 Util::ReferenceCount<Animation> animation(new Animation(tok));
                 animations[animation->getId()] = animation;
@@ -148,8 +149,8 @@ World::~World(){
 }
 
 void World::act(){
-    for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
-        Util::ReferenceCount<Camera> camera = c->second;
+    for (std::map< int, CameraInfo >::iterator c = cameras.begin(); c != cameras.end(); ++c){
+        Util::ReferenceCount<Camera> camera = c->second.camera;
         camera->act();
     }
     
@@ -219,8 +220,8 @@ void World::act(){
 
 void World::draw(const Graphics::Bitmap & bmp){
     // Go through all cameras
-    for (std::map< int, Util::ReferenceCount<Camera> >::iterator c = cameras.begin(); c != cameras.end(); ++c){
-        Util::ReferenceCount<Camera> camera = c->second;
+    for (std::map< int, CameraInfo >::iterator c = cameras.begin(); c != cameras.end(); ++c){
+        Util::ReferenceCount<Camera> camera = c->second.camera;
                 
         // Fill to color
         camera->getWindow().fill(fillColor);
@@ -259,23 +260,53 @@ void World::draw(const Graphics::Bitmap & bmp){
 }
 
 void World::setCamera(int id, double x, double y){
-    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    std::map<int, CameraInfo>::iterator found = cameras.find(id);
     if (found != cameras.end()){
-        found->second->set(x,y);
+        found->second.camera->set(x,y);
     }
 }
 
 void World::moveCamera(int id, double x, double y){
-    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    std::map<int, CameraInfo>::iterator found = cameras.find(id);
     if (found != cameras.end()){
-        found->second->move(x,y);
+        found->second.camera->move(x,y);
+    }
+}
+
+void World::followNextObject(int id){
+    std::map<int, CameraInfo>::iterator found = cameras.find(id);
+    if (found != cameras.end()){
+        if (found->second.currentObject >= -1 && found->second.currentObject < (int)objects.size()-1){
+            found->second.currentObject++;
+            found->second.camera->stopFollowing();
+            Util::ReferenceCount<Object> object = objects[(unsigned int)found->second.currentObject];
+            found->second.camera->followObject(object);
+        } else {
+            found->second.currentObject = -1;
+            found->second.camera->stopFollowing();
+        }
+    }
+}
+
+void World::followObject(int cameraId, int objectId){
+    for (unsigned int i = 0; i < objects.size(); i++){
+        Util::ReferenceCount<Object> object = objects[i];
+        if (object->getID() == objectId){
+            std::map<int, CameraInfo>::iterator found = cameras.find(cameraId);
+            if (found != cameras.end()){
+                found->second.camera->stopFollowing();
+                found->second.currentObject = i;
+                found->second.camera->followObject(object);
+            }
+            break;
+        }
     }
 }
 
 Util::ReferenceCount<Camera> World::getCamera(int id){
-    std::map< int, Util::ReferenceCount<Camera> >::iterator found = cameras.find(id);
+    std::map<int, CameraInfo>::iterator found = cameras.find(id);
     if (found != cameras.end()){
-        return found->second;
+        return found->second.camera;
     }
     
     return Util::ReferenceCount<Camera>(NULL);

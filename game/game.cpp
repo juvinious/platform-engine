@@ -116,11 +116,6 @@ public:
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
         font.printf( 10, 25, color, work, info.str(), 0);
         info.str(std::string());
-        /*info << "Object Info - X: " << object->getX() << " Y: " << object->getY();
-        font.printf( 10, 40, color, work, info.str(), 0);
-        info.str(std::string());
-        info << "Object Velocity X: " << object->getVelocityX() << " Velocity Y: " << object->getVelocityY();
-        font.printf( 10, 55, color, work, info.str(), 0);*/
         work.finish();
     }
 };

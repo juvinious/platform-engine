@@ -27,6 +27,11 @@ class Object;
 namespace Collisions{
 class Map;
 }
+
+struct CameraInfo {
+    int currentObject;
+    Util::ReferenceCount<Camera> camera;
+};
     
 class World{
 public:
@@ -37,6 +42,8 @@ public:
     
     virtual void setCamera(int id, double x, double y);
     virtual void moveCamera(int id, double x, double y);
+    virtual void followNextObject(int id);
+    virtual void followObject(int cameraId, int objectId);
     
     //! FIXME HANDLE Cameras correctly later
     virtual Util::ReferenceCount<Camera> getCamera(int id);
@@ -86,7 +93,7 @@ protected:
     // Player info
     
     //! Cameras
-    std::map< int, Util::ReferenceCount<Camera> > cameras;
+    std::map< int, CameraInfo > cameras;
     
     //! Controls
     std::map<int, Util::ReferenceCount<Control> > controls;
