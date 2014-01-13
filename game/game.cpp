@@ -50,7 +50,7 @@ Game::Game(const std::string & filename){
                     //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(Filesystem::AbsolutePath(file)));
                     //cutscenes[cutscene->getName()] = cutscene;
                 } else if (*tok == "font"){
-                    font = Util::ReferenceCount<Platformer::Text::Font>(new Platformer::Text::Font(tok));
+                    Platformer::Font::Map::add(tok);
                 } else {
                     Global::debug(3) << "Unhandled Platformer attribute: " << endl;
                     if (Global::getDebug() >= 3){
@@ -80,14 +80,14 @@ Game::~Game(){
 class DrawLogic: public Util::Logic, public Util::Draw {
 public:
     
-    DrawLogic(Util::ReferenceCount<Platformer::World> world, Util::ReferenceCount<Platformer::Text::Font> font):
+    DrawLogic(Util::ReferenceCount<Platformer::World> world, Util::ReferenceCount<Platformer::Font::Renderer> font):
     isDone(false),
     world(world),
     font(font){
     }
     bool isDone;
     Util::ReferenceCount<Platformer::World> world;
-    Util::ReferenceCount<Platformer::Text::Font> font;
+    Util::ReferenceCount<Platformer::Font::Renderer> font;
     
     bool done(){
         return isDone;
@@ -113,10 +113,10 @@ public:
         ostringstream info;
         
         info << "FPS: " << getFps();
-        font->render(work, 10, 10, 0, 1, info.str());
+        font->render(work, 160, 10, 0, 1, info.str());
         info.str(std::string());
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
-        font->render(work, 10, 25, 0, 1, info.str());
+        font->render(work, 160, 25, 0, 1, info.str());
         info.str(std::string());
         work.finish();
     }
@@ -130,7 +130,7 @@ void Game::run(){
     }*/
     
     // Create logic/draw
-    DrawLogic logic(world, font);
+    DrawLogic logic(world, Platformer::Font::Map::get());
 
     Util::standardLoop(logic, logic);
 }

@@ -26,7 +26,8 @@ gravityX(0),
 gravityY(0),
 acceleration(0),
 fillColor(Graphics::makeColor(0,0,0)),
-quitRequest(false){
+quitRequest(false),
+paused(false){
     if ( *token != "world" ){
         throw LoadException(__FILE__, __LINE__, "Not world.");
     }
@@ -149,69 +150,70 @@ World::~World(){
 }
 
 void World::act(){
-    for (std::map< int, CameraInfo >::iterator c = cameras.begin(); c != cameras.end(); ++c){
-        Util::ReferenceCount<Camera> camera = c->second.camera;
-        camera->act();
-    }
-    
-    for (std::map< std::string, Util::ReferenceCount<Animation> >::iterator i = animations.begin(); i != animations.end(); ++i){
-        Util::ReferenceCount<Animation> animation = i->second;
-        if (animation != NULL){
-            animation->act();
+    if (!paused){
+        for (std::map< int, CameraInfo >::iterator c = cameras.begin(); c != cameras.end(); ++c){
+            Util::ReferenceCount<Camera> camera = c->second.camera;
+            camera->act();
         }
-    }
-    
-    // Backgrounds
-    for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
-        Util::ReferenceCount<Background> background = *i;
-        if (background != NULL){
-            background->act();
-        }
-    }
-    
-    // Objects
-    for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
-        Util::ReferenceCount<Object> object = *i;
         
-        // make gravity affect the object and append acceleration
-        if (gravityX != 0 && object->getVelocityX() == 0){
-            object->setVelocityX(gravityX);
-        } else if (gravityX != 0){
-            if (gravityX > 0){
-                object->addVelocity(acceleration, 0);
-            } else if (gravityX < 0){
-                object->addVelocity(acceleration * -1, 0);
-            }
-        }
-        if (gravityY != 0 && object->getVelocityY() == 0){
-            object->setVelocityY(gravityY);
-        } else if (gravityY != 0){
-            if (gravityY > 0){
-                object->addVelocity(0, acceleration);
-            } else if (gravityY < 0){
-                object->addVelocity(0, acceleration * -1);
+        for (std::map< std::string, Util::ReferenceCount<Animation> >::iterator i = animations.begin(); i != animations.end(); ++i){
+            Util::ReferenceCount<Animation> animation = i->second;
+            if (animation != NULL){
+                animation->act();
             }
         }
         
-        if (collisionMap != NULL){
-            object->act(collisionMap, objects);
+        // Backgrounds
+        for (std::vector< Util::ReferenceCount<Background> >::iterator i = backgrounds.begin(); i != backgrounds.end(); ++i){
+            Util::ReferenceCount<Background> background = *i;
+            if (background != NULL){
+                background->act();
+            }
         }
-    }
-    
-    // foregrounds
-    for (std::vector< Util::ReferenceCount<Background> >::iterator i = foregrounds.begin(); i != foregrounds.end(); ++i){
-        Util::ReferenceCount<Background> foreground = *i;
-        foreground->act();
+        
+        // Objects
+        for (std::deque< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
+            Util::ReferenceCount<Object> object = *i;
+            
+            // make gravity affect the object and append acceleration
+            if (gravityX != 0 && object->getVelocityX() == 0){
+                object->setVelocityX(gravityX);
+            } else if (gravityX != 0){
+                if (gravityX > 0){
+                    object->addVelocity(acceleration, 0);
+                } else if (gravityX < 0){
+                    object->addVelocity(acceleration * -1, 0);
+                }
+            }
+            if (gravityY != 0 && object->getVelocityY() == 0){
+                object->setVelocityY(gravityY);
+            } else if (gravityY != 0){
+                if (gravityY > 0){
+                    object->addVelocity(0, acceleration);
+                } else if (gravityY < 0){
+                    object->addVelocity(0, acceleration * -1);
+                }
+            }
+            
+            if (collisionMap != NULL){
+                object->act(collisionMap, objects);
+            }
+        }
+        
+        // foregrounds
+        for (std::vector< Util::ReferenceCount<Background> >::iterator i = foregrounds.begin(); i != foregrounds.end(); ++i){
+            Util::ReferenceCount<Background> foreground = *i;
+            foreground->act();
+        }
     }
     
     // Controls
     for (std::map< int, Util::ReferenceCount<Control> >::iterator i = controls.begin(); i != controls.end(); i++){
         Util::ReferenceCount<Control> control = i->second;
-        
         control->act();
     }
     
-    scriptEngine->act();
+    scriptEngine->act(paused);
     
     if (quitRequest){
         throw Exception::Quit(__FILE__, __LINE__);
@@ -235,7 +237,7 @@ void World::draw(const Graphics::Bitmap & bmp){
         }
         
         // Render objects to camera
-        for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
+        for (std::deque< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); ++i){
             Util::ReferenceCount<Object> object = *i;
             object->draw(*camera);
         }
@@ -313,11 +315,11 @@ Util::ReferenceCount<Camera> World::getCamera(int id){
 }
 
 void World::addObject(Util::ReferenceCount<Object> object){
-    objects.push_back(object);
+    objects.push_front(object);
 }
 
 Util::ReferenceCount<Object> World::getObject(int id){
-    for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+    for (std::deque< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
         Util::ReferenceCount<Object> object = *i;
         if (object->getID() == id){
             return object;

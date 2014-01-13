@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <deque>
 
 #include "util/pointer.h"
 
@@ -22,7 +23,7 @@ class Object{
 public:
     Object();
     virtual ~Object();
-    virtual void act(const Util::ReferenceCount<Collisions::Map>, std::vector< Util::ReferenceCount<Object> > &);
+    virtual void act(const Util::ReferenceCount<Collisions::Map>, std::deque< Util::ReferenceCount<Object> > &);
     virtual void draw(const Camera &);
     
     void set(double x, double y);

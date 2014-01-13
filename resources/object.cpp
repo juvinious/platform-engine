@@ -28,7 +28,7 @@ Object::~Object(){
     
 }
 
-void Object::act(const Util::ReferenceCount<Collisions::Map>, std::vector< Util::ReferenceCount<Object> > &){
+void Object::act(const Util::ReferenceCount<Collisions::Map>, std::deque< Util::ReferenceCount<Object> > &){
 }
 
 void Object::draw(const Camera &){

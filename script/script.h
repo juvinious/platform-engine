@@ -24,7 +24,7 @@ public:
     virtual ~Scriptable(){}
     
     /*! Run through scripted objects and interact with world */
-    virtual void act() = 0;
+    virtual void act(bool paused) = 0;
     
     /*! Will render the registered animations that scripted objects may use */
     virtual void render(const Camera &) = 0;

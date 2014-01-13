@@ -1,6 +1,7 @@
 #ifndef platformer_world_h
 #define platformer_world_h
 
+#include <deque>
 #include <string>
 #include <vector>
 #include <map>
@@ -70,6 +71,14 @@ public:
         this->quitRequest = true;
     }
     
+    inline void setPaused(bool pause){
+        this->paused = pause;
+    }
+    
+    inline bool getPaused() const {
+        return this->paused;
+    }
+    
 protected:
     virtual void load(const Path::AbsolutePath &);
     virtual void load(const Token *);
@@ -111,13 +120,16 @@ protected:
     Util::ReferenceCount<Collisions::Map> collisionMap;
     
     //! Objects
-    std::vector< Util::ReferenceCount<Object> > objects;
+    std::deque< Util::ReferenceCount<Object> > objects;
     
     //! Script engine
     Util::ReferenceCount<Scriptable> scriptEngine;
     
     //! Throw quit
     bool quitRequest;
+    
+    //! Pause?
+    bool paused;
 };
 }
 #endif

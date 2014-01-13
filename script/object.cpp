@@ -561,7 +561,7 @@ public:
     }
 };
 
-void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> collisionMap, std::vector< Util::ReferenceCount<Object> > & objects){
+void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> collisionMap, std::deque< Util::ReferenceCount<Object> > & objects){
     Script::AutoRef self(PyCapsule_New((void *) this, "object", NULL));
     if (self.getObject() == NULL){
         PyErr_Print();
@@ -571,7 +571,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
         Script::RunMap::iterator hitObject = scripts.find("object-collision-hit");
         Script::RunMap::iterator missObject = scripts.find("object-collision-miss");
         
-        for (std::vector< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
+        for (std::deque< Util::ReferenceCount<Object> >::iterator i = objects.begin(); i != objects.end(); i++){
             PyObject * object = PyCapsule_New((void *) (*i).raw(), "object", NULL);
             if (object == NULL){
                 PyErr_Print();

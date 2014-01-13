@@ -17,9 +17,6 @@ class CutScene;
 
 namespace Platformer{
     
-namespace Text{
-class Font;
-}
 class Object;
 class World;
         
@@ -32,8 +29,6 @@ public:
 protected:
     //std::map < std::string, Util::ReferenceCount<Gui::CutScene> > cutscenes;
     Util::ReferenceCount<Platformer::World> world;
-    
-    Util::ReferenceCount<Platformer::Text::Font> font;
 };
 }
 #endif

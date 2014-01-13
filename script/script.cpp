@@ -11,6 +11,7 @@
 #include "platformer/game/world.h"
 #include "platformer/resources/object.h"
 #include "platformer/resources/collisions.h"
+#include "platformer/resources/font.h"
 #include "platformer/resources/value.h"
 
 #include "util/debug.h"
@@ -251,6 +252,80 @@ static PyObject * throwQuit(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * setPaused(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int pause;
+
+    if (PyArg_ParseTuple(args, "Oi", &worldObject, &pause)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->setPaused((bool)pause);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getPaused(PyObject *, PyObject * args){
+    PyObject * worldObject;
+
+    if (PyArg_ParseTuple(args, "O", &worldObject)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        return Py_BuildValue("i", world->getPaused());
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * loadPlatformerFont(PyObject *, PyObject * args){
+    char * name;
+    char * filename;
+    char * map;
+    int ignoreCase;
+
+    if (PyArg_ParseTuple(args, "sssi", &name, &filename, &map, &ignoreCase)){
+        Platformer::Font::Map::add(name, filename, map, (bool)ignoreCase);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * getPlatformerFont(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    char * name;
+
+    if (PyArg_ParseTuple(args, "Os", &worldObject, &name)){
+        Util::ReferenceCount<Platformer::Font::Renderer> font = Platformer::Font::Map::get(name);
+        PyObject * returnable = PyCapsule_New((void *) font.raw(), "font", NULL);
+        if (returnable == NULL){
+            PyErr_Print();
+        }
+        return Py_BuildValue("O", returnable);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * drawText(PyObject *, PyObject * args){
+    PyObject * bitmap;
+    char * name;
+    int x;
+    int y;
+    int alignment;
+    double scale;
+    char * text;
+
+    if (PyArg_ParseTuple(args, "sOiiids", &name, &bitmap, &x, &y, &alignment, &scale, &text)){
+        const Graphics::Bitmap * work = reinterpret_cast<Graphics::Bitmap *>(PyCapsule_GetPointer(bitmap, "bitmap"));
+        Platformer::Font::Map::get(name)->render(*work, x, y, alignment, scale, text);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * setValueAsInt(PyObject *, PyObject * args);
 static PyObject * getValueAsInt(PyObject *, PyObject * args);
 static PyObject * setValueAsDouble(PyObject *, PyObject * args);
@@ -275,6 +350,8 @@ static PyMethodDef Methods[] = {
     {"addRuntimeActionFromScript", addRuntimeActionFromScript, METH_VARARGS, "Add a runtime action from script that will execute on act or render."},
     {"addRuntimeAction", addRuntimeAction, METH_VARARGS, "Add a runtime action that will execute on act or render."},
     {"throwQuit", throwQuit, METH_VARARGS, "Throw quit exception to shutdown."},
+    {"setPaused", setPaused, METH_VARARGS, "Pause game logic."},
+    {"getPaused", getPaused, METH_VARARGS, "Get paused state."},
     {"setValueAsInt", setValueAsInt, METH_VARARGS, "Set value as int."},
     {"getValueAsInt", getValueAsInt, METH_VARARGS, "Get value as int."},
     {"setValueAsDouble", setValueAsDouble, METH_VARARGS, "Set value as double."},
@@ -283,6 +360,9 @@ static PyMethodDef Methods[] = {
     {"getValueAsString", getValueAsString, METH_VARARGS, "Get value as string."},
     {"setValueAsBool", setValueAsBool, METH_VARARGS, "Set value as bool."},
     {"getValueAsBool", getValueAsBool, METH_VARARGS, "Get value as bool."},
+    {"loadFont", loadPlatformerFont, METH_VARARGS, "Add font in Token form."},
+    {"getFont", getPlatformerFont, METH_VARARGS, "Get font by name."},
+    {"drawText", drawText, METH_VARARGS, "Draw text to the screen."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -301,7 +381,7 @@ public:
         Py_Finalize();
     }
     
-    void act(){
+    void act(bool paused){
         Platformer::Script::AutoRef worldObject(PyCapsule_New((void *) world, "world", NULL));
         Platformer::Script::AutoRef engine(PyCapsule_New((void *) this, "engine", NULL));
         if (worldObject.getObject() == NULL || engine.getObject() == NULL){
@@ -312,7 +392,7 @@ public:
                 const Platformer::Script::Runnable actFunction = act->second;
                 // run act
                 Platformer::Script::AutoRef function = actFunction.getFunction();
-                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"OO", worldObject.getObject(), engine.getObject());
+                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"OOi", worldObject.getObject(), engine.getObject(), paused);
                 if (result == NULL){
                     PyErr_Print();
                 }
@@ -322,6 +402,24 @@ public:
     }
     
     void render(const Platformer::Camera & camera){
+        Platformer::Script::AutoRef worldObject(PyCapsule_New((void *) world, "world", NULL));
+        Platformer::Script::AutoRef engine(PyCapsule_New((void *) this, "engine", NULL));
+        Platformer::Script::AutoRef bitmap(PyCapsule_New((void *) &camera.getWindow(), "bitmap", NULL));
+        if (worldObject.getObject() == NULL || engine.getObject() == NULL || bitmap.getObject() == NULL){
+            PyErr_Print();
+        } else {
+             Platformer::Script::RunMap::iterator render = scripts.find("render");
+            if (render != scripts.end()){
+                const Platformer::Script::Runnable renderFunction = render->second;
+                // run render
+                Platformer::Script::AutoRef function = renderFunction.getFunction();
+                PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"OOO", worldObject.getObject(), engine.getObject(), bitmap.getObject());
+                if (result == NULL){
+                    PyErr_Print();
+                }
+                Py_DECREF(result);
+            }
+        }
     }
     
     void runScript(const std::string & module, const std::string & func){
@@ -544,7 +642,7 @@ Util::ReferenceCount<Platformer::Scriptable> Platformer::Scriptable::getInstance
         virtual ~NoScript(){
         }
         
-        void act(){
+        void act(bool paused){
         }
         
         void runScript(const std::string &, const std::string &){
