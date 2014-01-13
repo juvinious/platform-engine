@@ -4,6 +4,7 @@
 #include "util/gui/cutscene.h"
 #include "world.h"
 #include "platformer/resources/collisions.h"
+#include "platformer/resources/font.h"
 
 #include "util/graphics/bitmap.h"
 #include "util/debug.h"
@@ -48,6 +49,8 @@ Game::Game(const std::string & filename){
                     //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(tok));
                     //Util::ReferenceCount<Gui::CutScene> cutscene(new Gui::CutScene(Filesystem::AbsolutePath(file)));
                     //cutscenes[cutscene->getName()] = cutscene;
+                } else if (*tok == "font"){
+                    font = Util::ReferenceCount<Platformer::Text::Font>(new Platformer::Text::Font(tok));
                 } else {
                     Global::debug(3) << "Unhandled Platformer attribute: " << endl;
                     if (Global::getDebug() >= 3){
@@ -77,12 +80,14 @@ Game::~Game(){
 class DrawLogic: public Util::Logic, public Util::Draw {
 public:
     
-    DrawLogic(Util::ReferenceCount<Platformer::World> & world):
+    DrawLogic(Util::ReferenceCount<Platformer::World> world, Util::ReferenceCount<Platformer::Text::Font> font):
     isDone(false),
-    world(world){
+    world(world),
+    font(font){
     }
     bool isDone;
-    Util::ReferenceCount<Platformer::World> & world;
+    Util::ReferenceCount<Platformer::World> world;
+    Util::ReferenceCount<Platformer::Text::Font> font;
     
     bool done(){
         return isDone;
@@ -107,14 +112,11 @@ public:
         world->draw(work);
         ostringstream info;
         
-        const Font & font = Font::getDefaultFont(10,10);
-        const Graphics::Color color = Graphics::makeColor(0,0,255);
-        
         info << "FPS: " << getFps();
-        font.printf( 10, 10, color, work, info.str(), 0);
+        font->render(work, 10, 10, 0, 1, info.str());
         info.str(std::string());
         info << "Camera Info - X: " << world->getCamera(0)->getX() << " Y: " << world->getCamera(0)->getY();
-        font.printf( 10, 25, color, work, info.str(), 0);
+        font->render(work, 10, 25, 0, 1, info.str());
         info.str(std::string());
         work.finish();
     }
@@ -128,7 +130,7 @@ void Game::run(){
     }*/
     
     // Create logic/draw
-    DrawLogic logic(world);
+    DrawLogic logic(world, font);
 
     Util::standardLoop(logic, logic);
 }

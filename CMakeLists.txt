@@ -21,6 +21,7 @@ resources/animation.cpp
 resources/background.cpp
 resources/camera.cpp
 resources/collisions.cpp
+resources/font.cpp
 resources/object.cpp
 resources/tile.cpp
 resources/value.cpp)
