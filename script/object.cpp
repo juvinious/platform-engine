@@ -610,7 +610,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
                 if (result == NULL){
                     PyErr_Print();
                 }
-                Py_XDECREF(result);
+                Py_DECREF(result);
             }
             
             // Do collision checks
@@ -636,7 +636,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
             if (result == NULL){
                 PyErr_Print();
             }
-            Py_XDECREF(result);
+            Py_DECREF(result);
         }
     }
     
@@ -655,6 +655,25 @@ void ScriptObject::draw(const Platformer::Camera & camera){
                 const double viewy = y - camera.getY();
                 if (currentAnimation != animations.end()){
                     currentAnimation->second->draw(viewx, viewy, camera.getWindow(), animationHorizontalFlip, animationVerticalFlip);
+                }
+                
+                // Draw
+                Script::RunMap::iterator render = scripts.find("render");
+                if (render != scripts.end()){
+                    Script::AutoRef self(PyCapsule_New((void *) this, "object", NULL));
+                    Platformer::Script::AutoRef bitmap(PyCapsule_New((void *) &camera.getWindow(), "bitmap", NULL));
+                    if (self.getObject() == NULL || bitmap.getObject() == NULL){
+                        PyErr_Print();
+                    } else {
+                        const Script::Runnable renderFunction = render->second;
+                        // run render
+                        Script::AutoRef function = renderFunction.getFunction();
+                        PyObject * result = PyObject_CallFunction(function.getObject(), (char *)"OOdd", bitmap.getObject(), self.getObject(), viewx, viewy);
+                        if (result == NULL){
+                            PyErr_Print();
+                        }
+                        Py_DECREF(result);
+                    }
                 }
         }
 }
