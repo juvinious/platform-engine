@@ -548,17 +548,13 @@ public:
                                 "width",info.area.width,
                                 "height",info.area.height);
             } else {
-                result = PyObject_CallFunction(function.getObject(), (char *)"OO{sisisisi}{sdsdsisi}", 
+                result = PyObject_CallFunction(function.getObject(), (char *)"OO{sisisisi}", 
                                 self.getObject(),
                                 other,
                                 "top",info.top,
                                 "bottom",info.bottom,
                                 "left",info.left,
-                                "right",info.right,
-                                "x",info.area.x,
-                                "y",info.area.y,
-                                "width",info.area.width,
-                                "height",info.area.height);
+                                "right",info.right);
             }
             if (result == NULL){
                 PyErr_Print();
