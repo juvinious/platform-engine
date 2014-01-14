@@ -67,12 +67,20 @@ public:
         return this->x;
     }
     
+    inline virtual void addX(double x){
+        this->x += x;
+    }
+    
     inline virtual double getY() const {
         return this->y;
     }
     
     inline virtual void setY(double y){
         this->y = y;
+    }
+    
+    inline virtual void addY(double y){
+        this->y += y;
     }
     
     inline virtual void setWidth(int w){
@@ -91,22 +99,20 @@ public:
         return this->height;
     }
     
-    inline void setVelocity(double x, double y){
-        this->velocityX = x;
-        this->velocityY = y;
+    void setVelocity(double x, double y);
+    
+    void addVelocity(double x, double y);
+    
+    void setVelocityX(double velocity);
+    
+    void setVelocityY(double velocity);
+    
+    inline double getPreviousVelocityX() const {
+        return this->previousVelocityX;
     }
     
-    inline void addVelocity(double x, double y){
-        this->velocityX += x;
-        this->velocityY += y;
-    }
-    
-    inline void setVelocityX(double velocity){
-        this->velocityX = velocity;
-    }
-    
-    inline void setVelocityY(double velocity){
-        this->velocityY = velocity;
+    inline double getPreviousVelocityY() const {
+        return this->previousVelocityY;
     }
     
     inline double getVelocityX() const {
@@ -117,13 +123,10 @@ public:
         return this->velocityY;
     }
     
-    inline void addVelocityX(double velocity) {
-        this->velocityX += velocity;
-    }
+    void addVelocityX(double velocity);
     
-    inline void addVelocityY(double velocity) {
-        this->velocityY += velocity;
-    }
+    void addVelocityY(double velocity);
+    
 private: 
     /*! ID */
     const int id;
@@ -142,6 +145,8 @@ protected:
     double y;
     int width;
     int height;
+    double previousVelocityX;
+    double previousVelocityY;
     double velocityX;
     double velocityY;
 };

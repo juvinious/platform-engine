@@ -64,6 +64,17 @@ static PyObject * setX(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * addX(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    double x = 0;
+    if (PyArg_ParseTuple(args, "Od", &charPointer, &x)){
+        Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->addX(x);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * getY(PyObject *, PyObject * args){
     PyObject * charPointer;
     if (PyArg_ParseTuple(args, "O", &charPointer)){
@@ -80,6 +91,17 @@ static PyObject * setY(PyObject *, PyObject * args){
     if (PyArg_ParseTuple(args, "Od", &charPointer, &y)){
         Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
         obj->setY(y);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * addY(PyObject *, PyObject * args){
+    PyObject * charPointer;
+    double y = 0;
+    if (PyArg_ParseTuple(args, "Od", &charPointer, &y)){
+        Object * obj = reinterpret_cast<Object*>(PyCapsule_GetPointer(charPointer, "object"));
+        obj->addY(y);
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -405,8 +427,10 @@ static PyMethodDef ObjectMethods[] = {
     {"setLabel", setLabel, METH_VARARGS, "Set label."},
     {"getX", getX, METH_VARARGS, "Get x."},
     {"setX", setX, METH_VARARGS, "Set x."},
+    {"addX", addX, METH_VARARGS, "Add x."},
     {"getY", getY, METH_VARARGS, "Get y."},
     {"setY", setY, METH_VARARGS, "Set y."},
+    {"addY", addY, METH_VARARGS, "Add y."},
     {"getWidth", getWidth, METH_VARARGS, "Get width."},
     {"setWidth", setWidth, METH_VARARGS, "Set width."},
     {"getHeight", getHeight, METH_VARARGS, "Get height."},

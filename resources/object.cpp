@@ -19,6 +19,8 @@ x(0),
 y(0),
 width(20),
 height(20),
+previousVelocityX(0),
+previousVelocityY(0),
 velocityX(0),
 velocityY(0){
     
@@ -42,4 +44,38 @@ void Object::set(double x, double y){
 void Object::move(double x, double y){
     this->x+=x;
     this->y+=y;
+}
+    
+void Object::setVelocity(double x, double y){
+    previousVelocityX = velocityX;
+    previousVelocityY = velocityY;
+    velocityX = x;
+    velocityY = y;
+}
+
+void Object::addVelocity(double x, double y){
+    previousVelocityX = velocityX;
+    previousVelocityY = velocityY;
+    velocityX += x;
+    velocityY += y;
+}
+    
+void Object::setVelocityX(double velocity){
+    previousVelocityX = velocityX;
+    velocityX = velocity;
+}
+
+void Object::setVelocityY(double velocity){
+    previousVelocityY = velocityY;
+    velocityY = velocity;
+}
+    
+void Object::addVelocityX(double velocity) {
+    previousVelocityX = velocityX;
+    velocityX += velocity;
+}
+
+void Object::addVelocityY(double velocity) {
+    previousVelocityY = velocityY;
+    velocityY += velocity;
 }

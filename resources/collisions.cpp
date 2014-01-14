@@ -90,6 +90,7 @@ bool Body::collides(const Area & check) const {
     nextMovement.y += velocityY;
     if (within(nextMovement, check)){
         Collisions::Info info;
+        info.area = check;
         info.top = info.bottom = info.left = info.right = false;
         // FIXME need to figure out where the collision occurs
         if (nextMovement.getX2() >= check.x && area.getX2() <= check.x){
