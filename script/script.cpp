@@ -467,6 +467,8 @@ public:
                 } else if (*tok == "position"){
                     tok->view() >> x >> y;
                     hasPosition = true;
+                } else if (*tok == "animation"){
+                    // Nothing look below
                 } else {
                     Global::debug( 3 ) << "Unhandled object script attribute: "<< std::endl;
                     if (Global::getDebug() >= 3){
@@ -480,12 +482,27 @@ public:
             }
         }
         
-        Util::ReferenceCount<Platformer::Object> object(new Platformer::ScriptObject(module, function));
+        Util::ReferenceCount<Platformer::ScriptObject> object(new Platformer::ScriptObject(module, function));
         if (hasPosition){
             object->setX(x);
             object->setY(y);
         }
-        world->addObject(object);
+        // Go through it again getting the animations
+        view = token->view();
+        while (view.hasMore()){
+            try{
+                const Token * tok;
+                view >> tok;
+                if (*tok == "animation"){
+                    object->addAnimation(tok);
+                }
+            } catch ( const TokenException & ex ) {
+                throw LoadException(__FILE__, __LINE__, ex, "Object script parse error");
+            } catch ( const LoadException & ex ) {
+                throw ex;
+            }
+        }
+        world->addObject(object.convert<Platformer::Object>());
     }
     
     void setValue(const std::string & label, const Platformer::Value & value){
