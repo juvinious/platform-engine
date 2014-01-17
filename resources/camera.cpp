@@ -34,7 +34,11 @@ smoothScrollWaitY(5),
 smoothScrollModifier(5),
 follow(false),
 followVariance(1.5),
-object(NULL){
+object(NULL), 
+lockUp(false),
+lockDown(false),
+lockLeft(false),
+lockRight(false){
     TokenView view = token->view();
     while (view.hasMore()){
         try{
@@ -92,8 +96,20 @@ Camera::~Camera(){
 }
 
 void Camera::set(double x, double y){
-    this->x = x;
-    this->y = y;
+    if (!lockLeft && !lockRight){
+        this->x = x;
+    } else if (lockLeft && x > this->x){
+        this->x = x;
+    } else if (lockRight && x < this->x){
+        this->x = x;
+    }
+    if (!lockUp && !lockDown){
+        this->y = y;
+    } else if (lockUp && y > this->y){
+        this->y = y;
+    } else if (lockDown && y < this->y){
+        this->y = y;
+    }
     
     checkBounds();
 }

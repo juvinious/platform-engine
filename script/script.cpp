@@ -237,6 +237,62 @@ static PyObject * followNextObject(PyObject *, PyObject * args){
     return Py_None;
 }
 
+static PyObject * lockCameraDown(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+    int value = 0;
+
+    if (PyArg_ParseTuple(args, "Oii", &worldObject, &cameraid, &value)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->getCamera(cameraid)->setLockDown((bool)value);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * lockCameraLeft(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+    int value = 0;
+
+    if (PyArg_ParseTuple(args, "Oii", &worldObject, &cameraid, &value)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->getCamera(cameraid)->setLockLeft((bool)value);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * lockCameraRight(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+    int value = 0;
+
+    if (PyArg_ParseTuple(args, "Oii", &worldObject, &cameraid, &value)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->getCamera(cameraid)->setLockRight((bool)value);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * lockCameraUp(PyObject *, PyObject * args){
+    PyObject * worldObject;
+    int cameraid = 0;
+    int value = 0;
+
+    if (PyArg_ParseTuple(args, "Oii", &worldObject, &cameraid, &value)){
+        Platformer::World * world = reinterpret_cast<Platformer::World*>(PyCapsule_GetPointer(worldObject, "world"));
+        world->getCamera(cameraid)->setLockUp((bool)value);
+    }
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * addRuntimeActionFromScript(PyObject *, PyObject * args);
 static PyObject * addRuntimeAction(PyObject *, PyObject * args);
 
@@ -344,9 +400,13 @@ static PyMethodDef Methods[] = {
     {"createControl", createControl, METH_VARARGS, "Create a new control."},
     {"getControl", getControl, METH_VARARGS, "Get control by id."},
     {"createCamera", createCamera, METH_VARARGS, "Create a new camera."},
-    {"getCamera", getControl, METH_VARARGS, "Get control by id."},
+    {"getCamera", getControl, METH_VARARGS, "Get camera by id."},
     {"followObject", followObject, METH_VARARGS, "Follow object by id."},
     {"followNextObject", followNextObject, METH_VARARGS, "Follow next object in objects list."},
+    {"lockCameraLeft", lockCameraLeft, METH_VARARGS, "Locks camera from going left."},
+    {"lockCameraRight", lockCameraRight, METH_VARARGS, "Locks camera from going right."},
+    {"lockCameraUp", lockCameraUp, METH_VARARGS, "Locks camera from going up."},
+    {"lockCameraDown", lockCameraDown, METH_VARARGS, "Locks camera from going down."},
     {"addRuntimeActionFromScript", addRuntimeActionFromScript, METH_VARARGS, "Add a runtime action from script that will execute on act or render."},
     {"addRuntimeAction", addRuntimeAction, METH_VARARGS, "Add a runtime action that will execute on act or render."},
     {"throwQuit", throwQuit, METH_VARARGS, "Throw quit exception to shutdown."},

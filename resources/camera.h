@@ -77,6 +77,22 @@ class Camera{
             return *this->window;
         }
         
+        virtual inline void setLockUp(bool lock){
+            this->lockUp = lock;
+        }
+        
+        virtual inline void setLockDown(bool lock){
+            this->lockDown = lock;
+        }
+        
+        virtual inline void setLockLeft(bool lock){
+            this->lockLeft = lock;
+        }
+        
+        virtual inline void setLockRight(bool lock){
+            this->lockRight = lock;
+        }
+        
     protected:
         //! ID
         int id;
@@ -121,6 +137,12 @@ class Camera{
         bool follow;
         double followVariance;
         Util::ReferenceCount<Object> object;
+        
+        // Prevent movement in given direction
+        bool lockUp;
+        bool lockDown;
+        bool lockLeft;
+        bool lockRight;
         
         void checkBounds();
 };
