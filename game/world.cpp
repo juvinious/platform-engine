@@ -109,6 +109,10 @@ void World::load(const Token * token){
                 foregrounds.push_back(foreground);
             } else if (*tok == "collision-map"){
                 collisionMap = Util::ReferenceCount<Collisions::Map>(new Collisions::Map(tok));
+            } else if (*tok == "script-import-path"){
+                std::string path;
+                tok->view() >> path;
+                scriptEngine->addImportPath(path);
             } else if (*tok == "script"){
                 std::string module, function;
                 TokenView scriptView = tok->view();

@@ -37,11 +37,6 @@ PyObject * AutoRef::getObject() const {
 Module::Module(const std::string & name):
 name(name),
 module(NULL){
-    PyObject * sysPath = PySys_GetObject((char *)"path");
-    // FIXME Do not use a fixed location but for now make it data/platformer
-    PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath("platformer/")).path().c_str());
-    int insertResult = PyList_Insert(sysPath, 0, path);
-    
     // Import the module
     PyObject * importedModule = PyImport_ImportModule(name.c_str());
     if (PyErr_Occurred()){
@@ -65,7 +60,7 @@ const Module & Module::operator=(const Module & copy){
     return *this;
 }
 
-void Module::addFunction(const std::string & functionName) const{
+void Module::addFunction(const std::string & functionName){
     // Check if added already
     RefMap::iterator check = functions.find(functionName);
     if (check == functions.end()){
@@ -77,7 +72,7 @@ void Module::addFunction(const std::string & functionName) const{
     }
 }
 
-const AutoRef Module::getFunction(const std::string & functionName) const{
+const AutoRef Module::getFunction(const std::string & functionName){
     RefMap::iterator function = functions.find(functionName);
     if (function != functions.end()){
         return function->second;

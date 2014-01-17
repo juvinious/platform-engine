@@ -33,9 +33,9 @@ public:
     
     const Module & operator=(const Module &);
     
-    void addFunction(const std::string &) const;
+    void addFunction(const std::string &);
     
-    const AutoRef getFunction(const std::string &) const;
+    const AutoRef getFunction(const std::string &);
     
     inline const std::string & getName() const {
         return this->name;
@@ -44,7 +44,7 @@ public:
 private:
     std::string name;
     AutoRef module;
-    mutable RefMap functions;
+    RefMap functions;
 };
 
 typedef std::map<std::string, Module> ModuleMap;

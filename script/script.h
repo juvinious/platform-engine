@@ -29,6 +29,9 @@ public:
     /*! Will render the registered animations that scripted objects may use */
     virtual void render(const Camera &) = 0;
     
+    /*! Add an import path to script engine */
+    virtual void addImportPath(const std::string &) = 0;
+    
     /*! Load a user script and execute the function */
     virtual void runScript(const std::string &, const std::string &) = 0;
     

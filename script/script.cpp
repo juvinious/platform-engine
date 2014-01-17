@@ -482,6 +482,12 @@ public:
         }
     }
     
+    void addImportPath(const std::string & loadpath){
+        PyObject * sysPath = PySys_GetObject((char *)"path");
+        PyObject * path = PyString_FromString(Storage::instance().find(Filesystem::RelativePath(loadpath + "/")).path().c_str());
+        int insertResult = PyList_Insert(sysPath, 0, path);
+    }
+    
     void runScript(const std::string & module, const std::string & func){
         Platformer::Script::Runnable runnable(module, func);
         Platformer::Script::AutoRef worldObject(PyCapsule_New((void *) world, "world", NULL));
@@ -720,6 +726,9 @@ Util::ReferenceCount<Platformer::Scriptable> Platformer::Scriptable::getInstance
         }
         
         void act(bool paused){
+        }
+        
+        void addImportPath(const std::string &){
         }
         
         void runScript(const std::string &, const std::string &){
