@@ -24,6 +24,8 @@ public:
     
     Util::ReferenceCount<Graphics::Bitmap> get(int id) const;
     
+    static void clear();
+    
 private:
     typedef std::map<std::string, Util::ReferenceCount<Graphics::Bitmap> > ImageStore;
     static ImageStore storage;

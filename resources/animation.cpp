@@ -39,6 +39,10 @@ Util::ReferenceCount<Graphics::Bitmap> ImageManager::get(int id) const {
     return images.find(id)->second;
 }
 
+void ImageManager::clear(){
+    storage.clear();
+}
+
 Frame::Frame(const Token *the_token, const ImageManager & images):
 bmp(0),
 time(0),

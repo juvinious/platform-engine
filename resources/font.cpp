@@ -245,3 +245,7 @@ Util::ReferenceCount<Renderer> Map::get(const std::string & name){
     
     return Util::ReferenceCount<Renderer>(NULL);
 }
+
+void Map::clear(){
+    fonts.clear();
+}

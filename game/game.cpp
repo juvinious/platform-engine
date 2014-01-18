@@ -3,6 +3,7 @@
 #include "platformer/resources/camera.h"
 #include "util/gui/cutscene.h"
 #include "world.h"
+#include "platformer/resources/animation.h"
 #include "platformer/resources/collisions.h"
 #include "platformer/resources/font.h"
 
@@ -75,6 +76,10 @@ Game::Game(const std::string & filename){
 }
 
 Game::~Game(){
+    // Clear the fonts
+    Platformer::Font::Map::clear();
+    // Clear the images
+    Platformer::ImageManager::clear();
 }
 
 class DrawLogic: public Util::Logic, public Util::Draw {

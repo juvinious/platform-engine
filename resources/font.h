@@ -60,6 +60,7 @@ public:
     static void add(const Token *);
     static Util::ReferenceCount<Renderer> get();
     static Util::ReferenceCount<Renderer> get(const std::string &);
+    static void clear();
     
 private:
     Map();
