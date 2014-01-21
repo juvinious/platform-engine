@@ -4,6 +4,7 @@
 #ifdef HAVE_PYTHON
 
 #include "util/pointer.h"
+#include "platformer/resources/collisions.h"
 #include "platformer/resources/object.h"
 #include "platformer/resources/value.h"
 #include "python.h"
@@ -46,6 +47,8 @@ public:
     void setValue(const std::string &, const Value &);
     
     const Value getValue(const std::string &);
+    
+    const Platformer::Collisions::Area getCollisionArea() const;
     
     inline bool getAnimationVerticalFlip() const {
         return this->animationVerticalFlip;

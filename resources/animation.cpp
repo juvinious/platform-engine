@@ -87,6 +87,8 @@ alpha(255){
             } else if (*token == "time"){
                 // time to display
                 token->view() >> time;
+            } else if (*token == "area"){
+                area = Platformer::Collisions::Area(token);
             } else {
                 Global::debug( 3 ) << "Unhandled menu attribute: "<<endl;
                 if (Global::getDebug() >= 3){
@@ -287,4 +289,8 @@ void Animation::backFrame(){
 
 const Graphics::Bitmap & Animation::getBitmap() const {
     return frames[currentFrame]->getBitmap();
+}
+
+const Platformer::Collisions::Area & Animation::currentArea() const {
+    return frames[currentFrame]->getArea();
 }

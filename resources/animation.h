@@ -6,11 +6,14 @@
 #include <map>
 #include "util/pointer.h"
 
+#include "collisions.h"
+
 /*! Platformers temporary animation class (replace with some other workaround tied into the system later) */
 
 namespace Graphics{
 class Bitmap;
 }
+
 class Token;
 
 namespace Platformer{
@@ -35,7 +38,7 @@ private:
 };
 
 class Frame{
-    public:
+public:
 	Frame(const Token *token, const ImageManager &);
 	Frame(Graphics::Bitmap *);
 	virtual ~Frame();
@@ -65,7 +68,11 @@ class Frame{
 	virtual inline void setAlpha(int alpha){
 	    this->alpha = alpha;
 	}
-    private:
+    
+    virtual inline const Platformer::Collisions::Area & getArea() const {
+        return this->area;
+    }
+private:
 	/*! Bitmap of this frame */
     Util::ReferenceCount<Graphics::Bitmap> bmp;
 	/*! Duration to show this frame (a duration of -1 is forever) */
@@ -76,10 +83,12 @@ class Frame{
 	bool verticalFlip;
 	/*! Alpha to draw this bitmap at */
 	int alpha;
+    /*! Area */
+    Platformer::Collisions::Area area;
 };
     
 class Animation{
-    public:
+public:
 	Animation(const Token *);
 	virtual ~Animation();
 	
@@ -90,6 +99,8 @@ class Animation{
 	virtual void backFrame();
 	
 	virtual const Graphics::Bitmap & getBitmap() const;
+    
+    virtual const Platformer::Collisions::Area & currentArea() const;
 	
 	virtual inline const std::string & getId() const {
 	    return this->id;
@@ -102,7 +113,7 @@ class Animation{
 	virtual inline void reset(){ 
 	    this->currentFrame = 0;
 	}
-    private:
+private:
 	/*! Identifier for Animation */
 	std::string id;
 	/*! Ticks of current frame (No increment if frame time is -1) */

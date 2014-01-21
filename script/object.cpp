@@ -516,10 +516,7 @@ public:
     hit(hit),
     noHit(noHit),
     scripts(scripts){
-        area.x = owner->getX();
-        area.y = owner->getY();
-        area.width = owner->getWidth();
-        area.height = owner->getHeight();
+        area = owner->getCollisionArea();
         velocityX = owner->getVelocityX();
         velocityY = owner->getVelocityY();
     }
@@ -611,7 +608,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
             
             // Do collision checks
             Collider collider(this, self, object, hitObject, missObject, scripts);
-            if (!collider.collides(Collisions::Area((*i)->getX(), (*i)->getY(), (*i)->getWidth(), (*i)->getHeight()))){
+            if (!collider.collides((*i).convert<ScriptObject>()->getCollisionArea())){
                 collider.noCollision();
             }
             
@@ -704,5 +701,13 @@ void ScriptObject::setValue(const std::string & label, const Value & value){
 
 const Value ScriptObject::getValue(const std::string & label){
     return values[label];
+}
+
+const Platformer::Collisions::Area ScriptObject::getCollisionArea() const {
+    if (currentAnimation != animations.end()){
+        return currentAnimation->second->currentArea();
+    }
+    
+    return Platformer::Collisions::Area(x, y, width, height);
 }
 #endif
