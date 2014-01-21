@@ -19,7 +19,7 @@ class Area{
 public:
     Area();
     Area(double x, double y, int width, int height);
-    Area(const Token *);
+    Area(const Token *, const std::string & name = "area");
     Area(const Area &);
     ~Area();
     double x;

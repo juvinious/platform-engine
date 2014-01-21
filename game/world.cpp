@@ -135,7 +135,29 @@ void World::load(const Token * token){
                     scriptEngine->runScript(module, function);
                 }
             } else if (*tok == "object-script"){
-                scriptEngine->importObject(tok);
+                // No need look below
+                //scriptEngine->importObject(tok);
+            } else if (*tok == "object"){
+                int x=0, y=0;
+                std::string scriptName;
+                tok->match("_/position", x, y);
+                tok->match("_/script", scriptName);
+                Global::debug(2) << "Found object with script name: " << scriptName << std::endl;
+                std::vector<const Token *> tokens = token->findTokens("_/object-script");
+                for (std::vector<const Token *>::iterator i = tokens.begin(); i != tokens.end(); i++){
+                    const Token * scriptToken = *i;
+                    std::string check;
+                    scriptToken->match("_/id", check);
+                    if (scriptName == check){
+                        Util::ReferenceCount<Token> copy = Util::ReferenceCount<Token>(scriptToken->copy());
+                        Token * position = new Token("position", false);
+                        *position << "position" << x << y;
+                        copy->addToken(position);
+                        Global::debug(2) << "Copied token: " << copy->toString() << std::endl;
+                        scriptEngine->importObject(copy.raw());
+                        break;
+                    }
+                }
             } else {
                 Global::debug( 3 ) << "Unhandled World attribute: "<<endl;
                 if (Global::getDebug() >= 3){

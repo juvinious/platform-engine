@@ -464,10 +464,16 @@ static PyMethodDef ObjectMethods[] = {
 
 PyMethodDef * ScriptObject::Methods = ObjectMethods;
 
-ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction):
+ScriptObject::ScriptObject(const std::string & initModule, const std::string & initFunction, const std::vector<const Token *> anims):
 currentAnimation(animations.end()),
 animationHorizontalFlip(false),
 animationVerticalFlip(false){
+    
+    // Add animations
+    for (std::vector<const Token *>::const_iterator i = anims.begin(); i != anims.end(); i++){
+        addAnimation(*i);
+    }
+    
     // Run init function
     Script::Runnable init(initModule, initFunction);
     PyObject * self = PyCapsule_New((void *) this, "object", NULL);
@@ -485,10 +491,15 @@ animationVerticalFlip(false){
     Py_DECREF(result);
 }
 
-ScriptObject::ScriptObject(const Platformer::Script::Runnable & init):
+ScriptObject::ScriptObject(const Platformer::Script::Runnable & init, const std::vector<const Token *> anims):
 currentAnimation(animations.end()),
 animationHorizontalFlip(false),
 animationVerticalFlip(false){
+    // Add animations
+    for (std::vector<const Token *>::const_iterator i = anims.begin(); i != anims.end(); i++){
+        addAnimation(*i);
+    }
+    
     PyObject * self = PyCapsule_New((void *) this, "object", NULL);
     if (self == NULL){
         PyErr_Print();
@@ -705,7 +716,10 @@ const Value ScriptObject::getValue(const std::string & label){
 
 const Platformer::Collisions::Area ScriptObject::getCollisionArea() const {
     if (currentAnimation != animations.end()){
-        return currentAnimation->second->currentArea();
+        Platformer::Collisions::Area area = currentAnimation->second->currentArea();
+        area.x = getX();
+        area.y = getY();
+        return area;
     }
     
     return Platformer::Collisions::Area(x, y, width, height);

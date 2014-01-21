@@ -34,12 +34,12 @@ width(width),
 height(height){
 }
 
-Area::Area(const Token * token):
+Area::Area(const Token * token, const std::string & name):
 x(0),
 y(0),
 width(0),
 height(0){
-    if (*token != "area"){
+    if (*token != name){
         throw LoadException(__FILE__, __LINE__, "Not a collision area.");
     }
     TokenView view = token->view();

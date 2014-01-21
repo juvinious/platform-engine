@@ -29,8 +29,8 @@ class Animation;
 
 class ScriptObject : public Object{
 public:
-    ScriptObject(const std::string &, const std::string &);
-    ScriptObject(const Platformer::Script::Runnable &);
+    ScriptObject(const std::string &, const std::string &, const std::vector<const Token *> anims = std::vector<const Token *>());
+    ScriptObject(const Platformer::Script::Runnable &, const std::vector<const Token *> anims = std::vector<const Token *>());
     virtual ~ScriptObject();
     
     void act(const Util::ReferenceCount<Platformer::Collisions::Map>, std::deque< Util::ReferenceCount<Object> > &);

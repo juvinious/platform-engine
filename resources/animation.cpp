@@ -87,8 +87,8 @@ alpha(255){
             } else if (*token == "time"){
                 // time to display
                 token->view() >> time;
-            } else if (*token == "area"){
-                area = Platformer::Collisions::Area(token);
+            } else if (*token == "collision"){
+                area = Platformer::Collisions::Area(token, "collision");
             } else {
                 Global::debug( 3 ) << "Unhandled menu attribute: "<<endl;
                 if (Global::getDebug() >= 3){
