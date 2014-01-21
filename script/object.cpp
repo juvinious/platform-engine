@@ -717,8 +717,8 @@ const Value ScriptObject::getValue(const std::string & label){
 const Platformer::Collisions::Area ScriptObject::getCollisionArea() const {
     if (currentAnimation != animations.end()){
         Platformer::Collisions::Area area = currentAnimation->second->currentArea();
-        area.x = getX();
-        area.y = getY();
+        area.x = getX() + area.x;
+        area.y = getY() + area.y;
         return area;
     }
     
