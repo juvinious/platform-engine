@@ -554,7 +554,7 @@ public:
             object->setX(x);
             object->setY(y);
         }
-        world->addObject(object.convert<Platformer::Object>());
+        world->addObject(object);
     }
     
     void setValue(const std::string & label, const Platformer::Value & value){

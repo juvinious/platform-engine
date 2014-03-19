@@ -619,7 +619,7 @@ void ScriptObject::act(const Util::ReferenceCount<Platformer::Collisions::Map> c
             
             // Do collision checks
             Collider collider(this, self, object, hitObject, missObject, scripts);
-            if (!collider.collides((*i).convert<ScriptObject>()->getCollisionArea())){
+            if (!collider.collides(((Util::ReferenceCount<ScriptObject>) *i)->getCollisionArea())){
                 collider.noCollision();
             }
             
