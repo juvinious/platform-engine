@@ -1,12 +1,12 @@
 #include "font.h"
 
-#include "util/debug.h"
-#include "util/file-system.h"
-#include "util/funcs.h"
-#include "util/graphics/bitmap.h"
-#include "util/exceptions/load_exception.h"
-#include "util/token.h"
-#include "util/tokenreader.h"
+#include "r-tech1/debug.h"
+#include "r-tech1/file-system.h"
+#include "r-tech1/funcs.h"
+#include "r-tech1/graphics/bitmap.h"
+#include "r-tech1/exceptions/load_exception.h"
+#include "r-tech1/token.h"
+#include "r-tech1/tokenreader.h"
 
 #include <sstream>
 

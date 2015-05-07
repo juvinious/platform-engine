@@ -1,7 +1,7 @@
 #include "argument.h"
 #include "game/game.h"
-#include "util/debug.h"
-#include "util/pointer.h"
+#include "r-tech1/debug.h"
+#include "r-tech1/pointer.h"
 
 class PlatformerArgument: public Argument {
 public:

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "util/pointer.h"
+#include "r-tech1/pointer.h"
 
 #include "collisions.h"
 

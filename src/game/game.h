@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "util/pointer.h"
+#include "r-tech1/pointer.h"
 
 class Token;
 

@@ -7,18 +7,18 @@
 #include "python.h"
 #include "control.h"
 
-#include "platformer/resources/camera.h"
-#include "platformer/game/world.h"
-#include "platformer/resources/object.h"
-#include "platformer/resources/collisions.h"
-#include "platformer/resources/font.h"
-#include "platformer/resources/value.h"
+#include "resources/camera.h"
+#include "game/world.h"
+#include "resources/object.h"
+#include "resources/collisions.h"
+#include "resources/font.h"
+#include "resources/value.h"
 
-#include "util/debug.h"
-#include "util/file-system.h"
-#include "util/funcs.h"
-#include "util/token.h"
-#include "util/exceptions/load_exception.h"
+#include "r-tech1/debug.h"
+#include "r-tech1/file-system.h"
+#include "r-tech1/funcs.h"
+#include "r-tech1/token.h"
+#include "r-tech1/exceptions/load_exception.h"
 
 #ifdef HAVE_PYTHON
 

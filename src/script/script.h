@@ -1,7 +1,7 @@
 #ifndef platformer_script_h
 #define platformer_script_h
 
-#include "util/pointer.h"
+#include "r-tech1/pointer.h"
 
 #include <string>
 

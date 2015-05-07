@@ -1,8 +1,8 @@
 #ifndef platformer_camera_h
 #define platformer_camera_h
 
-#include "platformer/resources/object.h"
-#include "util/pointer.h"
+#include "resources/object.h"
+#include "r-tech1/pointer.h"
 
 #include <string>
 

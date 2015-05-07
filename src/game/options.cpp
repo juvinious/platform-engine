@@ -1,10 +1,10 @@
 #include "options.h"
-#include "util/menu/menu.h"
-#include "util/menu/menu_option.h"
-#include "util/menu/options.h"
-#include "util/menu/menu-exception.h"
-#include "util/exceptions/load_exception.h"
-#include "util/token.h"
+#include "r-tech1/menu/menu.h"
+#include "r-tech1/menu/menu_option.h"
+#include "r-tech1/menu/options.h"
+#include "r-tech1/menu/menu-exception.h"
+#include "r-tech1/exceptions/load_exception.h"
+#include "r-tech1/token.h"
 #include "game.h"
 
 using namespace std;

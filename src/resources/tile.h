@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-#include "util/pointer.h"
+#include "r-tech1/pointer.h"
 
 namespace Graphics{
 class Bitmap;

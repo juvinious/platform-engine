@@ -2,8 +2,8 @@
 
 #include "python.h"
 
-#include "util/file-system.h"
-#include "util/funcs.h"
+#include "r-tech1/file-system.h"
+#include "r-tech1/funcs.h"
 
 using namespace Platformer::Script;
 

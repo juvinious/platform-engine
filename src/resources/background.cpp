@@ -4,10 +4,10 @@
 #include "camera.h"
 #include "tile.h"
 
-#include "util/graphics/bitmap.h"
-#include "util/debug.h"
-#include "util/exceptions/load_exception.h"
-#include "util/token.h"
+#include "r-tech1/graphics/bitmap.h"
+#include "r-tech1/debug.h"
+#include "r-tech1/exceptions/load_exception.h"
+#include "r-tech1/token.h"
 
 using namespace std;
 using namespace Platformer;

@@ -6,8 +6,8 @@
 #include <vector>
 #include <map>
 
-#include "util/pointer.h"
-#include "util/graphics/bitmap.h"
+#include "r-tech1/pointer.h"
+#include "r-tech1/graphics/bitmap.h"
 
 namespace Path{
 class AbsolutePath;

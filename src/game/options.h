@@ -1,7 +1,7 @@
 #ifndef _platformer_game_menu_options_h
 #define _platformer_game_menu_options_h
 
-#include "util/menu/optionfactory.h"
+#include "r-tech1/menu/optionfactory.h"
 
 class MenuOption;
 namespace Menu{

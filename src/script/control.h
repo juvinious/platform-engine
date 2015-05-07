@@ -4,10 +4,10 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 
-#include "platformer/resources/control.h"
-#include "util/input/input-map.h"
-#include "util/input/input-manager.h"
-#include "util/input/input-source.h"
+#include "resources/control.h"
+#include "r-tech1/input/input-map.h"
+#include "r-tech1/input/input-manager.h"
+#include "r-tech1/input/input-source.h"
 
 namespace Platformer{
 namespace Script{

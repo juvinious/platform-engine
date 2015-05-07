@@ -5,8 +5,8 @@
 #include <vector>
 #include <map>
 
-#include "util/token.h"
-#include "util/pointer.h"
+#include "r-tech1/token.h"
+#include "r-tech1/pointer.h"
 
 namespace Platformer{
     

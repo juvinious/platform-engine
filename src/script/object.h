@@ -3,10 +3,10 @@
 
 #ifdef HAVE_PYTHON
 
-#include "util/pointer.h"
-#include "platformer/resources/collisions.h"
-#include "platformer/resources/object.h"
-#include "platformer/resources/value.h"
+#include "r-tech1/pointer.h"
+#include "resources/collisions.h"
+#include "resources/object.h"
+#include "resources/value.h"
 #include "python.h"
 
 #include <string>

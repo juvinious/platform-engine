@@ -1,18 +1,18 @@
 #include "world.h"
 
-#include "platformer/resources/animation.h"
-#include "platformer/resources/background.h"
-#include "platformer/resources/camera.h"
-#include "platformer/resources/collisions.h"
-#include "platformer/resources/control.h"
-#include "platformer/script/script.h"
+#include "resources/animation.h"
+#include "resources/background.h"
+#include "resources/camera.h"
+#include "resources/collisions.h"
+#include "resources/control.h"
+#include "script/script.h"
 
-#include "util/debug.h"
-#include "util/file-system.h"
-#include "util/exceptions/load_exception.h"
-#include "util/exceptions/exception.h"
-#include "util/token.h"
-#include "util/tokenreader.h"
+#include "r-tech1/debug.h"
+#include "r-tech1/file-system.h"
+#include "r-tech1/exceptions/load_exception.h"
+#include "r-tech1/exceptions/exception.h"
+#include "r-tech1/token.h"
+#include "r-tech1/tokenreader.h"
 
 using namespace std;
 using namespace Platformer;

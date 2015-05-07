@@ -5,7 +5,7 @@
 #include <map>
 #include <cstdarg>
 
-#include "util/pointer.h"
+#include "r-tech1/pointer.h"
 
 class Token;
 

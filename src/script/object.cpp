@@ -1,14 +1,14 @@
 #ifdef HAVE_PYTHON
 #include <Python.h>
 #include "object.h"
-#include "platformer/resources/animation.h"
-#include "platformer/resources/camera.h"
-#include "platformer/resources/collisions.h"
+#include "resources/animation.h"
+#include "resources/camera.h"
+#include "resources/collisions.h"
 
-#include "util/graphics/bitmap.h"
-#include "util/file-system.h"
-#include "util/funcs.h"
-#include "util/tokenreader.h"
+#include "r-tech1/graphics/bitmap.h"
+#include "r-tech1/file-system.h"
+#include "r-tech1/funcs.h"
+#include "r-tech1/tokenreader.h"
 
 using namespace Platformer;
 
