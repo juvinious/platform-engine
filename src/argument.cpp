@@ -3,7 +3,7 @@
 #include "r-tech1/debug.h"
 #include "r-tech1/pointer.h"
 
-class PlatformerArgument: public Argument {
+class PlatformerArgument: public Argument::Parameter {
 public:
     std::vector<std::string> keywords() const {
         std::vector<std::string> out;
@@ -16,7 +16,7 @@ public:
         return " <game.txt> : Execute platformer mode with given <game.txt> [EXPERIMENTAL]";
     }
 
-    class Run: public ArgumentAction {
+    class Run: public Argument::Action {
     public:
         Run(const std::string & script):
         script(script){
@@ -28,10 +28,10 @@ public:
         std::string script;
     };
 
-    std::vector<std::string>::iterator parse(std::vector<std::string>::iterator current, std::vector<std::string>::iterator end, ActionRefs & actions){
+    std::vector<std::string>::iterator parse(std::vector<std::string>::iterator current, std::vector<std::string>::iterator end, Argument::ActionRefs & actions){
         current++;
         if (current != end){
-            actions.push_back(::Util::ReferenceCount<ArgumentAction>(new Run(*current)));
+            actions.push_back(::Util::ReferenceCount<Argument::Action>(new Run(*current)));
         } else {
             Global::debug(0) << "Expected an argument. Example: platformer game.txt" << std::endl;
         }
@@ -39,8 +39,8 @@ public:
     }
 };
 
-std::vector< ::Util::ReferenceCount<Argument> > Platformer::arguments(){
-    std::vector< ::Util::ReferenceCount<Argument> > all;
-    all.push_back(::Util::ReferenceCount<Argument>(new PlatformerArgument()));
+std::vector< ::Util::ReferenceCount<Argument::Parameter> > Platformer::arguments(){
+    std::vector< ::Util::ReferenceCount<Argument::Parameter> > all;
+    all.push_back(::Util::ReferenceCount<Argument::Parameter>(new PlatformerArgument()));
     return all;
 }

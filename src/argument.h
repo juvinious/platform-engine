@@ -5,7 +5,7 @@
 #include "r-tech1/pointer.h"
 
 namespace Platformer{
-    std::vector< ::Util::ReferenceCount<Argument> > arguments();
+    std::vector< ::Util::ReferenceCount<Argument::Parameter> > arguments();
 }
 
 #endif
