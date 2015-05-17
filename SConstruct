@@ -12,9 +12,9 @@ VariantDir('build', 'src', duplicate=0)
 
 includedirs = '{0}/src'.format(os.getcwd())
 
-env = Environment(ENV = os.environ, CPPPATH=includedirs, CPPDEFINES = ['USE_ALLEGRO5'])
+env = Environment(ENV = os.environ, CPPPATH=includedirs, CPPDEFINES = ['USE_ALLEGRO5', 'HAVE_PYTHON'])
 
-env.ParseConfig('pkg-config r-tech1 --libs --cflags')
+env.ParseConfig('pkg-config r-tech1 python --libs --cflags')
 
 source = ['src/main.cpp',
         'src/argument.cpp',

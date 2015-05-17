@@ -33,6 +33,25 @@ using namespace std;
 
 static const int DEFAULT_DEBUG = 0;
 
+Filesystem::AbsolutePath Filesystem::configFile(){
+    std::ostringstream str;
+    /* what if HOME isn't set? */
+    str << getenv("HOME") << "/.rtech-platformerrc";
+    return Filesystem::AbsolutePath(str.str());
+}
+
+Filesystem::AbsolutePath Filesystem::userDirectory(){
+    std::ostringstream str;
+    char * home = getenv("HOME");
+    if (home == NULL){
+        str << "/tmp/rtech-platformer";
+    } else {
+        str << home << "/.rtech-platformer/";
+    }
+    return Filesystem::AbsolutePath(str.str());
+}
+
+
 class DefaultGame: public Argument::Action {
 public:
     void act(){
