@@ -1,0 +1,67 @@
+# General configuration of platformer
+game:
+  name: "Platform Engine"
+  version: "0.1.0"
+  
+  # Data
+  data:
+    base-dir: data
+    default-world: platformer/smb/worlds/world-1-1.yaml
+
+  # Global settings
+  settings:
+    gravity: 0.5
+    maxFallSpeed: 10.0
+    tileSize: 16
+    debug: true
+  
+  # Video settings
+  video:
+    resolution:
+      width: 640
+      height: 480
+    fullscreen: false
+    vsync: true
+    scale: 2.0
+
+  # Input settings 
+  # ebiten key names: https://pkg.go.dev/github.com/hajimehoshi/ebiten/v2#Key
+  input:
+    player1:
+      keyboard:
+        left: "ArrowLeft"
+        right: "ArrowRight"
+        up: "ArrowUp"
+        down: "ArrowDown"
+        a: "KeyZ"
+        b: "KeyX"
+        start: "Enter"
+        select: "Tab"
+      joystick:
+        left: "Axis0-"
+        right: "Axis0+"
+        up: "Axis1-"
+        down: "Axis1+"
+        a: "Button0"
+        b: "Button1"
+        start: "Button9"
+        select: "Button8"
+    player2:
+      keyboard:
+        left: "KeyA"
+        right: "KeyD"
+        up: "KeyW"
+        down: "KeyS"
+        a: "KeyF"
+        b: "KeyG"
+        start: "KeyEnter"
+        select: "KeyShiftLeft"
+      joystick:
+        left: "Axis0-"
+        right: "Axis0+"
+        up: "Axis1-"
+        down: "Axis1+"
+        a: "Button0"
+        b: "Button1"
+        start: "Button9"
+        select: "Button8"
