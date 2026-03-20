@@ -82,7 +82,7 @@ func TestLuaSelfTableMethods(t *testing.T) {
 	defer sm.Close()
 
 	base := object.NewBaseObject()
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 
 	methods := []string{
 		"getX", "setX", "addX",
@@ -111,7 +111,7 @@ func TestLuaPositionVelocityAndProperties(t *testing.T) {
 
 	base := object.NewBaseObject()
 	base.SetPosition(100, 200)
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 	sm.L.SetGlobal("obj", selfTable)
 
 	err := sm.L.DoString(`
@@ -163,7 +163,7 @@ func TestLuaContactStateAccessors(t *testing.T) {
 		"right":  false,
 	})
 
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 	sm.L.SetGlobal("obj", selfTable)
 
 	err := sm.L.DoString(`
@@ -182,7 +182,7 @@ func TestGoombaInitAndAct(t *testing.T) {
 	defer sm.Close()
 
 	base := object.NewBaseObject()
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 
 	callScriptFunc(t, sm, scriptTable, selfTable, "init")
 
@@ -207,7 +207,7 @@ func TestGoombaMapCollisionTurnsDirection(t *testing.T) {
 	defer sm.Close()
 
 	base := object.NewBaseObject()
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 	callScriptFunc(t, sm, scriptTable, selfTable, "init")
 
 	callScriptFunc(t, sm, scriptTable, selfTable, "onMapCollision", sideTable(sm.L, map[string]bool{"left": true}))
@@ -224,7 +224,7 @@ func TestBlockBehaviorInitAndHit(t *testing.T) {
 
 	base := object.NewBaseObject()
 	base.SetPosition(0, 100)
-	selfTable := sm.NewSelfTable(base)
+	selfTable := sm.NewSelfTable(base, nil)
 
 	callScriptFunc(t, sm, scriptTable, selfTable, "init")
 
@@ -247,6 +247,33 @@ func TestBlockBehaviorInitAndHit(t *testing.T) {
 	}
 	if state := props.RawGetString("state"); state != lua.LString("hit") {
 		t.Errorf("expected state 'hit' after bottom hit, got %v", state)
+	}
+}
+
+func TestPlayerAnimationIntentCombinesMovementAndAttack(t *testing.T) {
+	sm, scriptTable := loadBehaviorScript(t, "player")
+	defer sm.Close()
+
+	base := object.NewBaseObject()
+	selfTable := sm.NewSelfTable(base, nil)
+
+	callScriptFunc(t, sm, scriptTable, selfTable, "init")
+	base.SetMovementState("jumping")
+	callScriptFunc(t, sm, scriptTable, selfTable, "act")
+
+	props, ok := selfTable.RawGetString("_props").(*lua.LTable)
+	if !ok {
+		t.Fatalf("expected _props table")
+	}
+	if got := props.RawGetString("anim.intent"); got != lua.LString("jumping") {
+		t.Fatalf("expected anim.intent=jumping before attack, got %v", got)
+	}
+
+	props.RawSetString("input.b", lua.LTrue)
+	callScriptFunc(t, sm, scriptTable, selfTable, "act")
+
+	if got := props.RawGetString("anim.intent"); got != lua.LString("jumping_attacking") {
+		t.Fatalf("expected anim.intent=jumping_attacking during attack, got %v", got)
 	}
 }
 
@@ -313,6 +340,77 @@ func getLuaPropsTable(t *testing.T, obj object.Object) *lua.LTable {
 	return props
 }
 
+type scriptedInputFrame struct {
+	move  float64
+	a     bool
+	aHeld bool
+	b     bool
+	bHeld bool
+}
+
+func setScriptedInputFrame(t *testing.T, obj object.Object, frame scriptedInputFrame) {
+	t.Helper()
+
+	ps, ok := obj.(object.LuaPropertySetter)
+	if !ok {
+		t.Fatalf("expected scripted object to implement LuaPropertySetter")
+	}
+
+	ps.SetLuaProperty("input.move", frame.move)
+	ps.SetLuaProperty("input.a", frame.a)
+	ps.SetLuaProperty("input.aHeld", frame.aHeld)
+	ps.SetLuaProperty("input.b", frame.b)
+	ps.SetLuaProperty("input.bHeld", frame.bHeld)
+	ps.SetLuaProperty("input.left", frame.move < 0)
+	ps.SetLuaProperty("input.right", frame.move > 0)
+}
+
+func runScriptedInputFrames(t *testing.T, w *world.World, obj object.Object, frames []scriptedInputFrame) []string {
+	t.Helper()
+
+	states := make([]string, 0, len(frames))
+	for _, frame := range frames {
+		setScriptedInputFrame(t, obj, frame)
+		w.Update()
+		states = append(states, obj.GetMovementState())
+	}
+
+	return states
+}
+
+func createTestPlayerObject(t *testing.T, scriptID string) (*world.World, object.Object) {
+	t.Helper()
+
+	w, def := makeTestWorld(t, true)
+	source := findObjectScriptDef(t, def, scriptID)
+
+	obj, err := w.CreateObjectFromScript(source, 64, 190)
+	if err != nil {
+		t.Fatalf("CreateObjectFromScript failed: %v", err)
+	}
+
+	w.AddObject(obj)
+	return w, obj
+}
+
+func settleScriptedPlayer(t *testing.T, w *world.World, obj object.Object) {
+	t.Helper()
+
+	states := runScriptedInputFrames(t, w, obj, []scriptedInputFrame{{}, {}, {}, {}, {}, {}, {}, {}})
+	if state := obj.GetMovementState(); state != "standing" {
+		t.Fatalf("expected settled player to be standing, got %q (states=%v)", state, states)
+	}
+}
+
+func firstStateIndex(states []string, want string) int {
+	for i, state := range states {
+		if state == want {
+			return i
+		}
+	}
+	return -1
+}
+
 type mechanicsStub struct {
 	gravityX     float64
 	gravityY     float64
@@ -373,11 +471,10 @@ func TestWorldMapCollisionStopsGoombaAtLeftBoundary(t *testing.T) {
 	w, def := makeTestWorld(t, true)
 
 	goombaDef := findObjectScriptDef(t, def, "goomba")
-	obj, err := w.CreateObjectFromScript(goombaDef, 1, 100)
+	obj, err := w.CreateObjectFromScript(goombaDef, 0.2, 100)
 	if err != nil {
 		t.Fatalf("CreateObjectFromScript failed: %v", err)
 	}
-	obj.GetPhysics().VelocityX = -5
 	w.AddObject(obj)
 
 	w.Update()
@@ -480,5 +577,119 @@ func TestDynamicObjectSupportsZeroGravityWorlds(t *testing.T) {
 	}
 	if base.GetPhysics().VelocityY != -1.0 {
 		t.Fatalf("expected velocityY unchanged without gravity, got %.2f", base.GetPhysics().VelocityY)
+	}
+}
+
+func TestWorldFinalizeStatesGroundedStandingVsWalking(t *testing.T) {
+	w, _ := makeTestWorld(t, true)
+
+	standing := object.NewBaseObject()
+	standing.SetPosition(64, 190)
+	standing.SetSize(16, 16)
+	standing.GetCollision().AddBox(0, 0, 16, 16)
+
+	walking := object.NewBaseObject()
+	walking.SetPosition(96, 190)
+	walking.SetSize(16, 16)
+	walking.GetCollision().AddBox(0, 0, 16, 16)
+	walking.GetPhysics().VelocityX = 1.2
+
+	w.AddObject(standing)
+	w.AddObject(walking)
+	w.Update()
+	w.Update()
+
+	if state := standing.GetMovementState(); state != "standing" {
+		t.Fatalf("expected standing object movementState=standing, got %q", state)
+	}
+	if state := walking.GetMovementState(); state != "walking" {
+		t.Fatalf("expected moving grounded object movementState=walking, got %q", state)
+	}
+}
+
+func TestWorldFinalizeStatesAirborneJumpingVsFalling(t *testing.T) {
+	w, _ := makeTestWorld(t, false)
+
+	jumping := object.NewBaseObject()
+	jumping.SetPhysicsType(object.PhysicsTypeKinematic)
+	jumping.SetPosition(64, 100)
+	jumping.SetSize(16, 16)
+	jumping.GetCollision().AddBox(0, 0, 16, 16)
+	jumping.GetPhysics().VelocityY = -1.0
+
+	falling := object.NewBaseObject()
+	falling.SetPhysicsType(object.PhysicsTypeKinematic)
+	falling.SetPosition(96, 100)
+	falling.SetSize(16, 16)
+	falling.GetCollision().AddBox(0, 0, 16, 16)
+	falling.GetPhysics().VelocityY = 1.0
+
+	w.AddObject(jumping)
+	w.AddObject(falling)
+	w.Update()
+
+	if state := jumping.GetMovementState(); state != "jumping" {
+		t.Fatalf("expected upward airborne object movementState=jumping, got %q", state)
+	}
+	if state := falling.GetMovementState(); state != "falling" {
+		t.Fatalf("expected downward airborne object movementState=falling, got %q", state)
+	}
+}
+
+func TestMarioPlayerAutomatedInputsReachWalkingState(t *testing.T) {
+	w, obj := createTestPlayerObject(t, "mario-stub")
+
+	settleScriptedPlayer(t, w, obj)
+
+	states := runScriptedInputFrames(t, w, obj, []scriptedInputFrame{
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+	})
+
+	if state := obj.GetMovementState(); state != "walking" {
+		t.Fatalf("expected player to reach walking after moving right, got %q (states=%v)", state, states)
+	}
+	if obj.GetPhysics().VelocityX <= 0 {
+		t.Fatalf("expected positive horizontal velocity while walking, got %.2f", obj.GetPhysics().VelocityX)
+	}
+}
+
+func TestMarioPlayerAutomatedInputsReachJumpingThenFalling(t *testing.T) {
+	w, obj := createTestPlayerObject(t, "mario-stub")
+
+	settleScriptedPlayer(t, w, obj)
+	runScriptedInputFrames(t, w, obj, []scriptedInputFrame{
+		{move: 1},
+		{move: 1},
+		{move: 1},
+	})
+
+	states := runScriptedInputFrames(t, w, obj, []scriptedInputFrame{
+		{move: 1, a: true, aHeld: true},
+		{move: 1, aHeld: true},
+		{move: 1, aHeld: true},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+		{move: 1, aHeld: false},
+	})
+
+	jumpingIndex := firstStateIndex(states, "jumping")
+	if jumpingIndex == -1 {
+		t.Fatalf("expected automated jump input to reach jumping state, got states=%v", states)
+	}
+
+	fallingIndex := firstStateIndex(states, "falling")
+	if fallingIndex == -1 {
+		t.Fatalf("expected automated jump input to later reach falling state, got states=%v", states)
+	}
+	if fallingIndex <= jumpingIndex {
+		t.Fatalf("expected falling after jumping, got states=%v", states)
 	}
 }

@@ -9,16 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// ObjectType represents the category of an object (informational, not used for physics).
-type ObjectType int
-
-const (
-	TypeCharacter ObjectType = iota
-	TypePlatform
-	TypeEnemy
-	TypeItem
-)
-
 // PhysicsType controls how the physics engine treats an object each frame.
 //
 //	PhysicsTypeDynamic   — gravity + velocity integration (enemies, player). Default.
@@ -68,33 +58,59 @@ type Object interface {
 	IsOnCeiling() bool
 	IsOnWallLeft() bool
 	IsOnWallRight() bool
+
+	// Canonical runtime state machine fields.
+	GetMovementState() string
+	SetMovementState(state string)
+	GetLifeState() string
+	SetLifeState(state string)
+	HasStatusFlag(flag string) bool
+	SetStatusFlag(flag string, enabled bool)
+
+	// Animation identification.
+	GetAnimationID() string
+	SetAnimationID(id string)
 }
 
 // BaseObject is the engine-side representation of a world entity.
 // It owns position, size, physics, collision, animation, and physicsType.
 // ScriptedObject embeds *BaseObject to add Lua scripting on top.
 type BaseObject struct {
-	label       string
-	x, y        float64
-	width       float64
-	height      float64
-	physics     *physics.Physics
-	collision   *collision.Collision
-	object      uint32
-	animation   *animation.SpriteAnimation
-	physicsType string
-	grounded    bool
-	onCeiling   bool
-	onWallLeft  bool
-	onWallRight bool
+	label         string
+	x, y          float64
+	width         float64
+	height        float64
+	baseWidth     float64
+	baseHeight    float64
+	physics       *physics.Physics
+	collision     *collision.Collision
+	object        uint32
+	animation     *animation.SpriteAnimation
+	animationID   string
+	hflip         bool
+	vflip         bool
+	physicsType   string
+	grounded      bool
+	onCeiling     bool
+	onWallLeft    bool
+	onWallRight   bool
+	movementState string
+	lifeState     string
+	statusFlags   map[string]bool
 }
 
 // NewBaseObject creates a BaseObject with dynamic physics and zero position/size.
 func NewBaseObject() *BaseObject {
 	return &BaseObject{
-		physics:     physics.NewPhysics(),
-		collision:   collision.NewCollision(),
-		physicsType: PhysicsTypeDynamic,
+		physics:       physics.NewPhysics(),
+		collision:     collision.NewCollision(),
+		physicsType:   PhysicsTypeDynamic,
+		movementState: "standing",
+		lifeState:     "alive",
+		statusFlags: map[string]bool{
+			"visible":    true,
+			"vulnerable": true,
+		},
 	}
 }
 
@@ -103,6 +119,9 @@ func (o *BaseObject) SetPosition(x, y float64)        { o.x = x; o.y = y }
 
 func (o *BaseObject) GetSize() (float64, float64) { return o.width, o.height }
 func (o *BaseObject) SetSize(w, h float64)        { o.width = w; o.height = h }
+
+func (o *BaseObject) GetBaseDimensions() (float64, float64) { return o.baseWidth, o.baseHeight }
+func (o *BaseObject) SetBaseDimensions(w, h float64)        { o.baseWidth = w; o.baseHeight = h }
 
 func (o *BaseObject) GetPhysics() *physics.Physics       { return o.physics }
 func (o *BaseObject) GetCollision() *collision.Collision { return o.collision }
@@ -144,11 +163,52 @@ func (o *BaseObject) IsOnWallRight() bool {
 	return o.onWallRight
 }
 
+func (o *BaseObject) GetMovementState() string {
+	return o.movementState
+}
+
+func (o *BaseObject) SetMovementState(state string) {
+	o.movementState = state
+}
+
+func (o *BaseObject) GetLifeState() string {
+	return o.lifeState
+}
+
+func (o *BaseObject) SetLifeState(state string) {
+	o.lifeState = state
+}
+
+func (o *BaseObject) HasStatusFlag(flag string) bool {
+	if o.statusFlags == nil {
+		return false
+	}
+	return o.statusFlags[flag]
+}
+
+func (o *BaseObject) SetStatusFlag(flag string, enabled bool) {
+	if o.statusFlags == nil {
+		o.statusFlags = make(map[string]bool)
+	}
+	o.statusFlags[flag] = enabled
+}
+
 // SetAnimation replaces the current sprite animation.
 func (o *BaseObject) SetAnimation(anim *animation.SpriteAnimation) { o.animation = anim }
 
 // GetAnimation returns the current sprite animation (may be nil).
 func (o *BaseObject) GetAnimation() *animation.SpriteAnimation { return o.animation }
+
+// SetAnimationID records which named animation is currently active.
+func (o *BaseObject) SetAnimationID(id string) { o.animationID = id }
+
+// GetAnimationID returns the ID of the current animation (may be empty).
+func (o *BaseObject) GetAnimationID() string { return o.animationID }
+
+func (o *BaseObject) GetHFlip() bool  { return o.hflip }
+func (o *BaseObject) SetHFlip(v bool) { o.hflip = v }
+func (o *BaseObject) GetVFlip() bool  { return o.vflip }
+func (o *BaseObject) SetVFlip(v bool) { o.vflip = v }
 
 func applyGravityComponent(velocity *float64, gravity, acceleration float64) {
 	if gravity == 0 {
@@ -208,6 +268,10 @@ func (o *BaseObject) Act(world interface{}) {
 // Draw renders the object at its world position adjusted for the camera.
 func (o *BaseObject) Draw(screen *ebiten.Image, cam *camera.Camera) {
 	if o.animation != nil {
-		o.animation.DrawWithCamera(screen, o.x, o.y, cam.X, cam.Y)
+		if o.hflip || o.vflip {
+			o.animation.DrawWithCameraFlip(screen, o.x, o.y, cam.X, cam.Y, o.hflip, o.vflip)
+		} else {
+			o.animation.DrawWithCamera(screen, o.x, o.y, cam.X, cam.Y)
+		}
 	}
 }

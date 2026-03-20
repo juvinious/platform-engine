@@ -114,6 +114,49 @@ func (s *Sprite) DrawWithCamera(screen *ebiten.Image, x, y float64, camX, camY f
 	s.Draw(screen, x-camX, y-camY)
 }
 
+// DrawWithCameraFlip renders with camera offset and object-level flip overrides.
+// Object flip XORs with the per-frame animation flip.
+func (s *Sprite) DrawWithCameraFlip(screen *ebiten.Image, x, y float64, camX, camY float64, hflip, vflip bool) {
+	s.drawFlipped(screen, x-camX, y-camY, hflip, vflip)
+}
+
+func (s *Sprite) drawFlipped(screen *ebiten.Image, x, y float64, objHFlip, objVFlip bool) {
+	if len(s.animationDef.Frames) == 0 || len(s.images) == 0 {
+		return
+	}
+
+	frame := s.animationDef.Frames[s.currentFrame]
+	if frame.ImageIndex < 0 || frame.ImageIndex >= len(s.images) {
+		return
+	}
+
+	img := s.images[frame.ImageIndex]
+	if img == nil {
+		return
+	}
+
+	opts := &ebiten.DrawImageOptions{}
+
+	alpha := float32(frame.Alpha) / 255.0
+	opts.ColorScale.Scale(1, 1, 1, alpha)
+
+	// XOR object flip with frame flip
+	hflip := objHFlip != frame.HFlip
+	vflip := objVFlip != frame.VFlip
+
+	if hflip {
+		opts.GeoM.Scale(-1, 1)
+		opts.GeoM.Translate(float64(img.Bounds().Dx()), 0)
+	}
+	if vflip {
+		opts.GeoM.Scale(1, -1)
+		opts.GeoM.Translate(0, float64(img.Bounds().Dy()))
+	}
+
+	opts.GeoM.Translate(x, y)
+	screen.DrawImage(img, opts)
+}
+
 // GetCurrentFrame returns the current frame definition
 func (s *Sprite) GetCurrentFrame() config.FrameDef {
 	if len(s.animationDef.Frames) == 0 {

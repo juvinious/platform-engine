@@ -30,10 +30,25 @@ package object
 
 import (
 	"platformer/internal/camera"
+	"platformer/internal/logger"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	lua "github.com/yuin/gopher-lua"
 )
+
+// LuaPropertySetter is an optional interface implemented by ScriptedObject.
+// It lets Go code push named values into the object's Lua property table so
+// that the behavior script can read them via self:getProperty(key).
+// Supported value types: bool, int, float64, string.
+type LuaPropertySetter interface {
+	SetLuaProperty(key string, val interface{})
+}
+
+// LuaPropertyGetter is an optional interface implemented by ScriptedObject.
+// It lets Go code read named values from the object's Lua property table.
+type LuaPropertyGetter interface {
+	GetLuaProperty(key string) (interface{}, bool)
+}
 
 // ScriptedObject wraps BaseObject with a Lua behavior table.
 type ScriptedObject struct {
@@ -42,6 +57,44 @@ type ScriptedObject struct {
 	scriptTable *lua.LTable            // shared behavior table (one per script type)
 	selfTable   *lua.LTable            // per-instance API table passed as "self"
 	Props       map[string]interface{} // per-instance key/value store for Lua scripts
+	warnedMiss  map[string]bool
+}
+
+// SetLuaProperty writes a value into this object's Lua property table.
+// Values set here are readable in the script via self:getProperty(key).
+func (s *ScriptedObject) SetLuaProperty(key string, val interface{}) {
+	props, ok := s.selfTable.RawGetString("_props").(*lua.LTable)
+	if !ok {
+		return
+	}
+	switch v := val.(type) {
+	case bool:
+		props.RawSetString(key, lua.LBool(v))
+	case int:
+		props.RawSetString(key, lua.LNumber(float64(v)))
+	case float64:
+		props.RawSetString(key, lua.LNumber(v))
+	case string:
+		props.RawSetString(key, lua.LString(v))
+	}
+}
+
+// GetLuaProperty reads a named value from this object's Lua property table.
+// Returns the value and true if the key exists; nil and false otherwise.
+func (s *ScriptedObject) GetLuaProperty(key string) (interface{}, bool) {
+	props, ok := s.selfTable.RawGetString("_props").(*lua.LTable)
+	if !ok {
+		return nil, false
+	}
+	switch val := props.RawGetString(key).(type) {
+	case lua.LBool:
+		return bool(val), true
+	case lua.LNumber:
+		return float64(val), true
+	case lua.LString:
+		return string(val), true
+	}
+	return nil, false
 }
 
 // NewScriptedObject creates a scripted world object.
@@ -53,7 +106,16 @@ func NewScriptedObject(base *BaseObject, L *lua.LState, scriptTable, selfTable *
 		scriptTable: scriptTable,
 		selfTable:   selfTable,
 		Props:       make(map[string]interface{}),
+		warnedMiss:  make(map[string]bool),
 	}
+}
+
+func (s *ScriptedObject) warnMissingCallbackOnce(name string) {
+	if s.warnedMiss[name] {
+		return
+	}
+	s.warnedMiss[name] = true
+	logger.Warn("script callback missing object='%s' function='%s'", s.GetLabel(), name)
 }
 
 // GetSelfTable returns the per-instance Lua self table.
@@ -62,10 +124,10 @@ func (s *ScriptedObject) GetSelfTable() *lua.LTable {
 	return s.selfTable
 }
 
-// Act runs the engine physics step, then calls act(self) in Lua if defined.
+// Act lets Lua update intent/velocity first, then runs the engine physics step.
 func (s *ScriptedObject) Act(world interface{}) {
-	s.BaseObject.Act(world)
 	s.call("act")
+	s.BaseObject.Act(world)
 }
 
 // Draw renders the object (delegates entirely to BaseObject).
@@ -112,11 +174,16 @@ func (s *ScriptedObject) call(name string) {
 	}
 	fn := s.scriptTable.RawGetString(name)
 	if fn.Type() != lua.LTFunction {
+		if name == "onMapCollision" || name == "onObjectCollision" {
+			s.warnMissingCallbackOnce(name)
+		}
 		return
 	}
 	s.L.Push(fn)
 	s.L.Push(s.selfTable)
-	_ = s.L.PCall(1, 0, nil)
+	if err := s.L.PCall(1, 0, nil); err != nil {
+		logger.Error("script callback failed object='%s' function='%s': %v", s.GetLabel(), name, err)
+	}
 }
 
 // callWith invokes name(self, args...) on the script table.
@@ -126,6 +193,9 @@ func (s *ScriptedObject) callWith(name string, args ...lua.LValue) {
 	}
 	fn := s.scriptTable.RawGetString(name)
 	if fn.Type() != lua.LTFunction {
+		if name == "onMapCollision" || name == "onObjectCollision" {
+			s.warnMissingCallbackOnce(name)
+		}
 		return
 	}
 	s.L.Push(fn)
@@ -133,5 +203,7 @@ func (s *ScriptedObject) callWith(name string, args ...lua.LValue) {
 	for _, arg := range args {
 		s.L.Push(arg)
 	}
-	_ = s.L.PCall(1+len(args), 0, nil)
+	if err := s.L.PCall(1+len(args), 0, nil); err != nil {
+		logger.Error("script callback failed object='%s' function='%s': %v", s.GetLabel(), name, err)
+	}
 }

@@ -59,7 +59,12 @@ func (sm *ScriptManager) Close() {
 // and returns the first match. Returns ("", false) if not found.
 func (sm *ScriptManager) FindScript(dataDir, module string, importPaths []string) (string, bool) {
 	for _, ip := range importPaths {
-		candidate := filepath.Join(dataDir, ip, module+".lua")
+		candidate := ""
+		if filepath.IsAbs(ip) {
+			candidate = filepath.Join(ip, module+".lua")
+		} else {
+			candidate = filepath.Join(dataDir, ip, module+".lua")
+		}
 		if _, err := os.Stat(candidate); err == nil {
 			return candidate, true
 		}
@@ -117,8 +122,8 @@ func (sm *ScriptManager) LoadScript(scriptPath string) (*lua.LTable, error) {
 //
 // This table is passed as the first argument ("self") to every Lua callback.
 // See lua_api.go for the full list of available methods.
-func (sm *ScriptManager) NewSelfTable(base *object.BaseObject) *lua.LTable {
-	return newSelfTable(sm.L, base)
+func (sm *ScriptManager) NewSelfTable(base *object.BaseObject, resolveAnim AnimationResolver) *lua.LTable {
+	return newSelfTable(sm.L, base, resolveAnim)
 }
 
 // CallInit calls init(self) on scriptTable if the function is defined.

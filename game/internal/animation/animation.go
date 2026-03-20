@@ -40,6 +40,11 @@ func (sa *SpriteAnimation) DrawWithCamera(screen *ebiten.Image, x, y, camX, camY
 	sa.sprite.DrawWithCamera(screen, x, y, camX, camY)
 }
 
+// DrawWithCameraFlip renders with camera offset and object-level flip overrides.
+func (sa *SpriteAnimation) DrawWithCameraFlip(screen *ebiten.Image, x, y, camX, camY float64, hflip, vflip bool) {
+	sa.sprite.DrawWithCameraFlip(screen, x, y, camX, camY, hflip, vflip)
+}
+
 // GetCurrentFrame returns the current frame
 func (sa *SpriteAnimation) GetCurrentFrame() config.FrameDef {
 	return sa.sprite.GetCurrentFrame()

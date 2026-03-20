@@ -3,14 +3,16 @@ package world
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"math"
+	"os"
+	"path/filepath"
 
 	"platformer/internal/animation"
 	"platformer/internal/assets"
 	"platformer/internal/camera"
 	"platformer/internal/collision"
 	"platformer/internal/config"
+	"platformer/internal/logger"
 	"platformer/internal/object"
 	"platformer/internal/script"
 
@@ -37,6 +39,7 @@ type World struct {
 	assetMgr          *assets.AssetManager
 	scriptMgr         *script.ScriptManager
 	scriptImportPaths []string
+	warnedCollisions  map[string]bool
 }
 
 type LayerTile struct {
@@ -119,6 +122,7 @@ func NewWorld() (*World, error) {
 		assetMgr:          assets.NewAssetManager(),
 		scriptMgr:         script.NewScriptManager(),
 		scriptImportPaths: []string{},
+		warnedCollisions:  make(map[string]bool),
 	}
 
 	return w, nil
@@ -126,6 +130,26 @@ func NewWorld() (*World, error) {
 
 // NewWorldFromDef creates a world from a YAML definition
 func NewWorldFromDef(def *config.WorldDef, dataDir string) (*World, error) {
+	logger.Info(
+		"initializing world '%s' size=%dx%d gravity=(%.2f, %.2f) acceleration=%.3f",
+		def.World.Name,
+		def.World.Dimensions.Width,
+		def.World.Dimensions.Height,
+		def.World.Mechanics.Gravity.X,
+		def.World.Mechanics.Gravity.Y,
+		def.World.Mechanics.Acceleration,
+	)
+	logger.Info(
+		"initializing assets: animations=%d objectScripts=%d importPaths=%d backgrounds=%d foregrounds=%d objects=%d collisionAreas=%d",
+		len(def.World.Animations),
+		len(def.World.ObjectScripts),
+		len(def.World.ScriptImportPaths),
+		len(def.World.Backgrounds),
+		len(def.World.Foregrounds),
+		len(def.World.Objects),
+		len(def.World.CollisionMap.Areas),
+	)
+
 	w := &World{
 		name:              def.World.Name,
 		width:             def.World.Dimensions.Width,
@@ -143,33 +167,50 @@ func NewWorldFromDef(def *config.WorldDef, dataDir string) (*World, error) {
 		assetMgr:          assets.NewAssetManager(dataDir),
 		scriptMgr:         script.NewScriptManager(),
 		scriptImportPaths: def.World.ScriptImportPaths,
+		warnedCollisions:  make(map[string]bool),
 	}
 
-	// Create camera from first camera definition
-	if len(def.World.Cameras) > 0 {
-		cam := def.World.Cameras[0]
-		w.camera = camera.NewCamera(
-			int(cam.Viewport.Width),
-			int(cam.Viewport.Height),
-			cam.Dimensions.Width,
-			cam.Dimensions.Height,
-		)
-		w.camera.SetPosition(cam.Start.X, cam.Start.Y)
-		w.camera.Speed = cam.Speed
-		w.camera.Variance = cam.FollowVariance
-		w.camera.SmoothScrolling = cam.SmoothScrolling
-	} else {
-		w.camera = camera.NewCamera(
-			def.World.Resolution.Width,
-			def.World.Resolution.Height,
-			w.width,
-			w.height,
-		)
-	}
+	// Create camera from canonical mechanics.camera definition.
+	cam := def.World.Mechanics.Camera
+	w.camera = camera.NewCamera(
+		int(cam.Viewport.Width),
+		int(cam.Viewport.Height),
+		cam.Dimensions.Width,
+		cam.Dimensions.Height,
+	)
+	w.camera.SetPosition(cam.Start.X, cam.Start.Y)
+	w.camera.Speed = cam.Speed
+	w.camera.Variance = cam.FollowVariance
+	w.camera.SmoothScrolling = cam.SmoothScrolling
 
 	// Store animation definitions for later use
 	for _, anim := range def.World.Animations {
-		w.animationDefs[anim.ID] = anim
+		w.animationDefs[anim.ID] = w.resolveAnimationDefBaseDir(anim)
+	}
+
+	// Load and register animations from objectScript animationFile references.
+	// This allows each object definition to point to its own animations.yaml
+	// without requiring a separate resourceSources entry.
+	for i := range def.World.ObjectScripts {
+		sd := &def.World.ObjectScripts[i]
+		if sd.AnimationFile == "" {
+			continue
+		}
+		animPath := sd.AnimationFile
+		if !filepath.IsAbs(animPath) {
+			if sd.SourceDir != "" {
+				animPath = filepath.Join(sd.SourceDir, animPath)
+			} else {
+				animPath = filepath.Join(w.assetMgr.DataDir(), animPath)
+			}
+		}
+		anims, err := config.ParseAnimationFile(animPath)
+		if err != nil {
+			return nil, fmt.Errorf("object '%s': %w", sd.ID, err)
+		}
+		for _, anim := range anims {
+			w.animationDefs[anim.ID] = w.resolveAnimationDefBaseDir(anim)
+		}
 	}
 
 	// Store object script definitions for later use
@@ -193,54 +234,21 @@ func NewWorldFromDef(def *config.WorldDef, dataDir string) (*World, error) {
 		if err := w.populateWorldObjects(def.World.Objects, def.World.Backgrounds, def.World.Foregrounds); err != nil {
 			return nil, fmt.Errorf("failed to populate world objects: %w", err)
 		}
-	} else {
-		// Fallback to test objects for demonstration
-		if err := w.populateTestWorld(); err != nil {
-			return nil, fmt.Errorf("failed to populate test world: %w", err)
-		}
 	}
+
+	logger.Info(
+		"world initialization complete: objects=%d backgrounds=%d foregrounds=%d collisions=%d",
+		len(w.objects),
+		len(w.backgrounds),
+		len(w.foregrounds),
+		len(w.collisionMap),
+	)
 
 	return w, nil
 }
 
-// populateTestWorld adds test objects to the world for rendering demo
-func (w *World) populateTestWorld() error {
-	// Add background layers
-	w.populateLegacyBackgrounds()
-
-	// Add static tiles
-	staticTiles := []string{"block", "brick", "question"}
-	tileX := 50.0
-	tileY := 200.0
-
-	for i, tileName := range staticTiles {
-		obj, err := w.CreateTestObject(tileName, tileX+float64(i*20), tileY)
-		if err != nil {
-			// Skip if animation not found
-			continue
-		}
-		w.AddObject(obj)
-	}
-
-	// Add enemy sprites for animation testing
-	if obj, err := w.CreateTestObject("goomba", 200, 200); err == nil {
-		w.AddObject(obj)
-	}
-
-	if obj, err := w.CreateTestObject("turtle", 300, 200); err == nil {
-		w.AddObject(obj)
-	}
-
-	return nil
-}
-
 // populateBackgrounds creates scenic layers with parallax
 func (w *World) populateBackgrounds(defs []config.BackgroundDef) {
-	if len(defs) == 0 {
-		w.populateLegacyBackgrounds()
-		return
-	}
-
 	for _, def := range defs {
 		layer := Background{
 			scrollX: def.ScrollX,
@@ -270,7 +278,7 @@ func (w *World) populateBackgrounds(defs []config.BackgroundDef) {
 
 					newAnim, err := animation.NewSpriteAnimation(animDef, w.assetMgr)
 					if err != nil {
-						log.Printf("Skipping background tile animation '%s': %v", tile.Animation, err)
+						logger.Warn("skipping background tile animation '%s': %v", tile.Animation, err)
 						continue
 					}
 					anim = newAnim
@@ -286,34 +294,6 @@ func (w *World) populateBackgrounds(defs []config.BackgroundDef) {
 
 		if layer.animation != nil || len(layer.tiles) > 0 {
 			w.backgrounds = append(w.backgrounds, layer)
-		}
-	}
-}
-
-func (w *World) populateLegacyBackgrounds() {
-	// Background layer order (bottom to top): clouds, mountains, hills
-	backgroundLayers := []struct {
-		animID  string
-		scrollX float64
-		scrollY float64
-	}{
-		{"clouds", 0.3, 0.3},    // Very slow parallax
-		{"mountains", 0.5, 0.5}, // Slow parallax
-		{"hills", 0.7, 0.7},     // Medium parallax
-	}
-
-	for _, layer := range backgroundLayers {
-		if animDef, ok := w.animationDefs[layer.animID]; ok {
-			anim, err := animation.NewSpriteAnimation(animDef, w.assetMgr)
-			if err == nil {
-				w.backgrounds = append(w.backgrounds, Background{
-					animation:      anim,
-					tileAnimations: make([]*animation.SpriteAnimation, 0),
-					tiles:          make([]LayerTile, 0),
-					scrollX:        layer.scrollX,
-					scrollY:        layer.scrollY,
-				})
-			}
 		}
 	}
 }
@@ -349,7 +329,7 @@ func (w *World) populateForegrounds(defs []config.ForegroundDef) {
 
 					newAnim, err := animation.NewSpriteAnimation(animDef, w.assetMgr)
 					if err != nil {
-						log.Printf("Skipping foreground tile animation '%s': %v", tile.Animation, err)
+						logger.Warn("skipping foreground tile animation '%s': %v", tile.Animation, err)
 						continue
 					}
 					anim = newAnim
@@ -382,9 +362,38 @@ func (w *World) CreateObjectFromScript(scriptDef config.ObjectScriptDef, x, y fl
 	if animDef.ID == "" && len(scriptDef.Animations) > 0 {
 		animDef = scriptDef.Animations[0]
 	}
+
+	// When animationFile is set but no explicit animation.id, use the first
+	// animation registered from that file.
+	if animDef.ID == "" && scriptDef.AnimationFile != "" {
+		animPath := scriptDef.AnimationFile
+		if !filepath.IsAbs(animPath) {
+			if scriptDef.SourceDir != "" {
+				animPath = filepath.Join(scriptDef.SourceDir, animPath)
+			} else {
+				animPath = filepath.Join(w.assetMgr.DataDir(), animPath)
+			}
+		}
+		anims, err := config.ParseAnimationFile(animPath)
+		if err == nil && len(anims) > 0 {
+			animDef = anims[0]
+		}
+	}
+
 	if animDef.ID == "" {
 		return nil, fmt.Errorf("object script '%s' has no animation definition", scriptDef.ID)
 	}
+
+	// If the inline animation has only an ID (no images), look it up from the
+	// world's animation registry — this allows objectScripts to reference
+	// animations defined in a separate animations.yaml.
+	if len(animDef.Images) == 0 {
+		if registered, ok := w.animationDefs[animDef.ID]; ok {
+			animDef = registered
+		}
+	}
+
+	animDef = w.resolveAnimationDefBaseDir(animDef)
 
 	// Create the animation for this object
 	anim, err := animation.NewSpriteAnimation(animDef, w.assetMgr)
@@ -392,43 +401,52 @@ func (w *World) CreateObjectFromScript(scriptDef config.ObjectScriptDef, x, y fl
 		return nil, fmt.Errorf("failed to create animation for object '%s': %w", scriptDef.ID, err)
 	}
 
-	// Set the animation
+	// Set the animation and track its ID
 	base.SetAnimation(anim)
+	base.SetAnimationID(animDef.ID)
 
-	// Seed size + collision box from first frame
-	if len(animDef.Frames) > 0 && len(animDef.Frames[0].Collisions) > 0 {
-		cb := animDef.Frames[0].Collisions[0]
-		base.SetSize(cb.Width, cb.Height)
-		base.GetCollision().AddBox(cb.X, cb.Y, cb.Width, cb.Height)
+	// Seed size + collision box from object dimensions
+	if scriptDef.Dimensions.Width > 0 && scriptDef.Dimensions.Height > 0 {
+		base.SetBaseDimensions(scriptDef.Dimensions.Width, scriptDef.Dimensions.Height)
+		base.SetSize(scriptDef.Dimensions.Width, scriptDef.Dimensions.Height)
+		base.GetCollision().AddBox(0, 0, scriptDef.Dimensions.Width, scriptDef.Dimensions.Height)
 	}
 
 	if scriptDef.PhysicsType != "" {
 		base.SetPhysicsType(scriptDef.PhysicsType)
 	}
 
-	if scriptDef.Module == "" {
+	if scriptDef.Module == "" && scriptDef.ScriptFile == "" {
 		return base, nil
 	}
 
-	scriptPath, found := w.scriptMgr.FindScript(
-		w.assetMgr.DataDir(), scriptDef.Module, w.scriptImportPaths,
-	)
+	scriptPath, found := w.resolveScriptPath(scriptDef)
 	if !found {
+		logger.Warn(
+			"script fallback to unscripted object id='%s': script module='%s' scriptFile='%s' could not be resolved",
+			scriptDef.ID,
+			scriptDef.Module,
+			scriptDef.ScriptFile,
+		)
 		return base, nil
 	}
 
 	scriptTable, err := w.scriptMgr.LoadScript(scriptPath)
 	if err != nil {
-		log.Printf("Script '%s' failed for object '%s'; running without behavior: %v",
+		logger.Warn("script '%s' failed for object '%s'; running without behavior: %v",
 			scriptDef.Module, scriptDef.ID, err)
 		return base, nil
 	}
 
-	selfTable := w.scriptMgr.NewSelfTable(base)
+	// Build an animation resolver from the world's animation registry so
+	// Lua scripts can switch animations at runtime via self:setAnimation(id).
+	resolveAnim := w.buildAnimationResolver()
+
+	selfTable := w.scriptMgr.NewSelfTable(base, resolveAnim)
 	so := object.NewScriptedObject(base, w.scriptMgr.L, scriptTable, selfTable)
 
 	if err := w.scriptMgr.CallInit(scriptTable, selfTable); err != nil {
-		log.Printf("init() error for object '%s': %v", scriptDef.ID, err)
+		logger.Warn("init() error for object '%s': %v", scriptDef.ID, err)
 	}
 
 	// If no collision boxes were seeded from frame data, fall back to the object's
@@ -442,6 +460,59 @@ func (w *World) CreateObjectFromScript(scriptDef config.ObjectScriptDef, x, y fl
 	}
 
 	return so, nil
+}
+
+// buildAnimationResolver returns a function that creates a SpriteAnimation
+// from the world's animation registry by ID. Lua scripts use this via
+// self:setAnimation(id) to switch animations at runtime.
+func (w *World) buildAnimationResolver() script.AnimationResolver {
+	return func(id string) *script.AnimationResolveResult {
+		def, ok := w.animationDefs[id]
+		if !ok {
+			return nil
+		}
+		anim, err := animation.NewSpriteAnimation(def, w.assetMgr)
+		if err != nil {
+			logger.Warn("failed to resolve animation '%s': %v", id, err)
+			return nil
+		}
+		result := &script.AnimationResolveResult{Animation: anim}
+		if len(def.Frames) > 0 && len(def.Frames[0].Collisions) > 0 {
+			cb := def.Frames[0].Collisions[0]
+			result.Width = cb.Width
+			result.Height = cb.Height
+		}
+		return result
+	}
+}
+
+func (w *World) resolveAnimationDefBaseDir(def config.AnimationDef) config.AnimationDef {
+	if def.BaseDir == "" || filepath.IsAbs(def.BaseDir) || def.SourceDir == "" {
+		return def
+	}
+	candidate := filepath.Clean(filepath.Join(def.SourceDir, def.BaseDir))
+	if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+		def.BaseDir = candidate + string(filepath.Separator)
+	}
+	return def
+}
+
+func (w *World) resolveScriptPath(scriptDef config.ObjectScriptDef) (string, bool) {
+	if scriptDef.ScriptFile != "" {
+		candidate := scriptDef.ScriptFile
+		if !filepath.IsAbs(candidate) {
+			if scriptDef.SourceDir != "" {
+				candidate = filepath.Join(scriptDef.SourceDir, candidate)
+			} else {
+				candidate = filepath.Join(w.assetMgr.DataDir(), candidate)
+			}
+		}
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, true
+		}
+	}
+
+	return w.scriptMgr.FindScript(w.assetMgr.DataDir(), scriptDef.Module, w.scriptImportPaths)
 }
 
 // populateWorldObjects creates and places all objects from the world definition
@@ -463,30 +534,14 @@ func (w *World) populateWorldObjects(objDefs []config.ObjectDef, bgDefs []config
 		// Create object from script definition
 		obj, err := w.CreateObjectFromScript(scriptDef, objDef.Position.X, objDef.Position.Y)
 		if err != nil {
-			log.Printf("Skipping object '%s' at (%.1f, %.1f): %v", objDef.Script, objDef.Position.X, objDef.Position.Y, err)
+			logger.Warn("skipping object '%s' at (%.1f, %.1f): %v", objDef.Script, objDef.Position.X, objDef.Position.Y, err)
 			// Skip objects that can't be created
 			continue
 		}
 		w.AddObject(obj)
+		logger.Debug("initialized object '%s' at (%.1f, %.1f)", objDef.Script, objDef.Position.X, objDef.Position.Y)
 	}
 	return nil
-}
-
-// mapTypeToAnimation maps object type names to animation IDs
-func (w *World) mapTypeToAnimation(objType string) string {
-	// Simple mapping from object type to animation ID
-	animMap := map[string]string{
-		"goomba":                   "goomba",
-		"turtle":                   "turtle",
-		"brick":                    "brick",
-		"question-block":           "question",
-		"invisible-question-block": "question",
-	}
-
-	if animID, ok := animMap[objType]; ok {
-		return animID
-	}
-	return objType // fallback to using type as animation ID
 }
 
 // Update updates the world state
@@ -505,12 +560,17 @@ func (w *World) Update() {
 	// Update all objects
 	for i, obj := range w.objects {
 		previousPositions[i].x, previousPositions[i].y = obj.GetPosition()
-		obj.ResetContactState()
 		obj.Act(w)
+	}
+
+	for _, obj := range w.objects {
+		obj.ResetContactState()
 	}
 
 	w.resolveMapCollisions(previousPositions)
 	w.resolveObjectCollisions(previousPositions)
+	w.resolveMapCollisions(previousPositions)
+	w.finalizeObjectStates()
 
 	for _, fg := range w.foregrounds {
 		if fg.animation != nil {
@@ -523,6 +583,71 @@ func (w *World) Update() {
 
 	// Update camera
 	w.camera.Update()
+}
+
+// finalizeObjectStates applies simple movement-state heuristics for non-scripted
+// objects after collision resolution. Scripted objects own their state entirely
+// via Lua — the engine does not override them.
+func (w *World) finalizeObjectStates() {
+	for _, obj := range w.objects {
+		// Scripted objects own their state transitions via Lua.
+		if _, scripted := obj.(object.LuaPropertyGetter); scripted {
+			continue
+		}
+
+		// Simple heuristic fallback for non-scripted objects.
+		vx := obj.GetPhysics().VelocityX
+		vy := obj.GetPhysics().VelocityY
+
+		if obj.IsGrounded() {
+			if math.Abs(vx) < 0.01 {
+				obj.SetMovementState("standing")
+			} else {
+				obj.SetMovementState("walking")
+			}
+			continue
+		}
+
+		if vy < 0 {
+			obj.SetMovementState("jumping")
+		} else {
+			obj.SetMovementState("falling")
+		}
+	}
+}
+
+func (w *World) warnCollisionIssueOnce(obj object.Object, issue string, format string, args ...interface{}) {
+	key := fmt.Sprintf("%p:%s", obj, issue)
+	if w.warnedCollisions[key] {
+		return
+	}
+	w.warnedCollisions[key] = true
+	logger.Warn(format, args...)
+}
+
+func (w *World) resolveGroundSpawnY(x, objHeight float64) (float64, bool) {
+	if objHeight <= 0 {
+		objHeight = 16
+	}
+
+	footX := x + 8
+	bestY := 0.0
+	found := false
+
+	for _, area := range w.collisionMap {
+		if footX >= area.x && footX <= area.x+area.width {
+			if !found || area.y < bestY {
+				bestY = area.y
+				found = true
+			}
+		}
+	}
+
+	if !found {
+		return 0, false
+	}
+
+	return bestY - objHeight, true
 }
 
 func (w *World) resolveMapCollisions(previousPositions []objectPosition) {
@@ -558,6 +683,8 @@ func (w *World) resolveMapCollisions(previousPositions []objectPosition) {
 			obj.MergeContactStateFromSides(sides)
 			if notifier, ok := obj.(mapCollisionNotifier); ok {
 				notifier.NotifyMapCollision(sides)
+			} else {
+				w.warnCollisionIssueOnce(obj, "map-collision-unhandled", "map collision for object '%s' had no handler", obj.GetLabel())
 			}
 		}
 	}
@@ -635,9 +762,13 @@ func (w *World) resolveObjectCollisions(previousPositions []objectPosition) {
 
 			if notifier, ok := objA.(objectCollisionNotifier); ok && sidesA.any() {
 				notifier.NotifyObjectCollision(objB, sidesA)
+			} else if sidesA.any() {
+				w.warnCollisionIssueOnce(objA, "object-collision-unhandled", "object collision '%s' -> '%s' had no handler on initiator", objA.GetLabel(), objB.GetLabel())
 			}
 			if notifier, ok := objB.(objectCollisionNotifier); ok && sidesB.any() {
 				notifier.NotifyObjectCollision(objA, sidesB)
+			} else if sidesB.any() {
+				w.warnCollisionIssueOnce(objB, "object-collision-unhandled", "object collision '%s' -> '%s' had no handler on initiator", objB.GetLabel(), objA.GetLabel())
 			}
 		}
 	}
@@ -964,26 +1095,6 @@ func (w *World) GetAnimationDef(id string) (config.AnimationDef, bool) {
 	return def, ok
 }
 
-// CreateTestObject creates a test sprite object for demonstration
-func (w *World) CreateTestObject(animID string, x, y float64) (object.Object, error) {
-	animDef, ok := w.animationDefs[animID]
-	if !ok {
-		return nil, fmt.Errorf("animation '%s' not found", animID)
-	}
-
-	anim, err := animation.NewSpriteAnimation(animDef, w.assetMgr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create animation: %w", err)
-	}
-
-	obj := object.NewBaseObject()
-	obj.SetPosition(x, y)
-	obj.SetLabel(animID)
-	obj.SetAnimation(anim)
-
-	return obj, nil
-}
-
 // CreatePlayerStub creates a temporary controllable player object.
 //
 // It first prefers YAML object script IDs intended for player control
@@ -993,14 +1104,30 @@ func (w *World) CreateTestObject(animID string, x, y float64) (object.Object, er
 func (w *World) CreatePlayerStub(x, y float64) (object.Object, error) {
 	for _, id := range []string{"mario-stub", "player-stub"} {
 		if scriptDef, ok := w.objectScripts[id]; ok {
+			logger.Info("player stub candidate '%s' found; creating player object", id)
 			obj, err := w.CreateObjectFromScript(scriptDef, x, y)
 			if err != nil {
+				logger.Warn("player stub candidate '%s' failed: %v", id, err)
 				return nil, err
 			}
 			obj.SetLabel("player-stub")
+			_, h := obj.GetSize()
+			if spawnY, ok := w.resolveGroundSpawnY(x, h); ok {
+				obj.SetPosition(x, spawnY)
+				logger.Info("player stub spawn adjusted to ground y=%.1f at x=%.1f", spawnY, x)
+			} else {
+				logger.Warn("player stub ground snap unavailable at x=%.1f; using configured y=%.1f", x, y)
+			}
+			if _, scripted := obj.(object.LuaPropertyGetter); scripted {
+				logger.Info("player stub initialized from '%s' with Lua behavior", id)
+			} else {
+				logger.Warn("player stub '%s' fell back to unscripted object", id)
+			}
 			return obj, nil
 		}
 	}
+
+	logger.Warn("no dedicated player stub found (mario-stub/player-stub); trying goomba/turtle fallback")
 
 	var scriptDef config.ObjectScriptDef
 	var found bool
@@ -1009,6 +1136,7 @@ func (w *World) CreatePlayerStub(x, y float64) (object.Object, error) {
 		if def, ok := w.objectScripts[id]; ok {
 			scriptDef = def
 			found = true
+			logger.Warn("using fallback '%s' definition as player stub", id)
 			break
 		}
 	}
@@ -1035,6 +1163,7 @@ func (w *World) CreatePlayerStub(x, y float64) (object.Object, error) {
 	base.SetLabel("player-stub")
 	base.SetAnimation(anim)
 	base.SetPhysicsType(object.PhysicsTypeDynamic)
+	logger.Warn("player stub running unscripted fallback animation '%s'", animDef.ID)
 
 	// Prefer explicit frame collision data; fall back to animation dimensions.
 	if len(animDef.Frames) > 0 && len(animDef.Frames[0].Collisions) > 0 {
@@ -1049,6 +1178,14 @@ func (w *World) CreatePlayerStub(x, y float64) (object.Object, error) {
 			base.SetSize(w, h)
 		}
 		base.GetCollision().AddBox(0, 0, w, h)
+	}
+
+	_, h := base.GetSize()
+	if spawnY, ok := w.resolveGroundSpawnY(x, h); ok {
+		base.SetPosition(x, spawnY)
+		logger.Info("fallback player stub spawn adjusted to ground y=%.1f at x=%.1f", spawnY, x)
+	} else {
+		logger.Warn("fallback player stub ground snap unavailable at x=%.1f; using configured y=%.1f", x, y)
 	}
 
 	return base, nil

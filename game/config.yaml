@@ -14,6 +14,15 @@ game:
     maxFallSpeed: 10.0
     tileSize: 16
     debug: true
+    quiet: false
+    # Debug level (verbose=3, error=2, warning=1, info=0)
+    # verbose=3: debug/info/warn/error to console only (no file writes)
+    # info=0: info/warn/error (info+warn -> game.log, error -> error.log)
+    # info is always printed to console unless quiet=true
+    # quiet=true disables console output and writes to log files only
+    debugLevel: 3
+    logFile: "game.log" # info and warning only
+    errorLog: "error.log" # error only
   
   # Video settings
   video:

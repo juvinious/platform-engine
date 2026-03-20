@@ -3,8 +3,10 @@ package game
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"platformer/internal/config"
+	"platformer/internal/logger"
 	"platformer/internal/object"
 	"platformer/internal/world"
 
@@ -32,6 +34,7 @@ type Game struct {
 	displayHeight int
 	scaleX        float64
 	scaleY        float64
+	inputCfg      config.PlayerInputConfig
 }
 
 // NewGame creates a new game instance from the system config.yaml.
@@ -42,6 +45,18 @@ func NewGame(configPath string) (*Game, *VideoSettings, error) {
 		return nil, nil, fmt.Errorf("failed to load game config: %w", err)
 	}
 
+	if err := logger.Init(
+		gameDef.Game.Settings.Debug,
+		gameDef.Game.Settings.Quiet,
+		gameDef.Game.Settings.DebugLevel,
+		gameDef.Game.Settings.LogFile,
+		gameDef.Game.Settings.ErrorLog,
+		filepath.Dir(configPath),
+	); err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize logger: %w", err)
+	}
+	logger.Info("loaded game config: %s", configPath)
+
 	baseDir := gameDef.Game.Data.BaseDir
 	if baseDir == "" {
 		baseDir = "data"
@@ -49,11 +64,14 @@ func NewGame(configPath string) (*Game, *VideoSettings, error) {
 	worldPath := baseDir + "/" + gameDef.Game.Data.DefaultWorld
 	worldDef, err := parser.ParseWorld(worldPath)
 	if err != nil {
+		logger.Error("failed to parse world config %s: %v", worldPath, err)
 		return nil, nil, fmt.Errorf("failed to load world config: %w", err)
 	}
+	logger.Info("loaded world config: %s", worldPath)
 
 	w, err := world.NewWorldFromDef(worldDef, baseDir)
 	if err != nil {
+		logger.Error("failed to create world from %s: %v", worldPath, err)
 		return nil, nil, fmt.Errorf("failed to create world: %w", err)
 	}
 
@@ -62,6 +80,9 @@ func NewGame(configPath string) (*Game, *VideoSettings, error) {
 	playerStub, err := w.CreatePlayerStub(camStart.X, camStart.Y)
 	if err == nil {
 		w.AddObject(playerStub)
+		logger.Info("created player stub at x=%.1f y=%.1f", camStart.X, camStart.Y)
+	} else {
+		logger.Warn("failed to create player stub: %v", err)
 	}
 
 	vid := &gameDef.Game.Video
@@ -100,6 +121,7 @@ func NewGame(configPath string) (*Game, *VideoSettings, error) {
 			displayHeight: displayH,
 			scaleX:        float64(displayW) / float64(nativeW),
 			scaleY:        float64(displayH) / float64(nativeH),
+			inputCfg:      gameDef.Game.Input.Player1,
 		}, &VideoSettings{
 			WindowWidth:  displayW,
 			WindowHeight: displayH,
@@ -116,70 +138,32 @@ func (g *Game) Update() error {
 	}
 	g.handleInput()
 	g.world.Update()
+	g.followPlayer()
 	return nil
 }
 
-// handleInput processes keyboard input for camera movement
+// handleInput processes keyboard input
 func (g *Game) handleInput() {
 	g.handlePlayerInput()
-	g.handleCameraInput()
 }
 
-// handlePlayerInput maps P1 controls to the temporary player stub.
-func (g *Game) handlePlayerInput() {
+// followPlayer centers the camera on the player after the world has updated.
+func (g *Game) followPlayer() {
 	if g.player == nil {
 		return
 	}
-
-	phys := g.player.GetPhysics()
-	moveSpeed := 1.8
-	jumpSpeed := -4.5
-
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		phys.VelocityX = -moveSpeed
-	} else if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		phys.VelocityX = moveSpeed
-	} else {
-		phys.VelocityX = 0
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyZ) && g.player.IsGrounded() {
-		phys.VelocityY = jumpSpeed
-	}
-}
-
-// handleCameraInput maps P2 controls to manual camera movement.
-func (g *Game) handleCameraInput() {
+	px, _ := g.player.GetPosition()
+	pw, _ := g.player.GetSize()
 	cam := g.world.GetCamera()
-	moveSpeed := 2.0
-
-	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		cam.X -= moveSpeed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		cam.X += moveSpeed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		cam.Y -= moveSpeed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		cam.Y += moveSpeed
-	}
-
-	if cam.X < 0 {
-		cam.X = 0
+	targetX := px + pw/2 - float64(cam.ViewportWidth)/2
+	if targetX < 0 {
+		targetX = 0
 	}
 	maxX := float64(cam.WorldWidth - cam.ViewportWidth)
-	if cam.X > maxX {
-		cam.X = maxX
+	if targetX > maxX {
+		targetX = maxX
 	}
-	if cam.Y < 0 {
-		cam.Y = 0
-	}
-	maxY := float64(cam.WorldHeight - cam.ViewportHeight)
-	if cam.Y > maxY {
-		cam.Y = maxY
-	}
+	cam.X = targetX
 }
 
 // Draw renders the game
